@@ -6,3 +6,8 @@ out/
 *.iml
 .vscode/
 *.log
+
+# unrelated media assets, not part of the project
+*.gif
+*.mp4
+icon.png
