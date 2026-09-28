@@ -201,3 +201,55 @@ are not yet present.
 5. Expanded Velocity capability, including network wide alert delivery and server
    switching awareness.
 6. Automatic punishments, only once the detection system is further validated.
+
+## v1.0.1 additions
+
+### Combat environment
+
+Before checks run, the platform edge builds an immutable `CombatEnvironment` per player per
+tick. It holds the nearby entities with their server side bounding boxes, eye position,
+game mode, vehicle attachment and air state. Checks never ask the platform for a Bukkit
+entity from the check thread. The only platform call in the hot path is the entity feed on
+the main thread.
+
+`ReachResolver` derives the legal reach from that environment: 3.0 in survival, 5.0 in
+creative, 5.0 in a vehicle, or 8.0 in a vehicle while attacking. Eye height is crouch
+aware. The target box gets a small vertical padding so a player standing on a slab is not
+flagged. Line of sight is sampled along the segment from eye to the nearest point on the
+target box.
+
+Reach prefers this resolved distance. It falls back to the client supplied cursor only when
+the target is unknown to the server, and records which basis produced the measurement in
+the evidence so a later report is never ambiguous.
+
+### Confidence
+
+`ConfidenceModel` accumulates weighted signals from independent checks, retains the peak
+over a bounded window, and decays each tick. Contributions are clamped and the total is
+clamped. A single weak signal can therefore never trigger prevention, but several
+independent signals can contribute to one decision.
+
+### Enforcement
+
+`EnforcementService` maps a confidence level onto an `EnforcementType`: flag only, then
+setback, then position synchronisation, then attack, placement, break and interaction
+cancellation. The type is chosen by thresholds, not by an individual check, so one check
+cannot escalate on its own. Every count is tracked per type for reporting.
+
+Prevention can be disabled globally. Disabling it never suppresses flagging, alerting,
+logging or evidence recording, because those are independent paths.
+
+### Obfuscation
+
+`BlockObfuscator` decides per block whether to send the real state or a decoy, from an
+`ObfuscationPolicy` describing the hidden vertical band, the modes (`NONE`, `HIDDEN_ORES`,
+`ALL_ORES`, `DEEPSLATE`) and whether containers are hidden. `OreClassifier` maps material
+names to a value tier and a class (`DECORATIVE`, `ORES`, `MINERALS`, `ANCIENT_DEBRIS`),
+which is what lets the mining analyser reason about worth rather than hardness alone.
+
+### Compatibility
+
+Bedrock clients are identified reflectively through the Floodgate API, so there is no
+compile or runtime dependency on it. Legacy protocols below 1.8 are exempted because they
+use different movement semantics. Movement checks stop below a configurable floor so a
+player falling forever in a void generator world cannot accumulate unbounded air time.

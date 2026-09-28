@@ -14,3 +14,5 @@ icon.png
 
 # the README header animation is part of the project
 !docs/header.gif
+web/node_modules
+web/dist

@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.0-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.0.1-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server, and it ships no automatic
 bans on purpose. See [Known limitations](#known-limitations).
 
@@ -163,7 +163,7 @@ added once the detection system has been validated further in production.
 
 ## Checks
 
-23 checks, all enabled by default.
+31 checks, all enabled by default.
 
 **Movement**: `fly`, `speed`, `nofall`, `airmovement`, `groundspoof`, `step`, `highjump`,
 `longjump`, `impossiblemovement`, `velocity`
@@ -218,7 +218,7 @@ snuffac/
 ├── snuffac-core/                platform neutral detection engine
 │   ├── alert/                   alert formatting and delivery
 │   ├── check/                   check API, registry, dispatcher
-│   │   └── impl/                the 23 checks, by category
+│   │   └── impl/                the 31 checks, by category
 │   ├── config/                  configuration model and loader SPI
 │   ├── log/                     logging abstraction and file violation log
 │   ├── packet/                  normalised packet model, no platform types
@@ -249,7 +249,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/velocity-v1.0.0-dev.jar
+snuffac-1.21.x+paper/purpur/velocity-v1.0.1-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so
