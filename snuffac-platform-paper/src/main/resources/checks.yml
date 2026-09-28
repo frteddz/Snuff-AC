@@ -81,6 +81,33 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Movement packets with impossible coordinates, deltas or rotations.
+    groundflag:
+      enabled: true
+      buffer-threshold: 20.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 14.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Ground claimed while the server sees no supporting block.
+    pitchlock:
+      enabled: true
+      buffer-threshold: 20.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 10.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Pitch pinned to an exact cheat module constant.
+    drift:
+      enabled: true
+      buffer-threshold: 24.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 12.0
+      alert-threshold: 5.0
+      action: ALERT
+      description: Sustained constant per tick offset between prediction and client.
     velocity:
       enabled: true
       buffer-threshold: 20.0
@@ -137,6 +164,24 @@ checks:
       alert-threshold: 4.0
       action: ALERT
       description: Attack rate beyond the client limit.
+    critical:
+      enabled: true
+      buffer-threshold: 20.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 12.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Forced criticals from extra movement packets before an attack.
+    rotationsnapback:
+      enabled: true
+      buffer-threshold: 22.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 12.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Aim rotation and reverse snap back bracketing an attack.
     invalidattackstate:
       enabled: true
       buffer-threshold: 20.0
@@ -175,6 +220,15 @@ checks:
       alert-threshold: 5.0
       action: ALERT
       description: Air scaffold tower placement pattern.
+    miningbeyondview:
+      enabled: true
+      buffer-threshold: 20.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Valuable ore targeted outside the region ever sent to the client.
     nuker:
       enabled: true
       buffer-threshold: 20.0
@@ -204,6 +258,24 @@ checks:
       alert-threshold: 4.0
       action: ALERT
       description: Packet flood beyond legitimate play.
+    extrapackets:
+      enabled: true
+      buffer-threshold: 16.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 10.0
+      alert-threshold: 3.0
+      action: ALERT
+      description: More than one position packet per server tick.
+    packetrate:
+      enabled: true
+      buffer-threshold: 22.0
+      buffer-decay: 0.5
+      violation-increment: 1.0
+      setback-threshold: 10.0
+      alert-threshold: 4.0
+      action: ALERT
+      description: Sustained deviation of movement packet rate from server tick rate.
     timer:
       enabled: true
       buffer-threshold: 20.0

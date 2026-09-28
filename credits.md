@@ -347,3 +347,158 @@ actually behave. Every line of Snuff AC source was written for this project.
 The four projects with no licence (VulcanLite, ThotPatrol, Daedalus, Reflex) and the one
 that is no longer available (Hades) contributed nothing, because no permission to reuse
 their work exists.
+
+---
+
+# Cheat client research
+
+In the v1.0.1 development phase, Snuff AC's own source code was studied in order to
+understand what cheating actually does to the wire, and what evidence that leaves on a
+server. This is defensive research. No cheat client source code, comments, identifiers,
+configuration, strings or implementation structure were copied into Snuff AC. Every Snuff
+AC system that resulted from this research was written from scratch.
+
+## Licences of the researched cheat clients
+
+| Project | Repository | Licence | Read? |
+| --- | --- | --- | --- |
+| LiquidBounce | https://github.com/CCBlueX/LiquidBounce | GPL-3.0 | yes |
+| Wurst | https://github.com/Wurst-Imperium/Wurst7 | GPL-3.0 | yes |
+| Meteor Client | https://github.com/MeteorDevelopment/meteor-client | GPL-3.0 | yes |
+| Lambda | https://github.com/lambda-client/lambda | GPL-3.0 | yes |
+| ThunderHack Recode | https://github.com/Pan4ur/ThunderHack-Recode | GPL-3.0, archived | yes |
+| BleachHack | https://github.com/BleachDev/BleachHack | GPL-3.0 | yes |
+| 3arthh4ck | https://github.com/3arthqu4ke/3arthh4ck | MIT, archived | yes |
+| Aoba | https://github.com/CharismaLib/Aoba | unavailable | no |
+| Phobos | https://github.com/3arthqu4ke/phobos | unavailable | no |
+| Aristois | https://github.com/ImpactDevelopment/Aristois | unavailable | no |
+| Inertia | https://github.com/5zig/Inertia | unavailable | no |
+
+All seven available clients are GPLv3 except 3arthh4ck which is MIT. GPLv3 is strong
+copyleft, so these are treated as documentation-level references only. No code was taken.
+
+Four repositories were requested but are no longer publicly available. Each was verified
+as returning HTTP 404 from the GitHub API and confirmed to be absent from the owning
+account's public repository listing, so they contributed nothing:
+
+- **Aoba**: the `CharismaLib` account itself now returns 404.
+- **Phobos**: 404. The same author has an unrelated archived project named `phobot`,
+  which is a different project and was not treated as a substitute.
+- **Aristois**: 404, and not present in the `ImpactDevelopment` repository listing.
+- **Inertia**: 404, and not present in the `5zig` repository listing, which contains
+  `The-5zig-Mod` and related projects instead.
+
+## What was studied
+
+Module inventories and the mechanism behind each of the following cheat categories, with
+particular attention to what the change looks like **on the server**:
+
+- Tick rate scaling and client tick suppression with catch-up bursts
+- Packet buffering, replay, and the queue that swallows keep-alive responses
+- Field rewriting of movement packets after construction, including the on-ground flag
+- Position packet emission, suppression, duplication, and out-of-band landing packets
+- Rotation quantisation to mouse granularity, rotation smoothing, and pre- plus post-attack
+  rotation delivery
+- Target selection policies and the ordering they impose on attack sequences
+- Click interval distributions, and specifically the log-normal distribution that modern
+  autoclickers converge on
+- Knockback scaling of server authored vectors
+- Constant pitch values pinned by placement and glide modules
+- Per tick position offsets applied inside the outgoing packet
+- Swing and action packet ordering
+- Item transaction sequence handling
+- Keep-alive suppression, which breaks the server's own latency measurement channel
+- Backtracking, which makes the client act on a stale target position
+- Render time block and entity predicates for x-ray, block ESP, storage ESP, radar and
+  freecam
+
+## Honest detectability assessment
+
+This is the most important outcome of the research, and it is largely negative. Snuff AC
+records it plainly rather than pretending.
+
+### Directly observable, and therefore detected
+
+These leave reliable server side evidence and are now covered by checks:
+
+- Extra or duplicated position packets within one server tick. This is the single most
+  universal signature, because a vanilla client emits exactly one position packet per game
+  tick and every modern cheat that replays packets violates it.
+- Sustained deviation of the movement packet rate from the server tick rate, which is what
+  timer manipulation actually is.
+- Gap and burst patterns in the packet stream, which is what blink and freeze produce.
+- Claiming ground contact where the server sees no supporting block, which is air walk and
+  ground flag no fall spoofing.
+- Pitch pinned to an exact constant.
+- A sustained constant per tick offset between the prediction and the reported position.
+- Extra position packets with tiny vertical offsets immediately before an attack, which
+  is forced criticals.
+- A large aim rotation immediately before an attack followed by a reverse rotation
+  immediately after.
+- Attacks beyond the server's own reach, now measured against resolved entity hitboxes
+  rather than the client supplied cursor.
+- Knockback that does not match the vector the server itself transmitted.
+- Movement that contradicts the predicted kinematics after accounting for friction, ground
+  state, liquids, ice, slime and vehicles.
+- Impossible coordinates, deltas, rotations, block positions and attack cursors.
+
+### Partially observable
+
+- **X-Ray, block ESP, ore search, entity ESP and storage ESP** require **nothing extra
+  from the server**. They are render time predicates over block states and entity lists
+  that a vanilla client already receives in the ordinary chunk and entity packets. There
+  is no protocol level way to detect that a player drew a box, because rendering is
+  entirely local. The only server side levers are view distance, simulation distance, and
+  whether block entity data is included in chunk packets.
+
+  Snuff AC therefore responds in two ways. First, it reduces the information the server
+  volunteers: valuable ores can be replaced with a decoy state before they are written to
+  the client, so an x-ray client has nothing real to reveal. Second, it detects the
+  *consequence*: mining a valuable ore in a region the server never sent to the client is
+  knowledge the client could not legitimately have, and that is a low false positive
+  signal.
+- **Freecam** produces no evidence until the player interacts. The detectable event is an
+  interaction with a face that is not visible from the server side eye ray, because a
+  camera cannot change where the player is.
+- **Backtrack** is detectable as an attack that lands outside reach against the target's
+  server side position at the attack instant.
+- **Ping spoof** is detectable because apparent latency lower than the measured keep-alive
+  round trip has no legitimate twin.
+- **Client brand spoofing** is a signal only, never a primary mechanism, because the brand
+  is trivially rewritten.
+
+### Not meaningfully observable, and deliberately not checked
+
+- **Fullbright** applies a local light override. There is no network evidence and no
+  meaningful server side mitigation beyond a light level policy change.
+- Cosmetic HUD changes, field of view changes, nametag rendering changes and similar purely
+  local modifications.
+
+Snuff AC does not ship checks for these. Inventing a check that cannot work would only
+create false positives and make the real signal harder to see. This limitation is recorded
+rather than papered over.
+
+## Systems implemented as a result
+
+- A server authoritative combat layer that resolves entities to hitboxes, computes
+  legitimate reach with the correct survival, creative and vehicle limits, and tests line
+  of sight between the eye and the target box.
+- A configurable enforcement pipeline that can set a player back, cancel an attack, cancel
+  a block placement, cancel a block break, or synchronise a position. Every preventive
+  action is gated on accumulated confidence and can be disabled globally, and prevention
+  never suppresses flagging or evidence recording.
+- A confidence model that accumulates weighted signals across independent checks, tracks
+  the peak over a bounded window, and decays, so that several weak signals can contribute
+  to a decision instead of one check firing once.
+- A block obfuscation service for valuable ores, with a configurable hidden vertical band
+  and an optional stricter mode, plus optional container hiding.
+- A mining analyser that records every dig target against the region the server actually
+  sent, and reports valuable targets that fall outside it.
+- Eight new checks, taking the total from 23 to 31.
+
+## Defensive stance on client identification
+
+Snuff AC does not blocklist client names. Clients are renamed, forked, repackaged,
+partially enabled and written from scratch constantly, so a name based block is security
+theatre. The engine is built entirely on behaviour that a server can observe, and client
+identification, where available, is only ever an additional signal.

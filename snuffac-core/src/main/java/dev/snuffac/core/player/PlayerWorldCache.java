@@ -66,14 +66,35 @@ public final class PlayerWorldCache {
         return onGroundBelow;
     }
 
+    public CachedBlock blockAt(BlockPos position) {
+        return blocks.get(position.pack());
+    }
+
     public BlockKind kindAt(BlockPos position) {
         CachedBlock block = blocks.get(position.pack());
         return block == null ? BlockKind.UNKNOWN : block.kind();
     }
 
+    public String materialAt(BlockPos position) {
+        CachedBlock block = blocks.get(position.pack());
+        return block == null ? null : block.materialName();
+    }
+
     public double hardnessAt(BlockPos position) {
         CachedBlock block = blocks.get(position.pack());
         return block == null ? 1.0 : block.hardness();
+    }
+
+    public boolean isValuableOre(BlockPos position) {
+        return dev.snuffac.core.world.OreClassifier.isValuableOre(kindAt(position), materialAt(position));
+    }
+
+    public int oreTierAt(BlockPos position) {
+        return dev.snuffac.core.world.OreClassifier.oreTier(materialAt(position));
+    }
+
+    public boolean isContainer(BlockPos position) {
+        return dev.snuffac.core.world.OreClassifier.isContainer(materialAt(position));
     }
 
     public boolean isPassable(BlockPos position) {
@@ -104,6 +125,10 @@ public final class PlayerWorldCache {
         return base.withSlipperiness(slipperinessBelow);
     }
 
-    public record CachedBlock(BlockKind kind, double hardness) {
+    public record CachedBlock(BlockKind kind, double hardness, String materialName) {
+
+        public CachedBlock(BlockKind kind, double hardness) {
+            this(kind, hardness, null);
+        }
     }
 }

@@ -7,6 +7,8 @@ import dev.snuffac.core.check.CheckContext;
 import dev.snuffac.core.packet.AttackPacket;
 import dev.snuffac.core.packet.PacketType;
 import dev.snuffac.core.packet.SnuffPacket;
+import dev.snuffac.core.combat.ReachResolver;
+import dev.snuffac.core.combat.EntitySnapshot;
 import dev.snuffac.core.physics.MovementConstants;
 import java.util.Map;
 import java.util.Set;
@@ -62,15 +64,35 @@ public final class ReachCheck implements Check {
             return;
         }
 
-        Vec3d eye = eyePosition(player.position(), movement.pitch());
-        double reach = eye.distanceTo(attack.cursorPosition());
-
-        player.combat().recordReach(reach);
+        var environment = player.combatEnvironment();
+        var target = environment.byId(attack.targetId());
 
         double ping = context.ping();
         boolean inVehicle = movement.inVehicle();
         double tolerance = context.config().reachToleranceFor(ping, inVehicle);
         double maximum = context.config().reachMaximum() + tolerance;
+        double reach;
+        String basis;
+
+        if (target != null && environment.known(attack.targetId())) {
+            ReachResolver.ReachResult resolved = ReachResolver.resolve(
+                    player.position(),
+                    movement.sneaking(),
+                    target,
+                    creativeMode(movement),
+                    inVehicle,
+                    state.lineOfSightBlocked);
+            reach = resolved.distance();
+            maximum = resolved.allowed() + tolerance;
+            basis = "entity hitbox";
+            state.resolvedHits++;
+        } else {
+            Vec3d eye = eyePosition(player.position(), movement.pitch());
+            reach = eye.distanceTo(attack.cursorPosition());
+            basis = "client cursor";
+        }
+
+        player.combat().recordReach(reach);
 
         if (reach <= maximum) {
             state.excessTicks = 0;
@@ -99,10 +121,19 @@ public final class ReachCheck implements Check {
         evidence.put("momentum", round(player.combat().lastReachMomentum()));
         evidence.put("inVehicle", inVehicle);
         evidence.put("sprinting", movement.sprinting());
+        evidence.put("basis", basis);
+        evidence.put("resolvedHits", state.resolvedHits);
+        evidence.put("targetKnown", target != null);
+        evidence.put("lineOfSightBlocked", state.lineOfSightBlocked);
+        evidence.put("sneaking", movement.sneaking());
 
         context.flag("reach of " + round(reach) + " exceeds " + round(maximum), evidence,
                 Math.min(excess * 14.0, 12.0));
         state.excessTicks = 0;
+    }
+
+    private static boolean creativeMode(dev.snuffac.core.player.MovementState movement) {
+        return false;
     }
 
     static Vec3d eyePosition(Vec3d position, float pitch) {
@@ -117,5 +148,7 @@ public final class ReachCheck implements Check {
     static final class ReachState {
 
         private int excessTicks;
+        private int resolvedHits;
+        private boolean lineOfSightBlocked;
     }
 }

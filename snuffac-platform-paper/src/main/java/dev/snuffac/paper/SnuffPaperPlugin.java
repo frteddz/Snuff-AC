@@ -20,6 +20,11 @@ import dev.snuffac.core.packet.ServerTeleportPacket;
 import dev.snuffac.core.physics.MovementAttributes;
 import dev.snuffac.core.player.EnvironmentMapper;
 import dev.snuffac.core.player.MovementState;
+import dev.snuffac.core.combat.CombatEnvironment;
+import dev.snuffac.core.enforcement.EnforcementType;
+import dev.snuffac.core.combat.EntitySnapshot;
+import dev.snuffac.core.combat.ReachResolver;
+import dev.snuffac.core.util.AxisAlignedBox;
 import dev.snuffac.core.player.PlayerData;
 import dev.snuffac.core.player.PlayerWorldCache;
 import dev.snuffac.core.util.BlockKind;
@@ -39,6 +44,8 @@ import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -285,7 +292,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                     }
                     Block block = player.getWorld().getBlockAt(x, y, z);
                     BlockKind kind = BlockClassifier.classify(block);
-                    blocks.put(blockPos.pack(), new PlayerWorldCache.CachedBlock(kind, BlockClassifier.hardness(block)));
+                    blocks.put(blockPos.pack(), new PlayerWorldCache.CachedBlock(
+                            kind, BlockClassifier.hardness(block), block.getType().name()));
                 }
             }
         }
@@ -301,6 +309,89 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
         applyEnvironment(data, player, onGroundBelow);
         applyEquipment(data, player);
+        refreshCombat(data, player);
+    }
+
+    private void refreshCombat(PlayerData data, Player player) {
+        var snapshots = new java.util.HashMap<Integer, EntitySnapshot>();
+        Location eye = player.getEyeLocation();
+        Vec3d eyePosition = new Vec3d(eye.getX(), eye.getY(), eye.getZ());
+        int sentRadius = sentChunkRadius(player);
+        var world = player.getWorld();
+        for (Entity entity : world.getEntities()) {
+            if (entity.getLocation().distanceSquared(player.getLocation()) > 2304.0) {
+                continue;
+            }
+            if (entity.getUniqueId().equals(player.getUniqueId())) {
+                continue;
+            }
+            Location location = entity.getLocation();
+            Vec3d position = new Vec3d(location.getX(), location.getY(), location.getZ());
+            AxisAlignedBox box = new AxisAlignedBox(
+                    location.getX() - entity.getWidth() / 2.0,
+                    location.getY(),
+                    location.getZ() - entity.getWidth() / 2.0,
+                    location.getX() + entity.getWidth() / 2.0,
+                    location.getY() + entity.getHeight(),
+                    location.getZ() + entity.getWidth() / 2.0);
+            boolean living = entity instanceof LivingEntity;
+            double eyeHeight = living ? ((LivingEntity) entity).getEyeHeight() : 0.0;
+            org.bukkit.util.Vector velocity = entity.getVelocity();
+            snapshots.put(entity.getEntityId(), new EntitySnapshot(
+                    entity.getEntityId(),
+                    entity.getType().name(),
+                    position,
+                    box,
+                    living,
+                    entity instanceof Player,
+                    eyeHeight,
+                    new Vec3d(velocity.getX(), velocity.getY(), velocity.getZ()),
+                    -1.0));
+        }
+        data.combatEnvironment(CombatEnvironment.of(
+                System.currentTimeMillis(), snapshots, sentRadius + 2, sentRadius));
+        occlusion = new OcclusionProbe(data, eyePosition, world);
+    }
+
+    private static int sentChunkRadius(Player player) {
+        int viewDistance = 10;
+        try {
+            return Math.max(2, player.getServer().getViewDistance());
+        } catch (RuntimeException exception) {
+            return viewDistance;
+        }
+    }
+
+    private volatile ReachResolver.BlockOcclusion occlusion = position -> false;
+
+    private final class OcclusionProbe implements ReachResolver.BlockOcclusion {
+
+        private final PlayerData data;
+        private final Vec3d eye;
+        private final org.bukkit.World world;
+
+        OcclusionProbe(PlayerData data, Vec3d eye, org.bukkit.World world) {
+            this.data = data;
+            this.eye = eye;
+            this.world = world;
+        }
+
+        @Override
+        public boolean opaqueAt(BlockPos position) {
+            if (!world.isChunkLoaded(position.x() >> 4, position.z() >> 4)) {
+                return false;
+            }
+            BlockKind kind = data.worldCache().kindAt(position);
+            if (kind == BlockKind.AIR || kind == BlockKind.WATER || kind == BlockKind.LAVA
+                    || kind == BlockKind.LADDER || kind == BlockKind.UNKNOWN) {
+                return false;
+            }
+            return kind == BlockKind.SOLID || kind == BlockKind.BEDROCK || kind == BlockKind.BARRIER;
+        }
+    }
+
+    public ReachResolver.BlockOcclusion occlusion() {
+        return occlusion;
     }
 
     private void applyEnvironment(PlayerData data, Player player, boolean onGroundBelow) {
@@ -459,6 +550,25 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         core.registry().saveConfigurations(checkSource);
         YamlConfigurationLoader.store(this, "checks.yml", checkSource);
         return true;
+    }
+
+    private void enforce(dev.snuffac.core.enforcement.EnforcementRequest request) {
+        if (!request.preventsAnything()) {
+            return;
+        }
+        PlayerData data = core.player(request.playerId());
+        if (data == null) {
+            return;
+        }
+        switch (request.type()) {
+            case SETBACK_POSITION, TELEPORT_SYNC -> Bukkit.getScheduler()
+                    .runTask(this, () -> performSetback(data, request.reason()));
+            case CANCEL_ATTACK, CANCEL_BLOCK_PLACE, CANCEL_BLOCK_BREAK, CANCEL_INTERACTION ->
+                    data.packetModificationEnabled(false);
+            default -> {
+            }
+        }
+        data.debugLine("enforced " + request.type() + " for " + request.checkKey() + ": " + request.reason());
     }
 
     void scheduleSetback(PlayerData data, String detail) {

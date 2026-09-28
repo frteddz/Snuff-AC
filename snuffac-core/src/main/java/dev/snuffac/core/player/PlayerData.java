@@ -43,6 +43,11 @@ public final class PlayerData {
     private boolean dirty;
 
     private final EquipmentState equipment = new EquipmentState();
+    private final dev.snuffac.core.confidence.ConfidenceModel confidence =
+            new dev.snuffac.core.confidence.ConfidenceModel();
+    private final dev.snuffac.core.mining.MiningAnalyser mining = new dev.snuffac.core.mining.MiningAnalyser(2);
+    private volatile dev.snuffac.core.combat.CombatEnvironment combatEnvironment =
+            dev.snuffac.core.combat.CombatEnvironment.empty();
     private volatile PlayerWorldCache worldCache = PlayerWorldCache.empty(Vec3d.ZERO);
     private volatile List<String> debugLines = List.of();
 
@@ -93,6 +98,24 @@ public final class PlayerData {
 
     public EquipmentState equipment() {
         return equipment;
+    }
+
+    public dev.snuffac.core.confidence.ConfidenceModel confidence() {
+        return confidence;
+    }
+
+    public dev.snuffac.core.mining.MiningAnalyser mining() {
+        return mining;
+    }
+
+    public dev.snuffac.core.combat.CombatEnvironment combatEnvironment() {
+        return combatEnvironment;
+    }
+
+    public void combatEnvironment(dev.snuffac.core.combat.CombatEnvironment value) {
+        this.combatEnvironment = value == null
+                ? dev.snuffac.core.combat.CombatEnvironment.empty()
+                : value;
     }
 
     public PlayerWorldCache worldCache() {
@@ -299,6 +322,7 @@ public final class PlayerData {
         }
         movement.tickCounters();
         network.tick(20.0, nowMillis);
+        confidence.tick(nowMillis);
         for (CheckState state : checkStates.values()) {
             state.tick();
         }
@@ -313,6 +337,9 @@ public final class PlayerData {
     public void reset() {
         worldCache = PlayerWorldCache.empty(movement.position());
         equipment.reset();
+        confidence.reset();
+        mining.clear();
+        combatEnvironment(dev.snuffac.core.combat.CombatEnvironment.empty());
         checkData.clear();
         movement.reset();
         combat.reset();

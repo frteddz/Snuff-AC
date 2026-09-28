@@ -28,8 +28,20 @@ import dev.snuffac.core.check.impl.net.TimerCheck;
 import dev.snuffac.core.check.impl.world.FastBreakCheck;
 import dev.snuffac.core.check.impl.world.FastPlaceCheck;
 import dev.snuffac.core.check.impl.world.NukerCheck;
+import dev.snuffac.core.check.impl.combat.CriticalCheck;
+import dev.snuffac.core.check.impl.combat.RotationSnapBackCheck;
+import dev.snuffac.core.check.impl.movement.DriftCheck;
+import dev.snuffac.core.check.impl.movement.GroundFlagCheck;
+import dev.snuffac.core.check.impl.movement.PitchLockCheck;
+import dev.snuffac.core.check.impl.packet.ExtraPacketsCheck;
+import dev.snuffac.core.check.impl.packet.PacketRateCheck;
+import dev.snuffac.core.check.impl.world.MiningBeyondViewCheck;
 import dev.snuffac.core.check.impl.world.ScaffoldCheck;
+import dev.snuffac.core.combat.CombatEnvironment;
 import dev.snuffac.core.config.ConfigSource;
+import dev.snuffac.core.enforcement.EnforcementRequest;
+import dev.snuffac.core.enforcement.EnforcementService;
+import dev.snuffac.core.enforcement.EnforcementType;
 import dev.snuffac.core.config.SnuffConfig;
 import dev.snuffac.core.log.FileViolationLogger;
 import dev.snuffac.core.log.SnuffLogger;
@@ -67,6 +79,7 @@ public final class SnuffCore {
     private final List<Consumer<ViolationInfo>> apiListeners = new CopyOnWriteArrayList<>();
 
     private volatile CheckDispatcher dispatcher;
+    private final EnforcementService enforcement = new EnforcementService();
     private volatile ViolationHandler violations;
     private volatile AlertService alerts;
     private volatile FileViolationLogger fileLogger;
@@ -92,6 +105,9 @@ public final class SnuffCore {
         registry.register(new LongJumpCheck());
         registry.register(new ImpossibleMovementCheck());
         registry.register(new VelocityCheck());
+        registry.register(new GroundFlagCheck());
+        registry.register(new PitchLockCheck());
+        registry.register(new DriftCheck());
 
         registry.register(new ReachCheck());
         registry.register(new AutoClickerCheck());
@@ -99,15 +115,20 @@ public final class SnuffCore {
         registry.register(new KillAuraCheck());
         registry.register(new ImpossibleAttackCheck());
         registry.register(new InvalidAttackStateCheck());
+        registry.register(new CriticalCheck());
+        registry.register(new RotationSnapBackCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());
         registry.register(new ScaffoldCheck());
         registry.register(new NukerCheck());
+        registry.register(new MiningBeyondViewCheck());
 
         registry.register(new BadPacketsCheck());
         registry.register(new PacketSpamCheck());
         registry.register(new TimerCheck());
+        registry.register(new ExtraPacketsCheck());
+        registry.register(new PacketRateCheck());
 
         registry.freeze();
     }
@@ -302,8 +323,24 @@ public final class SnuffCore {
         return logger;
     }
 
+    public EnforcementService enforcement() {
+        return enforcement;
+    }
+
     public long tickCounter() {
         return tickCounter;
+    }
+
+    public void applyEnforcement(EnforcementRequest request) {
+        if (request == null) {
+            return;
+        }
+        PlayerData player = players.get(request.playerId());
+        if (player != null) {
+            player.confidence().add(request.checkKey(),
+                    Math.min(1.0, request.confidence()), request.timestampMillis());
+        }
+        enforcement.apply(request);
     }
 
     public void reload(ConfigSource source) {

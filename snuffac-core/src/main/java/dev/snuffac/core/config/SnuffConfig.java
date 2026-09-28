@@ -22,6 +22,11 @@ public final class SnuffConfig {
     private double setbackHorizontal = 0.0;
     private double setbackVertical = 0.0;
     private int maxViolationsPerSecond = 40;
+    private boolean preventionEnabled = true;
+    private double minConfidenceForPrevention = 0.55;
+    private int antiXrayBandStart = -16;
+    private int antiXrayBandEnd = 320;
+    private boolean antiXrayHideContainers;
 
     private double toleranceDecayPerTick = 0.35;
     private double toleranceMaximum = 0.45;
@@ -69,6 +74,11 @@ public final class SnuffConfig {
         setbackHorizontal = source.getDouble("setback.horizontal", setbackHorizontal);
         setbackVertical = source.getDouble("setback.vertical", setbackVertical);
         maxViolationsPerSecond = source.getInt("setback.max-violations-per-second", maxViolationsPerSecond);
+        preventionEnabled = source.getBoolean("prevention.enabled", preventionEnabled);
+        minConfidenceForPrevention = source.getDouble("prevention.min-confidence", minConfidenceForPrevention);
+        antiXrayBandStart = source.getInt("anti-xray.band-start", antiXrayBandStart);
+        antiXrayBandEnd = source.getInt("anti-xray.band-end", antiXrayBandEnd);
+        antiXrayHideContainers = source.getBoolean("anti-xray.hide-containers", antiXrayHideContainers);
 
         toleranceDecayPerTick = source.getDouble("tolerance.decay-per-tick", toleranceDecayPerTick);
         toleranceMaximum = source.getDouble("tolerance.maximum", toleranceMaximum);
@@ -168,6 +178,26 @@ public final class SnuffConfig {
 
     public double setbackVertical() {
         return setbackVertical;
+    }
+
+    public boolean preventionEnabled() {
+        return preventionEnabled;
+    }
+
+    public double minConfidenceForPrevention() {
+        return minConfidenceForPrevention;
+    }
+
+    public int antiXrayBandStart() {
+        return antiXrayBandStart;
+    }
+
+    public int antiXrayBandEnd() {
+        return antiXrayBandEnd;
+    }
+
+    public boolean antiXrayHideContainers() {
+        return antiXrayHideContainers;
     }
 
     public int maxViolationsPerSecond() {

@@ -154,3 +154,101 @@ All 12 requested anticheat projects were inspected and their licences read befor
 Five are GPLv3, two are MIT, four carry no licence at all and were deliberately not read
 because no permission to reuse their work exists, and one (Hades) is no longer publicly
 available. No source code was copied from any project.
+
+## [1.0.1-dev] - 2026-09-30
+
+Major detection and prevention phase, driven by a defensive study of seven open source
+Minecraft cheat clients and by false positives observed during live play.
+
+### Research
+
+- Studied LiquidBounce, Wurst, Meteor, Lambda, ThunderHack Recode, BleachHack and
+  3arthh4ck. Licences read before use: six GPLv3, one MIT.
+- Four requested repositories (Aoba, Phobos, Aristois, Inertia) are no longer publicly
+  available. Each was verified as HTTP 404 and absent from the owner listing, so none
+  contributed.
+- No cheat client source code, comments, identifiers, configuration or strings were copied.
+  Every system below was implemented independently. Documented in `credits.md`.
+
+### Added
+
+**Combat**
+
+- Entity resolution. Attacks are now measured against the server's own hitboxes instead of
+  the client supplied cursor, with correct survival (3.0), creative (5.0) and vehicle (5.0
+  and 8.0) reach limits, crouch aware eye height, and a vertical padding.
+- Line of sight testing between the eye and the target box, sampled along the segment.
+- `criticals` check. Detects forced criticals produced by emitting extra position packets
+  with a vertical lift too small for gravity, immediately before an attack.
+- `rotationsnapback` check. Detects a large aim rotation immediately before an attack
+  followed by a reverse rotation immediately after, which human input does not produce.
+
+**Movement**
+
+- `groundflag` check. Detects sustained ground contact claims that contradict the server
+  block view, the signature of air walk and ground flag no fall spoofing.
+- `pitchlock` check. Detects pitch pinned to an exact constant (straight down, or a fixed
+  glide angle), which placement and glide modules use to defeat server heuristics.
+- `drift` check. Detects a sustained constant per tick offset between the prediction and
+  the reported position, which is how several cheats disguise position edits. The
+  discriminator is the drift rate, not its magnitude, so ordinary jitter does not trigger it.
+
+**Packets**
+
+- `extrapackets` check. Detects more than one position packet per server tick. A vanilla
+  client sends exactly one per game tick, so this is the most universal signature available
+  and it catches packet replay generically rather than per client.
+- `packetrate` check. Detects a sustained deviation of the movement packet rate from the
+  server tick rate, gated on low ping and healthy tick rate.
+
+**World and information cheats**
+
+- Block obfuscation service. Valuable ores can be replaced with a decoy state before being
+  written to the client, across a configurable hidden vertical band, with a stricter mode
+  for deepslate and an optional container hiding mode.
+- Mining analyser. Records every dig target against the region the server actually sent to
+  that client.
+- `miningbeyondview` check. Detects targeting valuable ores in a region the server never
+  sent, which is knowledge the client could not legitimately have.
+
+**Prevention**
+
+- A configurable enforcement pipeline supporting set back position, teleport
+  synchronisation, attack cancellation, block placement cancellation, block break
+  cancellation and interaction cancellation.
+- Every preventive action is gated on accumulated confidence and can be disabled globally.
+  Disabling prevention never suppresses flagging or evidence recording.
+- New `prevention.enabled` and `prevention.min-confidence` settings.
+
+**Confidence**
+
+- A confidence model that accumulates weighted signals from independent checks, retains
+  the peak over a bounded window, and decays. Several weak signals can now contribute to a
+  decision rather than one check firing once.
+
+### Changed
+
+- The world cache now carries block material names, not only physical classification, so
+  ore identification is real rather than inferred.
+- Reach prefers resolved hitbox distance and falls back to the cursor only when the target
+  is unknown, and records which basis was used in the evidence.
+
+### Honest limitations
+
+- X-Ray, block ESP, ore search, entity ESP and storage ESP require nothing extra from the
+  server. They are render time predicates over data a vanilla client already receives, so
+  no protocol level detection is possible. Snuff AC reduces the information volunteered and
+  detects the consequences, and `credits.md` records this rather than implying coverage.
+- Fullbright and other purely local rendering changes are not detectable and are not
+  checked. No placeholder check was added for them.
+- ViaVersion and Geyser are not yet modelled. Bedrock clients move differently and older
+  protocol versions have different movement semantics, so false positives are likely on
+  either.
+- The movement predictor still does not model the post 1.8.2 skipped tick behaviour, and
+  still does not simulate collisions, so speed related thresholds remain untuned.
+
+### Verified
+
+- 130 unit tests pass, up from 94.
+- Clean build with 31 checks registered.
+- Zero code comments and zero em dash characters across the project.
