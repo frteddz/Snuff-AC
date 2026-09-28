@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="docs/header.gif" alt="Snuff AC" width="400">
+</div>
+
+<br>
+
 # Snuff AC
 
 Snuff AC is a free and open source anticheat for Minecraft Java Edition, targeting
