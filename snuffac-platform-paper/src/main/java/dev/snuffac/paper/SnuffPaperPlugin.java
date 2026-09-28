@@ -451,10 +451,25 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         state.environment(environment);
 
         GameMode mode = player.getGameMode();
+        boolean bedrock = core.config().exemptBedrock() && ClientCompat.isBedrock(player);
+        boolean legacy = core.config().exemptLegacyProtocol()
+                && ClientCompat.isLegacyProtocol(data.protocolVersion());
+        boolean belowVoidFloor = core.config().exemptVoidWorlds()
+                && state.position().y() < core.config().voidWorldFloor();
         boolean exempt = mode == GameMode.SPECTATOR
                 || player.hasPermission(core.config().bypassPermission())
-                || location.getWorld() == null;
+                || location.getWorld() == null
+                || belowVoidFloor
+                || data.protocolVersion() > 0
+                && !ClientCompat.isSupportedProtocol(data.protocolVersion())
+                && !core.config().allowUnknownProtocols()
+                || bedrock
+                || legacy;
         data.exempt(exempt);
+        if (bedrock || legacy) {
+            data.debugLine("exempt: " + (bedrock ? "bedrock client" : "legacy protocol")
+                    + " (protocol " + data.protocolVersion() + ")");
+        }
     }
 
     private void applyEquipment(PlayerData data, Player player) {

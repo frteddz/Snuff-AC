@@ -27,6 +27,11 @@ public final class SnuffConfig {
     private int antiXrayBandStart = -16;
     private int antiXrayBandEnd = 320;
     private boolean antiXrayHideContainers;
+    private boolean exemptBedrock = true;
+    private boolean exemptLegacyProtocol = true;
+    private boolean allowUnknownProtocols = true;
+    private boolean exemptVoidWorlds = true;
+    private int voidWorldFloor = -60;
 
     private double toleranceDecayPerTick = 0.35;
     private double toleranceMaximum = 0.45;
@@ -79,6 +84,11 @@ public final class SnuffConfig {
         antiXrayBandStart = source.getInt("anti-xray.band-start", antiXrayBandStart);
         antiXrayBandEnd = source.getInt("anti-xray.band-end", antiXrayBandEnd);
         antiXrayHideContainers = source.getBoolean("anti-xray.hide-containers", antiXrayHideContainers);
+        exemptBedrock = source.getBoolean("compatibility.exempt-bedrock", exemptBedrock);
+        exemptLegacyProtocol = source.getBoolean("compatibility.exempt-legacy-protocol", exemptLegacyProtocol);
+        allowUnknownProtocols = source.getBoolean("compatibility.allow-unknown-protocols", allowUnknownProtocols);
+        exemptVoidWorlds = source.getBoolean("compatibility.exempt-void-worlds", exemptVoidWorlds);
+        voidWorldFloor = source.getInt("compatibility.void-world-floor", voidWorldFloor);
 
         toleranceDecayPerTick = source.getDouble("tolerance.decay-per-tick", toleranceDecayPerTick);
         toleranceMaximum = source.getDouble("tolerance.maximum", toleranceMaximum);
@@ -194,6 +204,26 @@ public final class SnuffConfig {
 
     public int antiXrayBandEnd() {
         return antiXrayBandEnd;
+    }
+
+    public boolean exemptBedrock() {
+        return exemptBedrock;
+    }
+
+    public boolean exemptLegacyProtocol() {
+        return exemptLegacyProtocol;
+    }
+
+    public boolean allowUnknownProtocols() {
+        return allowUnknownProtocols;
+    }
+
+    public boolean exemptVoidWorlds() {
+        return exemptVoidWorlds;
+    }
+
+    public int voidWorldFloor() {
+        return voidWorldFloor;
     }
 
     public boolean antiXrayHideContainers() {

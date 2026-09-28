@@ -26,6 +26,21 @@ prevention:
   # Minimum accumulated confidence before a preventive action is taken.
   min-confidence: 0.55
 
+compatibility:
+  # Bedrock players arriving through Geyser or Floodgate move fundamentally
+  # differently from Java clients. They are exempted from movement checks by
+  # default. Packet level checks still run.
+  exempt-bedrock: true
+  # Clients older than 1.8 through ViaVersion use different movement semantics,
+  # including the double tap position quirk and a larger movement epsilon.
+  exempt-legacy-protocol: true
+  # Allow clients whose protocol version could not be determined at all.
+  allow-unknown-protocols: true
+  # Void generators create worlds with no floor. A player falling forever will
+  # accumulate unbounded air time, so movement checks stop below this height.
+  exempt-void-worlds: true
+  void-world-floor: -60
+
 anti-xray:
   # Server side obfuscation of valuable ores. The client never receives the real
   # state of hidden ores, so an xray client has nothing to reveal.
