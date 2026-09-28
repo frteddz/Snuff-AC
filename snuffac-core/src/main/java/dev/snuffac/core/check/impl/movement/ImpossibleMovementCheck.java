@@ -5,13 +5,13 @@ import dev.snuffac.api.Vec3d;
 import dev.snuffac.core.check.CheckContext;
 import dev.snuffac.core.packet.MovementPacket;
 import dev.snuffac.core.packet.SnuffPacket;
-import dev.snuffac.core.physics.MovementConstants;
 import java.util.Map;
 
 public final class ImpossibleMovementCheck extends AbstractMovementCheck {
 
     private static final double WORLD_BORDER = 30_000_000.0;
     private static final double MAX_COORDINATE_DELTA = 100.0;
+    private static final double MIN_PLAUSIBLE_VERTICAL_DELTA = -100.0;
     private static final double MAX_PITCH = 90.0;
     private static final double MAX_YAW = 1.0E7;
 
@@ -81,9 +81,10 @@ public final class ImpossibleMovementCheck extends AbstractMovementCheck {
                         "currentY", position.y()));
                 return;
             }
-            if (delta.y() < MovementConstants.TERMINAL_VELOCITY * 2.0) {
-                flagInvalid(context, "vertical delta below terminal velocity", Map.of(
+            if (delta.y() < MIN_PLAUSIBLE_VERTICAL_DELTA) {
+                flagInvalid(context, "vertical delta beyond any plausible cause", Map.of(
                         "deltaY", delta.y(),
+                        "minimum", MIN_PLAUSIBLE_VERTICAL_DELTA,
                         "fallDistance", movementState.fallDistance()));
             }
         }
