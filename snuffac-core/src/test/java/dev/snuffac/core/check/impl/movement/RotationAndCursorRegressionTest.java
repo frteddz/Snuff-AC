@@ -7,10 +7,6 @@ import dev.snuffac.api.Vec3d;
 import dev.snuffac.core.packet.MovementPacket;
 import org.junit.jupiter.api.Test;
 
-/**
- * Regression cover for the three false positives observed on a live Paper 1.21.11
- * server during normal play by a player who was not cheating.
- */
 class RotationAndCursorRegressionTest {
 
     private static MovementPacket movement(Vec3d position, float yaw, float pitch) {
