@@ -13,6 +13,8 @@ import java.util.Map;
 public final class AirMovementCheck extends AbstractMovementCheck {
 
     private static final double MIN_EXCESS = 0.02;
+    private static final int MAX_AIR_TICKS = 220;
+    private static final int VEHICLE_GRACE_TICKS = 20;
 
     @Override
     public String key() {
@@ -54,6 +56,14 @@ public final class AirMovementCheck extends AbstractMovementCheck {
         var cache = player.worldCache();
 
         if (movement.onGround() || movement.ticksSinceGround() < 2) {
+            state.excessTicks = 0;
+            return;
+        }
+        if (movement.ticksSinceGround() > MAX_AIR_TICKS) {
+            state.excessTicks = 0;
+            return;
+        }
+        if (movement.ticksSinceVehicle() <= VEHICLE_GRACE_TICKS) {
             state.excessTicks = 0;
             return;
         }
@@ -102,6 +112,9 @@ public final class AirMovementCheck extends AbstractMovementCheck {
         evidence.put("velocityZ", round(movement.velocity().z()));
         evidence.put("horizontalCollision", movement.horizontalCollision());
         evidence.put("ice", movement.onIce());
+        evidence.put("ticksSinceVehicle", movement.ticksSinceVehicle());
+        evidence.put("slime", movement.onSlime());
+        evidence.put("climbable", movement.onClimbable());
 
         context.flag("airborne horizontal excess of " + round(total) + " blocks", evidence,
                 Math.min(total * 10.0, 12.0));

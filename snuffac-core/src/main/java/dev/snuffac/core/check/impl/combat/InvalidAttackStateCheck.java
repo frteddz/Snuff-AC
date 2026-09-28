@@ -11,7 +11,7 @@ import java.util.Set;
 
 public final class InvalidAttackStateCheck implements Check {
 
-    private static final double MAX_ATTACK_DISTANCE = 8.0;
+    private static final double MAX_ATTACK_DISTANCE = 1.0E6;
     private static final double MIN_CURSOR_COORDINATE = -8.0E6;
     private static final double MAX_CURSOR_COORDINATE = 8.0E6;
 
@@ -37,7 +37,7 @@ public final class InvalidAttackStateCheck implements Check {
 
     @Override
     public String description() {
-        return "Rejects attacks with impossible cursor coordinates, entity identifiers or world distance.";
+        return "Rejects attacks with non finite or out of world cursor coordinates and invalid entity identifiers.";
     }
 
     @Override
@@ -72,7 +72,7 @@ public final class InvalidAttackStateCheck implements Check {
 
         double distance = context.player().position().distanceTo(cursor);
         if (distance > MAX_ATTACK_DISTANCE) {
-            flag(context, "attack cursor " + Math.round(distance * 100.0) / 100.0 + " blocks away", Map.of(
+            flag(context, "attack cursor beyond world", Map.of(
                     "distance", distance,
                     "maximum", MAX_ATTACK_DISTANCE));
         }

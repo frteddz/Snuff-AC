@@ -12,7 +12,8 @@ public final class ImpossibleMovementCheck extends AbstractMovementCheck {
 
     private static final double WORLD_BORDER = 30_000_000.0;
     private static final double MAX_COORDINATE_DELTA = 100.0;
-    private static final double MAX_ROTATION = 360.0;
+    private static final double MAX_PITCH = 90.0;
+    private static final double MAX_YAW = 1.0E7;
 
     @Override
     public String key() {
@@ -60,10 +61,12 @@ public final class ImpossibleMovementCheck extends AbstractMovementCheck {
             return;
         }
         if (!validNumber(movement.yaw()) || !validNumber(movement.pitch())
-                || Math.abs(movement.yaw()) > MAX_ROTATION || Math.abs(movement.pitch()) > MAX_ROTATION) {
+                || Math.abs(movement.yaw()) > MAX_YAW || Math.abs(movement.pitch()) > MAX_PITCH) {
             flagInvalid(context, "invalid rotation", Map.of(
                     "yaw", movement.yaw(),
-                    "pitch", movement.pitch()));
+                    "pitch", movement.pitch(),
+                    "maxYaw", MAX_YAW,
+                    "maxPitch", MAX_PITCH));
             return;
         }
         if (movement.positionChanged() && movementState.lastPositionValid()) {

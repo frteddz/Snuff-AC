@@ -90,11 +90,11 @@ class EngineIntegrationTest {
     }
 
     @Test
-    @DisplayName("an attack far beyond reach is flagged")
+    @DisplayName("an attack with a cursor outside the world is flagged")
     void farAttackIsFlagged() {
         int before = countViolations();
         AttackPacket attack = new AttackPacket(
-                System.nanoTime(), 42, new Vec3d(400.0, 0.0, 400.0), false, 0.0f, 0.0f);
+                System.nanoTime(), 42, new Vec3d(5.0E6, 0.0, 5.0E6), false, 0.0f, 0.0f);
         for (int i = 0; i < 6; i++) {
             core.enqueue(player.id(), attack);
             drain();
@@ -127,7 +127,7 @@ class EngineIntegrationTest {
         player.exempt(true);
         int before = countViolations();
         AttackPacket attack = new AttackPacket(
-                System.nanoTime(), 42, new Vec3d(400.0, 0.0, 400.0), false, 0.0f, 0.0f);
+                System.nanoTime(), 42, new Vec3d(5.0E6, 0.0, 5.0E6), false, 0.0f, 0.0f);
         for (int i = 0; i < 6; i++) {
             core.enqueue(player.id(), attack);
             drain();
@@ -136,13 +136,13 @@ class EngineIntegrationTest {
     }
 
     @Test
-    @DisplayName("a disabled check never fires while its neighbours keep working")
+    @DisplayName("a disabled check never fires while other checks still report the same packet")
     void disabledChecksAreSkipped() {
         var config = core.registry().config("reach");
         config.enabled(false);
         int before = countViolations();
         AttackPacket attack = new AttackPacket(
-                System.nanoTime(), 42, new Vec3d(400.0, 0.0, 400.0), false, 0.0f, 0.0f);
+                System.nanoTime(), 42, new Vec3d(5.0E6, 0.0, 5.0E6), false, 0.0f, 0.0f);
         for (int i = 0; i < 8; i++) {
             core.enqueue(player.id(), attack);
             drain();
