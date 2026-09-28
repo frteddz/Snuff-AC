@@ -1,0 +1,37 @@
+name: SnuffAC
+version: '${version}'
+main: dev.snuffac.paper.SnuffPaperPlugin
+api-version: '1.21'
+author: Snuff
+description: Snuff AC, an independent movement and combat anticheat.
+website: https://github.com/snuff-ac/Snuff-AC
+folia-supported: false
+load: STARTUP
+softdepend:
+  - packetevents
+
+commands:
+  snuff:
+    description: Snuff AC administration
+    usage: /snuff help
+    permission: snuffac.admin
+    aliases:
+      - snuffac
+
+permissions:
+  snuffac.admin:
+    description: Full access to every Snuff AC command
+    default: op
+    children:
+      snuffac.debug: true
+      snuffac.alerts: true
+      snuffac.bypass: false
+  snuffac.debug:
+    description: Receive violation alerts and use debug output
+    default: op
+  snuffac.alerts:
+    description: Receive violation alerts
+    default: op
+  snuffac.bypass:
+    description: Exempt from all Snuff AC checks
+    default: false

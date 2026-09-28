@@ -1,0 +1,9 @@
+{
+  "id": "snuffac",
+  "name": "SnuffAC",
+  "version": "${version}",
+  "description": "Snuff AC, an independent movement and combat anticheat.",
+  "url": "https://github.com/snuff-ac/Snuff-AC",
+  "main": "dev.snuffac.velocity.SnuffVelocityPlugin",
+  "minecraftVersion": "1.21.11"
+}

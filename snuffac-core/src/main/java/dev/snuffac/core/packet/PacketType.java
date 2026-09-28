@@ -1,0 +1,25 @@
+package dev.snuffac.core.packet;
+
+public enum PacketType {
+    MOVEMENT,
+    ENTITY_ACTION,
+    ATTACK,
+    INTERACT,
+    BLOCK_BREAK,
+    BLOCK_PLACE,
+    KEEP_ALIVE,
+    PLAYER_COMMAND,
+    ARM_ANIMATION,
+    STEER_VEHICLE,
+    HELD_ITEM_CHANGE,
+    CLIENT_COMMAND,
+    PLAYER_LOADED,
+    SERVER_TELEPORT,
+    SERVER_VELOCITY,
+    SERVER_KEEP_ALIVE,
+    SERVER_RESPAWN,
+    CHUNK,
+    SERVER_ABILITIES,
+    BUNDLE,
+    OTHER
+}

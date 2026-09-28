@@ -1,0 +1,17 @@
+[versions]
+paper = "1.21.11-R0.1-SNAPSHOT"
+packetevents = "2.14.0"
+velocity = "3.4.0-SNAPSHOT"
+junit = "5.11.4"
+
+[libraries]
+paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+packetevents-api = { module = "com.github.retrooper:packetevents-api", version.ref = "packetevents" }
+packetevents-spigot = { module = "com.github.retrooper:packetevents-spigot", version.ref = "packetevents" }
+packetevents-velocity = { module = "com.github.retrooper:packetevents-velocity", version.ref = "packetevents" }
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version = "1.11.4" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.6.1" }

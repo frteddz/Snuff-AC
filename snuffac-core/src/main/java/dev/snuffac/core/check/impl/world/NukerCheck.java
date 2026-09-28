@@ -1,0 +1,88 @@
+package dev.snuffac.core.check.impl.world;
+
+import dev.snuffac.api.CheckCategory;
+import dev.snuffac.core.check.Check;
+import dev.snuffac.core.check.CheckContext;
+import dev.snuffac.core.packet.BlockBreakPacket;
+import dev.snuffac.core.packet.PacketType;
+import dev.snuffac.core.packet.SnuffPacket;
+import dev.snuffac.core.util.BlockPos;
+import java.util.Map;
+import java.util.Set;
+
+public final class NukerCheck implements Check {
+
+    private static final long WINDOW_MILLIS = 1000L;
+    private static final int MAX_DISTINCT_PER_SECOND = 12;
+
+    @Override
+    public Set<PacketType> packetInterests() {
+        return Set.of(PacketType.BLOCK_BREAK);
+    }
+
+    @Override
+    public String key() {
+        return "nuker";
+    }
+
+    @Override
+    public String name() {
+        return "Nuker";
+    }
+
+    @Override
+    public CheckCategory category() {
+        return CheckCategory.WORLD;
+    }
+
+    @Override
+    public String description() {
+        return "Detects starting to dig an abnormal number of distinct blocks per second.";
+    }
+
+    @Override
+    public Object createState() {
+        return new NukerState();
+    }
+
+    @Override
+    public void onPacket(CheckContext context, SnuffPacket packet) {
+        if (!(packet instanceof BlockBreakPacket dig) || dig.action() != BlockBreakPacket.BlockBreakAction.START) {
+            return;
+        }
+        var state = (NukerState) state(context.player());
+        if (state == null) {
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        state.recent.removeIf(entry -> now - entry >= WINDOW_MILLIS);
+        state.recent.add(dig.packedPosition());
+
+        long distinct = state.recent.stream().distinct().count();
+        if (distinct <= MAX_DISTINCT_PER_SECOND) {
+            return;
+        }
+
+        BlockPos sample = BlockPos.unpack(state.recent.peekLast());
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("distinctBlocks", distinct);
+        evidence.put("maximum", MAX_DISTINCT_PER_SECOND);
+        evidence.put("window", WINDOW_MILLIS);
+        evidence.put("sampleX", sample.x());
+        evidence.put("sampleY", sample.y());
+        evidence.put("sampleZ", sample.z());
+        evidence.put("distance", round(context.player().position().distanceTo(sample.toVec())));
+        context.flag("started digging " + distinct + " distinct blocks in one second", evidence, 6.0);
+        state.recent.clear();
+    }
+
+    private static double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    static final class NukerState {
+
+        private final java.util.ArrayDeque<Long> recent = new java.util.ArrayDeque<>();
+    }
+}

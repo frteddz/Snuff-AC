@@ -1,0 +1,59 @@
+general:
+  enabled: true
+  debug: false
+  alert-prefix: 'Snuff'
+  alerts: true
+  console-alerts: true
+  console-alert-format: '[{prefix}] {player} failed {check} | VL: {vl} | ping: {ping}ms'
+  console-alert-format-verbose: ''
+  alert-cooldown-ms: 1500
+  log-to-file: true
+  log-directory: 'logs'
+  permissions:
+    debug: 'snuffac.debug'
+    bypass: 'snuffac.bypass'
+    admin: 'snuffac.admin'
+    alerts: 'snuffac.alerts'
+
+setback:
+  horizontal: 0.0
+  vertical: 0.0
+  max-violations-per-second: 40
+
+tolerance:
+  decay-per-tick: 0.35
+  maximum: 0.45
+  carry-over-cap: 1.0
+  carry-over-retention: 0.4
+  base: 0.001
+  ping-floor: 0.001
+  ping-per-ms: 0.00002
+  ping-maximum: 0.06
+  tps-floor: 0.001
+  tps-per-miss: 0.004
+  tps-maximum: 0.05
+  safe-tps: 19.0
+  low-tps-safety: 17.0
+
+combat:
+  reach:
+    maximum: 3.35
+    tolerance: 0.12
+    vehicle-tolerance: 0.45
+    latency-multiplier: 0.0022
+    max-latency-bonus: 0.35
+  autoclicker:
+    max-cps: 22.0
+    window-size: 40
+
+packets:
+  bad-packets:
+    max-per-second: 60.0
+  timer:
+    minimum-tps: 20.0
+    max-deviation: 1.2
+    exemption-ping: 400.0
+
+world:
+  fast-break:
+    max-per-second: 22

@@ -1,0 +1,256 @@
+package dev.snuffac.core.config;
+
+import dev.snuffac.core.util.MathUtil;
+
+public final class SnuffConfig {
+
+    private boolean enabled = true;
+    private boolean debug;
+    private String alertPrefix = "Snuff";
+    private boolean alertsEnabled = true;
+    private boolean consoleAlerts = true;
+    private String consoleAlertFormat = "[{prefix}] {player} failed {check} | VL: {vl} | ping: {ping}ms";
+    private String consoleAlertFormatVerbose = "";
+    private int alertCooldownMillis = 1500;
+    private boolean logToFile = true;
+    private String logDirectory = "plugins/SnuffAC/logs";
+    private String debugPermission = "snuffac.debug";
+    private String bypassPermission = "snuffac.bypass";
+    private String adminPermission = "snuffac.admin";
+    private String alertPermission = "snuffac.alerts";
+
+    private double setbackHorizontal = 0.0;
+    private double setbackVertical = 0.0;
+    private int maxViolationsPerSecond = 40;
+
+    private double toleranceDecayPerTick = 0.35;
+    private double toleranceMaximum = 0.45;
+    private double toleranceCarryOverCap = 1.0;
+    private double toleranceCarryOverRetention = 0.4;
+    private double baseTolerance = 0.001;
+    private double pingToleranceFloor = 0.001;
+    private double pingTolerancePerMilli = 0.00002;
+    private double maxPingTolerance = 0.06;
+    private double tpsToleranceFloor = 0.001;
+    private double tpsTolerancePerMiss = 0.004;
+    private double maxTpsTolerance = 0.05;
+    private double safeTps = 19.0;
+    private double lowTpsSafety = 17.0;
+
+    private double reachMaximum = 3.35;
+    private double reachTolerance = 0.12;
+    private double reachSparrowTolerance = 0.45;
+    private double reachLatencyMultiplier = 0.0022;
+    private double reachMaxLatencyBonus = 0.35;
+    private double clickerMaxCps = 22.0;
+    private int clickerWindowSize = 40;
+    private double badPacketMaxPerSecond = 60.0;
+    private double timerMinimumTps = 20.0;
+    private double timerMaxDeviation = 1.2;
+    private double timerExemptionPing = 400.0;
+    private int maxBlocksPerSecondDigging = 22;
+
+    public void load(ConfigSource source) {
+        enabled = source.getBoolean("general.enabled", enabled);
+        debug = source.getBoolean("general.debug", debug);
+        alertPrefix = source.getString("general.alert-prefix", alertPrefix);
+        alertsEnabled = source.getBoolean("general.alerts", alertsEnabled);
+        consoleAlerts = source.getBoolean("general.console-alerts", consoleAlerts);
+        consoleAlertFormat = source.getString("general.console-alert-format", consoleAlertFormat);
+        consoleAlertFormatVerbose = source.getString("general.console-alert-format-verbose", consoleAlertFormatVerbose);
+        alertCooldownMillis = source.getInt("general.alert-cooldown-ms", alertCooldownMillis);
+        logToFile = source.getBoolean("general.log-to-file", logToFile);
+        logDirectory = source.getString("general.log-directory", logDirectory);
+        debugPermission = source.getString("general.permissions.debug", debugPermission);
+        bypassPermission = source.getString("general.permissions.bypass", bypassPermission);
+        adminPermission = source.getString("general.permissions.admin", adminPermission);
+        alertPermission = source.getString("general.permissions.alerts", alertPermission);
+
+        setbackHorizontal = source.getDouble("setback.horizontal", setbackHorizontal);
+        setbackVertical = source.getDouble("setback.vertical", setbackVertical);
+        maxViolationsPerSecond = source.getInt("setback.max-violations-per-second", maxViolationsPerSecond);
+
+        toleranceDecayPerTick = source.getDouble("tolerance.decay-per-tick", toleranceDecayPerTick);
+        toleranceMaximum = source.getDouble("tolerance.maximum", toleranceMaximum);
+        toleranceCarryOverCap = source.getDouble("tolerance.carry-over-cap", toleranceCarryOverCap);
+        toleranceCarryOverRetention = source.getDouble("tolerance.carry-over-retention", toleranceCarryOverRetention);
+        baseTolerance = source.getDouble("tolerance.base", baseTolerance);
+        pingToleranceFloor = source.getDouble("tolerance.ping-floor", pingToleranceFloor);
+        pingTolerancePerMilli = source.getDouble("tolerance.ping-per-ms", pingTolerancePerMilli);
+        maxPingTolerance = source.getDouble("tolerance.ping-maximum", maxPingTolerance);
+        tpsToleranceFloor = source.getDouble("tolerance.tps-floor", tpsToleranceFloor);
+        tpsTolerancePerMiss = source.getDouble("tolerance.tps-per-miss", tpsTolerancePerMiss);
+        maxTpsTolerance = source.getDouble("tolerance.tps-maximum", maxTpsTolerance);
+        safeTps = source.getDouble("tolerance.safe-tps", safeTps);
+        lowTpsSafety = source.getDouble("tolerance.low-tps-safety", lowTpsSafety);
+
+        reachMaximum = source.getDouble("combat.reach.maximum", reachMaximum);
+        reachTolerance = source.getDouble("combat.reach.tolerance", reachTolerance);
+        reachSparrowTolerance = source.getDouble("combat.reach.vehicle-tolerance", reachSparrowTolerance);
+        reachLatencyMultiplier = source.getDouble("combat.reach.latency-multiplier", reachLatencyMultiplier);
+        reachMaxLatencyBonus = source.getDouble("combat.reach.max-latency-bonus", reachMaxLatencyBonus);
+        clickerMaxCps = source.getDouble("combat.autoclicker.max-cps", clickerMaxCps);
+        clickerWindowSize = source.getInt("combat.autoclicker.window-size", clickerWindowSize);
+        badPacketMaxPerSecond = source.getDouble("packets.bad-packets.max-per-second", badPacketMaxPerSecond);
+        timerMinimumTps = source.getDouble("packets.timer.minimum-tps", timerMinimumTps);
+        timerMaxDeviation = source.getDouble("packets.timer.max-deviation", timerMaxDeviation);
+        timerExemptionPing = source.getDouble("packets.timer.exemption-ping", timerExemptionPing);
+        maxBlocksPerSecondDigging = source.getInt("world.fast-break.max-per-second", maxBlocksPerSecondDigging);
+    }
+
+    public boolean enabled() {
+        return enabled;
+    }
+
+    public void enabled(boolean value) {
+        this.enabled = value;
+    }
+
+    public boolean debug() {
+        return debug;
+    }
+
+    public void debug(boolean value) {
+        this.debug = value;
+    }
+
+    public String alertPrefix() {
+        return alertPrefix;
+    }
+
+    public boolean alertsEnabled() {
+        return alertsEnabled;
+    }
+
+    public boolean consoleAlerts() {
+        return consoleAlerts;
+    }
+
+    public String consoleAlertFormat() {
+        return consoleAlertFormat;
+    }
+
+    public String consoleAlertFormatVerbose() {
+        return consoleAlertFormatVerbose;
+    }
+
+    public int alertCooldownMillis() {
+        return alertCooldownMillis;
+    }
+
+    public boolean logToFile() {
+        return logToFile;
+    }
+
+    public String logDirectory() {
+        return logDirectory;
+    }
+
+    public String debugPermission() {
+        return debugPermission;
+    }
+
+    public String bypassPermission() {
+        return bypassPermission;
+    }
+
+    public String adminPermission() {
+        return adminPermission;
+    }
+
+    public String alertPermission() {
+        return alertPermission;
+    }
+
+    public double setbackHorizontal() {
+        return setbackHorizontal;
+    }
+
+    public double setbackVertical() {
+        return setbackVertical;
+    }
+
+    public int maxViolationsPerSecond() {
+        return maxViolationsPerSecond;
+    }
+
+    public double toleranceDecayPerTick() {
+        return toleranceDecayPerTick;
+    }
+
+    public double toleranceMaximum() {
+        return toleranceMaximum;
+    }
+
+    public double toleranceCarryOverCap() {
+        return toleranceCarryOverCap;
+    }
+
+    public double toleranceCarryOverRetention() {
+        return toleranceCarryOverRetention;
+    }
+
+    public double baseTolerance() {
+        return baseTolerance;
+    }
+
+    public double safeTps() {
+        return safeTps;
+    }
+
+    public double lowTpsSafety() {
+        return lowTpsSafety;
+    }
+
+    public double toleranceFor(double pingMillis, double tps, double toleranceScale) {
+        double pingPart = pingToleranceFloor
+                + Math.max(0.0, pingMillis - 40.0) * pingTolerancePerMilli;
+        pingPart = Math.min(pingPart, maxPingTolerance);
+
+        double tpsPart = tpsToleranceFloor;
+        if (tps < safeTps) {
+            tpsPart += (safeTps - tps) * tpsTolerancePerMiss;
+        }
+        tpsPart = Math.min(tpsPart, maxTpsTolerance);
+
+        return baseTolerance + (pingPart + tpsPart) * Math.max(toleranceScale, 0.0);
+    }
+
+    public double reachToleranceFor(double pingMillis, boolean inVehicle) {
+        double base = inVehicle ? reachSparrowTolerance : reachTolerance;
+        double latencyBonus = MathUtil.clamp(pingMillis * reachLatencyMultiplier, 0.0, reachMaxLatencyBonus);
+        return base + latencyBonus;
+    }
+
+    public double reachMaximum() {
+        return reachMaximum;
+    }
+
+    public double clickerMaxCps() {
+        return clickerMaxCps;
+    }
+
+    public int clickerWindowSize() {
+        return clickerWindowSize;
+    }
+
+    public double badPacketMaxPerSecond() {
+        return badPacketMaxPerSecond;
+    }
+
+    public double timerMinimumTps() {
+        return timerMinimumTps;
+    }
+
+    public double timerMaxDeviation() {
+        return timerMaxDeviation;
+    }
+
+    public double timerExemptionPing() {
+        return timerExemptionPing;
+    }
+
+    public int maxBlocksPerSecondDigging() {
+        return maxBlocksPerSecondDigging;
+    }
+}

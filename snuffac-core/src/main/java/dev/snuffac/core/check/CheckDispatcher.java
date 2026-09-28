@@ -1,0 +1,136 @@
+package dev.snuffac.core.check;
+
+import dev.snuffac.core.config.CheckConfig;
+import dev.snuffac.core.config.SnuffConfig;
+import dev.snuffac.core.log.SnuffLogger;
+import dev.snuffac.core.packet.SnuffPacket;
+import dev.snuffac.core.player.PlayerData;
+import dev.snuffac.core.server.ServerHealth;
+import dev.snuffac.core.violation.CheckState;
+import dev.snuffac.core.violation.ViolationHandler;
+import java.util.List;
+
+public final class CheckDispatcher {
+
+    private final CheckRegistry registry;
+    private final SnuffConfig config;
+    private final ServerHealth server;
+    private final ViolationHandler violations;
+    private final SnuffLogger logger;
+
+    public CheckDispatcher(
+            CheckRegistry registry,
+            SnuffConfig config,
+            ServerHealth server,
+            ViolationHandler violations,
+            SnuffLogger logger) {
+        this.registry = registry;
+        this.config = config;
+        this.server = server;
+        this.violations = violations;
+        this.logger = logger;
+    }
+
+    public CheckRegistry registry() {
+        return registry;
+    }
+
+    public CheckContextImpl context(PlayerData player, Check check) {
+        CheckConfig checkConfig = registry.config(check);
+        CheckState state = player.checkState(check.key());
+        if (checkConfig == null || state == null) {
+            return null;
+        }
+        return new CheckContextImpl(player, check, checkConfig, config, server, violations, state, this::debug);
+    }
+
+    public void dispatchPacket(PlayerData player, SnuffPacket packet) {
+        if (!shouldProcess(player)) {
+            return;
+        }
+        List<Check> targets = registry.dispatchFor(packet.type());
+        for (int i = 0; i < targets.size(); i++) {
+            Check check = targets.get(i);
+            CheckConfig checkConfig = registry.config(check);
+            if (checkConfig == null || !checkConfig.enabled()) {
+                continue;
+            }
+            CheckContextImpl context = context(player, check);
+            if (context == null) {
+                continue;
+            }
+            try {
+                check.onPacket(context, packet);
+            } catch (RuntimeException exception) {
+                logger.debug("check error " + check.key() + " for " + player.name() + ": " + exception);
+            } finally {
+                context.clearEvidence();
+            }
+        }
+    }
+
+    public void dispatchTick(PlayerData player) {
+        if (!shouldProcess(player)) {
+            return;
+        }
+        List<Check> checks = registry.all();
+        for (int i = 0; i < checks.size(); i++) {
+            Check check = checks.get(i);
+            CheckConfig checkConfig = registry.config(check);
+            if (checkConfig == null || !checkConfig.enabled()) {
+                continue;
+            }
+            CheckContextImpl context = context(player, check);
+            if (context == null) {
+                continue;
+            }
+            try {
+                check.onTick(context);
+            } catch (RuntimeException exception) {
+                logger.debug("check tick error " + check.key() + " for " + player.name() + ": " + exception);
+            } finally {
+                context.clearEvidence();
+            }
+        }
+    }
+
+    public void dispatchJoin(PlayerData player) {
+        for (Check check : registry.all()) {
+            CheckContextImpl context = context(player, check);
+            if (context == null) {
+                continue;
+            }
+            try {
+                check.onPlayerJoin(context);
+            } catch (RuntimeException exception) {
+                logger.debug("join error " + check.key() + ": " + exception);
+            } finally {
+                context.clearEvidence();
+            }
+        }
+    }
+
+    public void dispatchQuit(PlayerData player) {
+        for (Check check : registry.all()) {
+            CheckContextImpl context = context(player, check);
+            if (context == null) {
+                continue;
+            }
+            try {
+                check.onPlayerQuit(context);
+            } catch (RuntimeException exception) {
+                logger.debug("quit error " + check.key() + ": " + exception);
+            } finally {
+                context.clearEvidence();
+            }
+        }
+    }
+
+    private boolean shouldProcess(PlayerData player) {
+        return config.enabled() && player.alive() && player.joined() && !player.exempt();
+    }
+
+    private void debug(PlayerData player, String checkKey, String message) {
+        logger.debug("[" + player.name() + "] " + checkKey + " " + message);
+    }
+}
