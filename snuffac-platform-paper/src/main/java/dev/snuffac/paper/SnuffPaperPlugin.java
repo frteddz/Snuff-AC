@@ -60,6 +60,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     private static int messengerFailures;
     private dev.snuffac.core.punish.PunishmentService punishments;
+    private static final long RETENTION_PROMPT_MILLIS = 60_000L;
     private dev.snuffac.core.punish.EscalationService escalation;
 
     private void applyMuteOnDisable() {
@@ -104,9 +105,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         if (outcome.kind() == dev.snuffac.core.punish.EscalationService.OutcomeKind.WARNED) {
             Player online = Bukkit.getPlayer(info.playerId());
             if (online != null) {
-                online.sendMessage(net.kyori.adventure.text.Component.text(
-                        "You were warned for " + check + " (" + outcome.warnings()
-                                + " of " + outcome.maxWarnings() + ")."));
+                StaffMessages.send(online, "You were warned for " + check
+                        + " (" + outcome.warnings() + " of " + outcome.maxWarnings() + ").");
             }
             return;
         }
@@ -120,10 +120,10 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         if (online == null) {
             return;
         }
-        var screen = net.kyori.adventure.text.Component.text("You are temporarily banned.\n\nReason: "
+        online.kick(net.kyori.adventure.text.Component.text("You are temporarily banned.\n\nReason: "
                 + reason + "\n\nDuration: "
-                + dev.snuffac.core.punish.Durations.describe(escalation.banMillis()));
-        online.kick(screen);
+                + dev.snuffac.core.punish.Durations.describe(escalation.banMillis())
+                + "\n\nIf you believe this is a mistake, contact the admins."));
     }
 
     public dev.snuffac.core.punish.EscalationService escalation() {
@@ -140,8 +140,99 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     public void applyEscalationConfigFromSettings() {
-        applyEscalationConfig();
-        core.violations().addListener(this::onViolationForEscalation);
+        var config = core.config();
+        getConfig().set("escalation.enabled", escalation.enabled());
+        getConfig().set("escalation.max-warnings", escalation.maxWarnings());
+        getConfig().set("escalation.ban-duration-millis", escalation.banMillis());
+        getConfig().set("escalation.min-confidence", escalation.minConfidence());
+        getConfig().set("escalation.warn-only", escalation.warnOnly());
+        saveConfig();
+        config.escalationEnabled(escalation.enabled());
+        config.escalationMaxWarnings(escalation.maxWarnings());
+        config.escalationBanMillis(escalation.banMillis());
+        config.escalationMinConfidence(escalation.minConfidence());
+        config.escalationWarnOnly(escalation.warnOnly());
+    }
+
+    private final java.util.Map<UUID, RetentionPrompt> retentionPrompts = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public void promptForRetention(Player player, dev.snuffac.paper.gui.SettingsMenu.RetentionKind kind) {
+        retentionPrompts.put(player.getUniqueId(), new RetentionPrompt(
+                kind, System.currentTimeMillis() + RETENTION_PROMPT_MILLIS));
+        StaffMessages.send(player, "Type the new number of days in chat, or type <b>cancel</b>.");
+    }
+
+    public void persistRetention() {
+        var config = core.config();
+        getConfig().set("general.log-retention-days", config.logRetentionDays());
+        getConfig().set("general.history-retention-days", config.historyRetentionDays());
+        getConfig().set("general.alert-cooldown-ms", config.alertCooldownMillis());
+        saveConfig();
+    }
+
+    public void persistPrevention() {
+        getConfig().set("prevention.enabled", core.config().preventionEnabled());
+        saveConfig();
+        core.enforcement().preventionEnabled(core.config().preventionEnabled());
+    }
+
+    public boolean handleRetentionChat(Player player, String message) {
+        RetentionPrompt prompt = retentionPrompts.remove(player.getUniqueId());
+        if (prompt == null) {
+            return false;
+        }
+        String text = sanitizeChatInput(message);
+        if (text.equalsIgnoreCase("cancel")) {
+            StaffMessages.send(player, "Cancelled, the value is unchanged.");
+            return true;
+        }
+        int days;
+        try {
+            days = Integer.parseInt(text);
+        } catch (NumberFormatException invalid) {
+            StaffMessages.send(player, "That is not a number. Nothing was changed.");
+            return true;
+        }
+        if (days < 1 || days > 3650) {
+            StaffMessages.send(player, "Enter a number between 1 and 3650. Nothing was changed.");
+            return true;
+        }
+        if (!canUseMenu(player)) {
+            StaffMessages.send(player, "You no longer have permission to do that.");
+            return true;
+        }
+        var config = core.config();
+        if (prompt.kind() == dev.snuffac.paper.gui.SettingsMenu.RetentionKind.LOG) {
+            config.logRetentionDays(days);
+        } else {
+            config.historyRetentionDays(days);
+        }
+        persistRetention();
+        StaffMessages.send(player, "Saved. Retention is now <b>" + days + "</b> days.");
+        return true;
+    }
+
+    private static String sanitizeChatInput(String message) {
+        if (message == null) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(message.length());
+        for (int i = 0; i < message.length() && i < 32; i++) {
+            char c = message.charAt(i);
+            if (Character.isLetterOrDigit(c)) {
+                builder.append(Character.toLowerCase(c));
+            }
+        }
+        return builder.toString();
+    }
+
+    public void purgeExpiredRetentionPrompts() {
+        long now = System.currentTimeMillis();
+        retentionPrompts.entrySet().removeIf(entry -> entry.getValue().expiresMillis() < now);
+    }
+
+    private record RetentionPrompt(
+            dev.snuffac.paper.gui.SettingsMenu.RetentionKind kind, long expiresMillis) {
     }
 
     public dev.snuffac.core.punish.PunishmentService punishments() {
@@ -166,8 +257,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     public void openSuspiciousByName(Player player, String name) {
         new dev.snuffac.paper.gui.GuiBridgeImpl(this).openSuspicious(player, 0);
-        player.sendMessage(net.kyori.adventure.text.Component.text(
-                "[Snuff] Showing flagged players. Looking for " + name + "."));
+        StaffMessages.send(player, "Showing flagged players. Looking for " + name + ".");
     }
 
     public void openCase(Player player, String uuid) {
@@ -358,9 +448,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 for (Player staff : Bukkit.getOnlinePlayers()) {
                     if (staff.hasPermission(core.config().alertPermission())) {
-                        staff.sendMessage(net.kyori.adventure.text.Component.text(
-                                "[Snuff] " + name + " rejoined with " + priorFlags
-                                        + " recorded flag(s) from previous sessions"));
+                        StaffMessages.send(staff, name + " rejoined carrying "
+                                + priorFlags + " recorded flag(s) from previous sessions");
                     }
                 }
             }, 40L);
@@ -525,6 +614,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     private void refreshWorldCaches() {
+        purgeExpiredRetentionPrompts();
         for (PlayerData data : new ArrayList<>(core.players())) {
             Object handle = data.platformPlayer();
             if (!(handle instanceof Player player) || !player.isOnline()) {
@@ -572,6 +662,27 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         refreshCombat(data, player);
     }
 
+    private static double observedReach(Player player) {
+        try {
+            var attribute = player.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
+            if (attribute == null) {
+                return 3.0;
+            }
+            return attribute.getValue();
+        } catch (RuntimeException ignored) {
+            return 3.0;
+        }
+    }
+
+    private static double observedDamage(Player player) {
+        try {
+            var attribute = player.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
+            return attribute == null ? 1.0 : attribute.getValue();
+        } catch (RuntimeException ignored) {
+            return 1.0;
+        }
+    }
+
     private static boolean isRiptiding(Player player) {
         try {
             for (var effect : player.getActivePotionEffects()) {
@@ -603,6 +714,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                     || name.contains("TRIDENT");
             data.equipment().weaponType(name);
             data.equipment().weaponAttributeActive(spearLike);
+            data.equipment().observedAttackReach(observedReach(player));
+            data.equipment().attackDamage(observedDamage(player));
         } catch (RuntimeException ignored) {
         }
     }

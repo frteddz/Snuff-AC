@@ -49,6 +49,10 @@ public final class PunishmentService implements AutoCloseable {
             String removedBy,
             long removedMillis) {
 
+        public long sequence() {
+            return id().getLeastSignificantBits();
+        }
+
         public boolean expired(long now) {
             return expiresMillis > 0L && expiresMillis <= now;
         }

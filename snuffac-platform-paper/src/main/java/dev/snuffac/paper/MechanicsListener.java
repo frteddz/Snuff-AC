@@ -105,6 +105,13 @@ public final class MechanicsListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onChatPrompt(org.bukkit.event.player.AsyncPlayerChatEvent event) {
+        if (plugin.handleRetentionChat(event.getPlayer(), event.getMessage())) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(org.bukkit.event.player.AsyncPlayerChatEvent event) {
         if (plugin.punishments().isMuted(event.getPlayer().getUniqueId())) {
@@ -117,8 +124,7 @@ public final class MechanicsListener implements Listener {
                     break;
                 }
             }
-            event.getPlayer().sendMessage(net.kyori.adventure.text.Component.text(
-                    "[Snuff] You are muted. Reason: " + reason));
+            StaffMessages.send(event.getPlayer(), "You are muted. Reason: " + reason);
         }
     }
 
@@ -126,8 +132,7 @@ public final class MechanicsListener implements Listener {
     public void onCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
         if (plugin.punishments().isMuted(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage(net.kyori.adventure.text.Component.text(
-                    "[Snuff] You are muted and cannot run commands."));
+            StaffMessages.send(event.getPlayer(), "You are muted and cannot run commands.");
         }
     }
 

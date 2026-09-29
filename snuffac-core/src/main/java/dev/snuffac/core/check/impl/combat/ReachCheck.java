@@ -15,6 +15,8 @@ import java.util.Set;
 
 public final class ReachCheck implements Check {
 
+    public static final int WEAPON_STREAK = 8;
+
     private static final double MIN_EXCESS = 0.02;
 
     @Override
@@ -73,6 +75,23 @@ public final class ReachCheck implements Check {
         double maximum = context.config().reachMaximum() + tolerance;
         double reach;
         String basis;
+
+        var equipment = player.equipment();
+        if (equipment.weaponAttributeActive() && equipment.observedAttackReach() > 0.0) {
+            state.weaponFlags++;
+            if (state.weaponFlags >= WEAPON_STREAK) {
+                Map<String, Object> weapon = context.newEvidence();
+                weapon.put("weapon", equipment.weaponType());
+                weapon.put("observedReach", round(equipment.observedAttackReach()));
+                weapon.put("expectedReach", round(equipment.attackReach()));
+                weapon.put("streak", state.weaponFlags);
+                context.flag("attack reach attribute of " + round(equipment.observedAttackReach())
+                        + " does not match the held weapon " + equipment.weaponType(), weapon, 6.0);
+                state.weaponFlags = 0;
+            }
+        } else {
+            state.weaponFlags = 0;
+        }
 
         boolean losBlocked = false;
         if (target != null && environment.known(attack.targetId())) {
@@ -154,5 +173,6 @@ public final class ReachCheck implements Check {
         private int excessTicks;
         private int resolvedHits;
         private boolean lineOfSightBlocked;
+        private int weaponFlags;
     }
 }

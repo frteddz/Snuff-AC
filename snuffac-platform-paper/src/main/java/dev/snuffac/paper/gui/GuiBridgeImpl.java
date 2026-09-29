@@ -3,6 +3,7 @@ package dev.snuffac.paper.gui;
 import dev.snuffac.api.violation.ViolationInfo;
 import dev.snuffac.core.player.PlayerData;
 import dev.snuffac.paper.SnuffPaperPlugin;
+import dev.snuffac.paper.StaffMessages;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,7 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
         try {
             showCase(player, java.util.UUID.fromString(uuid));
         } catch (IllegalArgumentException malformed) {
-            player.sendMessage(Component.text("[Snuff] Bad player id."));
+            StaffMessages.send(player, "Bad player id.");
         }
     }
 
@@ -52,8 +53,7 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
 
     @Override
     public void alertsToggled(Player player, boolean enabled) {
-        player.sendMessage(Component.text(
-                "[Snuff] Your alerts are now " + (enabled ? "on" : "off") + "."));
+        StaffMessages.send(player, "Your alerts are now " + (enabled ? "on" : "off") + ".");
     }
 
     @Override
@@ -100,19 +100,19 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
         }
         List<ViolationInfo> records = store.history(id);
         if (records.isEmpty()) {
-            player.sendMessage(Component.text("[Snuff] No history for that player."));
+            StaffMessages.send(player, "No history for that player.");
             return;
         }
         String name = records.get(records.size() - 1).playerName();
-        player.sendMessage(Component.text("[Snuff] " + name + " has " + records.size()
-                + " recorded flag(s). Most recent:"));
+        StaffMessages.send(player, name + " has " + records.size()
+                + " recorded flag(s). Most recent:");
         int shown = 0;
         for (int i = records.size() - 1; i >= 0 && shown < 10; i--, shown++) {
             ViolationInfo info = records.get(i);
-            player.sendMessage(Component.text("  " + info.checkName()
+            StaffMessages.send(player, "  " + info.checkName()
                     + " VL " + info.violationLevel()
                     + " ping " + info.pingMillis()
-                    + "ms at " + info.timestampMillis()));
+                    + "ms at " + info.timestampMillis());
         }
     }
 

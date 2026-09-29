@@ -33,14 +33,14 @@ public final class SettingsMenu extends SnuffMenu {
                 List.of("<gray>Days before old log files are deleted",
                         "<white>Current: <aqua>" + config.logRetentionDays() + " days",
                         "",
-                        "<gray>Left click to decrease",
-                        "<gray>Right click to increase"), null);
+                        "<gray>Click, then type the number in chat",
+                        "<gray>Type cancel to keep it"), null);
         set(11, Material.PAPER, "<white>History Retention",
                 List.of("<gray>Days before old flag history is purged",
                         "<white>Current: <aqua>" + config.historyRetentionDays() + " days",
                         "",
-                        "<gray>Left click to decrease",
-                        "<gray>Right click to increase"), null);
+                        "<gray>Click, then type the number in chat",
+                        "<gray>Type cancel to keep it"), null);
         set(12, Material.LEVER, "<white>Prevention",
                 List.of("<gray>Setback and cancel actions",
                         "<white>Current: <aqua>" + (config.preventionEnabled() ? "enabled" : "disabled"),
@@ -79,13 +79,19 @@ public final class SettingsMenu extends SnuffMenu {
         boolean increase = event.isRightClick();
         var config = plugin.core().config();
         if (slot == 10) {
-            config.logRetentionDays(clamp(config.logRetentionDays() + (increase ? 1 : -1), 1, 365));
+            plugin.promptForRetention(player, RetentionKind.LOG);
+            close(player);
+            return;
         } else if (slot == 11) {
-            config.historyRetentionDays(clamp(config.historyRetentionDays() + (increase ? 1 : -1), 1, 365));
+            plugin.promptForRetention(player, RetentionKind.HISTORY);
+            close(player);
+            return;
         } else if (slot == 12) {
             config.preventionEnabled(!config.preventionEnabled());
+            plugin.persistPrevention();
         } else if (slot == 13) {
             config.alertCooldownMillis(clamp(config.alertCooldownMillis() + (increase ? 500 : -500), 0, 60_000));
+            plugin.persistRetention();
         } else if (slot == 14) {
             if (event.isRightClick()) {
                 escalation().maxWarnings(clamp(escalation().maxWarnings() + 1, 1, 50));
@@ -103,6 +109,11 @@ public final class SettingsMenu extends SnuffMenu {
         }
         build();
         player.updateInventory();
+    }
+
+    public enum RetentionKind {
+        LOG,
+        HISTORY
     }
 
     private dev.snuffac.core.punish.EscalationService escalation() {

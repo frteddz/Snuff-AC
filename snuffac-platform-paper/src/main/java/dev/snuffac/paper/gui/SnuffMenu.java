@@ -24,7 +24,7 @@ public abstract class SnuffMenu implements InventoryHolder {
 
 
     private static final MiniMessage MINI = MiniMessage.miniMessage();
-    private static final Map<UUID, SnuffMenu> OPEN = new ConcurrentHashMap<>();
+    private static final MenuRegistry REGISTRY = new MenuRegistry();
 
     protected final Plugin plugin;
     private final org.bukkit.NamespacedKey actionKey;
@@ -49,7 +49,7 @@ public abstract class SnuffMenu implements InventoryHolder {
     protected abstract void render();
 
     public void open(Player player) {
-        OPEN.put(player.getUniqueId(), this);
+        REGISTRY.register(player.getUniqueId(), this, inventory);
         player.openInventory(inventory);
     }
 
@@ -59,11 +59,12 @@ public abstract class SnuffMenu implements InventoryHolder {
             close(player);
             return;
         }
+        REGISTRY.register(player.getUniqueId(), target, target.getInventory());
         target.open(player);
     }
 
     public void close(Player player) {
-        OPEN.remove(player.getUniqueId());
+        REGISTRY.forget(player.getUniqueId());
         player.closeInventory();
     }
 
@@ -89,17 +90,20 @@ public abstract class SnuffMenu implements InventoryHolder {
     }
 
     public static SnuffMenu of(Player player) {
-        return OPEN.get(player.getUniqueId());
+        Object current = REGISTRY.menuOf(player.getUniqueId());
+        return current instanceof SnuffMenu menu ? menu : null;
     }
 
     public static void forget(UUID playerId) {
-        OPEN.remove(playerId);
+        REGISTRY.forget(playerId);
+    }
+
+    public static void forget(UUID playerId, SnuffMenu closing, org.bukkit.inventory.Inventory inventory) {
+        REGISTRY.forgetOnClose(playerId, closing, inventory);
     }
 
     public static void closeAll() {
-        for (UUID id : new ArrayList<>(OPEN.keySet())) {
-            OPEN.remove(id);
-        }
+        REGISTRY.clear();
     }
 
     public void set(int slot, Material material, String name, List<String> lore, String action) {

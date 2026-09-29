@@ -9,6 +9,10 @@ public final class EquipmentState {
     private boolean holdingPlaceable;
     private String weaponType = "AIR";
     private boolean weaponAttributeActive;
+    private double attackReach = 3.0;
+    private double attackDamage = 1.0;
+    private double attackSpeed = 4.0;
+    private double observedAttackReach = 3.0;
 
     public static final EquipmentState DEFAULT = new EquipmentState();
 
@@ -61,6 +65,42 @@ public final class EquipmentState {
         this.weaponAttributeActive = value;
     }
 
+    public double observedAttackReach() {
+        return observedAttackReach;
+    }
+
+    public void observedAttackReach(double value) {
+        this.observedAttackReach = value;
+    }
+
+    public double attackReach() {
+        return attackReach;
+    }
+
+    public void attackReach(double value) {
+        this.attackReach = Math.max(0.0, value);
+    }
+
+    public double attackDamage() {
+        return attackDamage;
+    }
+
+    public void attackDamage(double value) {
+        this.attackDamage = value;
+    }
+
+    public double attackSpeed() {
+        return attackSpeed;
+    }
+
+    public void attackSpeed(double value) {
+        this.attackSpeed = value;
+    }
+
+    public boolean reachInconsistent() {
+        return observedAttackReach > 0.0 && observedAttackReach < attackReach - 0.05;
+    }
+
     public void reset() {
         this.miningSpeed = 1.0;
         this.blockBreakSpeed = 1.0;
@@ -69,6 +109,10 @@ public final class EquipmentState {
         this.holdingPlaceable = false;
         this.weaponType = "AIR";
         this.weaponAttributeActive = false;
+        this.attackReach = 3.0;
+        this.attackDamage = 1.0;
+        this.attackSpeed = 4.0;
+        this.observedAttackReach = 3.0;
     }
 
     public static double breakTicks(double hardness, double miningSpeed, double blockBreakSpeed) {

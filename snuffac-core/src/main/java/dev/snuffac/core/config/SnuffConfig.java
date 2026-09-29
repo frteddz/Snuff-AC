@@ -295,6 +295,26 @@ public final class SnuffConfig {
         return escalationEnabled;
     }
 
+    public void escalationEnabled(boolean value) {
+        this.escalationEnabled = value;
+    }
+
+    public void escalationMaxWarnings(int value) {
+        this.escalationMaxWarnings = Math.max(1, value);
+    }
+
+    public void escalationBanMillis(long value) {
+        this.escalationBanMillis = Math.max(0L, value);
+    }
+
+    public void escalationMinConfidence(double value) {
+        this.escalationMinConfidence = value;
+    }
+
+    public void escalationWarnOnly(boolean value) {
+        this.escalationWarnOnly = value;
+    }
+
     public int escalationMaxWarnings() {
         return escalationMaxWarnings;
     }

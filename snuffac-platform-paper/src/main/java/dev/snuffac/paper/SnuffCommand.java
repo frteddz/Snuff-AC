@@ -23,8 +23,6 @@ import org.bukkit.entity.Player;
 
 public final class SnuffCommand implements CommandExecutor, TabCompleter {
 
-    private static final MiniMessage MINI = MiniMessage.miniMessage();
-    private static final String PREFIX = "<gray>[</gray><red>Snuff</red><gray>]</gray> ";
 
     private final SnuffPaperPlugin plugin;
     private final PunishCommands punishCommands;
@@ -378,11 +376,7 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
     }
 
     private static void raw(CommandSender sender, String message) {
-        try {
-            sender.sendMessage(MINI.deserialize(PREFIX + message));
-        } catch (RuntimeException exception) {
-            sender.sendMessage(PREFIX + message);
-        }
+        StaffMessages.send(sender, message);
     }
 
     static String format(double value) {

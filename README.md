@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.5-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.0.6-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server. See
 [Known limitations](#known-limitations).
 
@@ -186,17 +186,11 @@ pretend otherwise.
   ViaVersion. Both are exempted by default because modelling them properly is better
   than risk false positives on them.
 
-**Known broken in `1.0.5-dev`**
+**Fixed in `1.0.6-dev`**
 
-Found during live testing and tracked for v1.0.6. Do not enable the menus on a live
-server until fixed.
-
-- Menu buttons do not work and the button items can be taken. The menu registry and the
-  close handler destroy each other, so the click is never cancelled.
-- The warning ladder toggle in the settings menu does nothing, because it re-reads
-  `config.yml` immediately after the toggle and overwrites it.
-- Attribute swapping to a spear is not detected. The weapon fields are written every
-  tick and read by nothing.
+The three items listed as broken in `1.0.5-dev` are resolved: menu items can no longer
+be taken and the buttons work, the warning ladder can be enabled and persists across a
+restart, and spear attribute swapping is detected.
 
 ## Configuration
 
@@ -292,7 +286,7 @@ a particular input.
 
 ## Testing
 
-Snuff AC has **176 passing unit tests** covering:
+Snuff AC has **193 passing unit tests** covering:
 
 - Kinematics against the documented vanilla speeds, terminal velocity, jump behaviour,
   friction on ice, and speed and slowness effects
@@ -358,7 +352,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/velocity-v1.0.5-dev.jar
+snuffac-1.21.x+paper/purpur/velocity-v1.0.6-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so

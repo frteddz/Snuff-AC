@@ -72,7 +72,7 @@ final class PunishCommands {
 
     boolean execute(CommandSender sender, String sub, String[] args) {
         if (args.length < 2) {
-            msg(sender, "punish-usage", "<use>", usageFor(sub));
+            msg(sender, "punish-usage", "use", usageFor(sub));
             return true;
         }
         String targetName = args[1];
@@ -81,13 +81,13 @@ final class PunishCommands {
 
         if (needsDuration(sub)) {
             if (args.length < 3) {
-                msg(sender, "punish-usage", "<use>", usageFor(sub));
+                msg(sender, "punish-usage", "use", usageFor(sub));
                 return true;
             }
             try {
                 duration = Durations.parseMillis(args[2]);
             } catch (IllegalArgumentException invalid) {
-                msg(sender, "bad-duration", "<input>", args[2], "<why>", invalid.getMessage());
+                msg(sender, "bad-duration", "input", args[2], "why", invalid.getMessage());
                 return true;
             }
             reasonIndex = 3;
@@ -95,25 +95,25 @@ final class PunishCommands {
 
         String reason = join(args, reasonIndex);
         if (reason.isBlank()) {
-            msg(sender, "punish-no-reason", "<use>", usageFor(sub));
+            msg(sender, "punish-no-reason", "use", usageFor(sub));
             return true;
         }
 
         OfflinePlayer target = resolve(targetName);
         if (target == null) {
-            msg(sender, "punish-unknown", "<player>", targetName);
+            msg(sender, "punish-unknown", "player", targetName);
             return true;
         }
         UUID id = target.getUniqueId();
         String name = target.getName() == null ? targetName : target.getName();
 
         if (target instanceof Player online && online.hasPermission("snuffac.exempt.punish")) {
-            msg(sender, "punish-protected", "<player>", name);
+            msg(sender, "punish-protected", "player", name);
             return true;
         }
 
         if (duration > 0L && !withinStaffCap(sender, duration)) {
-            msg(sender, "punish-too-long", "<duration>", Durations.describe(duration));
+            msg(sender, "punish-too-long", "duration", Durations.describe(duration));
             return true;
         }
 
@@ -139,18 +139,18 @@ final class PunishCommands {
                 "player", name,
                 "duration", Durations.describe(duration),
                 "reason", reason,
-                "id", record.id().toString().substring(0, 8)));
+                "id", Long.toString(record.sequence())));
         return true;
     }
 
     boolean reverse(CommandSender sender, String sub, String[] args) {
         if (args.length < 2) {
-            msg(sender, "punish-usage", "<use>", usageFor(sub));
+            msg(sender, "punish-usage", "use", usageFor(sub));
             return true;
         }
         OfflinePlayer target = resolve(args[1]);
         if (target == null) {
-            msg(sender, "punish-unknown", "<player>", args[1]);
+            msg(sender, "punish-unknown", "player", args[1]);
             return true;
         }
         UUID id = target.getUniqueId();
@@ -170,7 +170,7 @@ final class PunishCommands {
             plugin.escalation().resetForStaffAction(id);
         }
         if (removed == 0) {
-            msg(sender, "reverse-none", "<player>", target.getName() == null ? args[1] : target.getName());
+            msg(sender, "reverse-none", "player", target.getName() == null ? args[1] : target.getName());
             return true;
         }
         Player online = Bukkit.getPlayer(id);
@@ -206,37 +206,36 @@ final class PunishCommands {
         }
         OfflinePlayer target = resolve(args[1]);
         if (target == null) {
-            msg(sender, "punish-unknown", "<player>", args[1]);
+            msg(sender, "punish-unknown", "player", args[1]);
             return true;
         }
         UUID id = target.getUniqueId();
         List<PunishmentService.Punishment> active = plugin.punishments().active(id);
         String name = target.getName() == null ? args[1] : target.getName();
         if (active.isEmpty()) {
-            msg(sender, "punish-none", "<player>", name);
+            msg(sender, "punish-none", "player", name);
             return true;
         }
         msg(sender, "punish-list-header", Map.of("player", name, "count", String.valueOf(active.size())));
         for (PunishmentService.Punishment record : active) {
-            sender.sendMessage(net.kyori.adventure.text.Component.text(
-                    "  " + record.kind().label()
+            StaffMessages.send(sender, "  " + record.kind().label()
                             + " | " + (record.expiresMillis() == 0L
                                     ? "permanent"
                                     : Durations.describe(record.expiresMillis() - System.currentTimeMillis()))
                             + " left | " + record.reason()
-                            + " | by " + record.staff()));
+                            + " | by " + record.staff());
         }
         return true;
     }
 
     boolean warns(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            msg(sender, "punish-usage", "<use>", "/snuff warns <player>");
+            msg(sender, "punish-usage", "use", "/snuff warns <player>");
             return true;
         }
         OfflinePlayer target = resolve(args[1]);
         if (target == null) {
-            msg(sender, "punish-unknown", "<player>", args[1]);
+            msg(sender, "punish-unknown", "player", args[1]);
             return true;
         }
         List<PunishmentService.Punishment> warnings = new java.util.ArrayList<>();
@@ -247,16 +246,15 @@ final class PunishCommands {
         }
         String name = target.getName() == null ? args[1] : target.getName();
         if (warnings.isEmpty()) {
-            msg(sender, "warn-none", "<player>", name);
+            msg(sender, "warn-none", "player", name);
             return true;
         }
         msg(sender, "warn-header", Map.of("player", name, "count", String.valueOf(warnings.size())));
         for (PunishmentService.Punishment record : warnings) {
-            sender.sendMessage(net.kyori.adventure.text.Component.text(
-                    "  " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm")
+            StaffMessages.send(sender, "  " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm")
                             .format(new java.util.Date(record.createdMillis()))
                             + " | " + record.reason()
-                            + " | by " + record.staff()));
+                            + " | by " + record.staff());
         }
         return true;
     }
@@ -354,7 +352,6 @@ final class PunishCommands {
     }
 
     private void msg(CommandSender sender, String key, Map<String, String> values) {
-        sender.sendMessage(net.kyori.adventure.text.Component.text(
-                "[Snuff] " + Messages.render(key, values)));
+        StaffMessages.send(sender, key, values);
     }
 }

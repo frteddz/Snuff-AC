@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -24,8 +25,9 @@ public final class MenuListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        SnuffMenu menu = SnuffMenu.of(player);
-        if (menu == null) {
+        Inventory top = event.getView().getTopInventory();
+        boolean ours = top.getHolder() instanceof SnuffMenu;
+        if (!ours) {
             return;
         }
         event.setCancelled(true);
@@ -39,6 +41,7 @@ public final class MenuListener implements Listener {
         if (event.getClickedInventory() == null) {
             return;
         }
+        SnuffMenu menu = (SnuffMenu) top.getHolder();
         if (!event.getClickedInventory().equals(menu.getInventory())) {
             return;
         }
@@ -56,7 +59,7 @@ public final class MenuListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
-        if (event.getWhoClicked() instanceof Player player && SnuffMenu.of(player) != null) {
+        if (event.getView().getTopInventory().getHolder() instanceof SnuffMenu) {
             event.setCancelled(true);
         }
     }
@@ -66,7 +69,8 @@ public final class MenuListener implements Listener {
         if (!(event.getPlayer() instanceof Player player)) {
             return;
         }
-        SnuffMenu menu = SnuffMenu.of(player);
+        Inventory closing = event.getInventory();
+        SnuffMenu menu = closing.getHolder() instanceof SnuffMenu held ? held : SnuffMenu.of(player);
         if (menu == null) {
             return;
         }
@@ -75,7 +79,7 @@ public final class MenuListener implements Listener {
         } catch (RuntimeException exception) {
             plugin.getLogger().warning("menu close failed: " + exception);
         } finally {
-            SnuffMenu.forget(player.getUniqueId());
+            SnuffMenu.forget(player.getUniqueId(), menu, closing);
         }
     }
 
