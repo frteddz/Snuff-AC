@@ -60,6 +60,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     private static int messengerFailures;
     private dev.snuffac.core.punish.PunishmentService punishments;
+    private dev.snuffac.core.punish.EscalationService escalation;
 
     private void applyMuteOnDisable() {
     }
@@ -73,6 +74,74 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         var menu = new dev.snuffac.paper.gui.MainMenu(this, bridge, alertsEnabledFor(player));
         menu.build();
         menu.open(player);
+    }
+
+    private void onViolationForEscalation(dev.snuffac.api.violation.ViolationInfo info) {
+        if (escalation == null || !escalation.enabled()) {
+            return;
+        }
+        try {
+            var outcome = escalation.onFlag(
+                    info.playerId(),
+                    info.playerName(),
+                    info.checkKey(),
+                    info.checkName(),
+                    info.confidence(),
+                    "Snuff AC");
+            if (!outcome.actionable()) {
+                return;
+            }
+            announceEscalation(info, outcome);
+        } catch (RuntimeException failure) {
+            getLogger().warning("escalation failed: " + failure);
+        }
+    }
+
+    private void announceEscalation(dev.snuffac.api.violation.ViolationInfo info,
+            dev.snuffac.core.punish.EscalationService.Outcome outcome) {
+        String name = info.playerName();
+        String check = outcome.checkLabel();
+        if (outcome.kind() == dev.snuffac.core.punish.EscalationService.OutcomeKind.WARNED) {
+            Player online = Bukkit.getPlayer(info.playerId());
+            if (online != null) {
+                online.sendMessage(net.kyori.adventure.text.Component.text(
+                        "You were warned for " + check + " (" + outcome.warnings()
+                                + " of " + outcome.maxWarnings() + ")."));
+            }
+            return;
+        }
+        String reason = "Warned " + outcome.maxWarnings() + " times for " + check
+                + ". If you believe this is a mistake, contact the admins after the ban expires.";
+        kickForEscalation(info.playerId(), reason);
+    }
+
+    private void kickForEscalation(UUID id, String reason) {
+        Player online = Bukkit.getPlayer(id);
+        if (online == null) {
+            return;
+        }
+        var screen = net.kyori.adventure.text.Component.text("You are temporarily banned.\n\nReason: "
+                + reason + "\n\nDuration: "
+                + dev.snuffac.core.punish.Durations.describe(escalation.banMillis()));
+        online.kick(screen);
+    }
+
+    public dev.snuffac.core.punish.EscalationService escalation() {
+        return escalation;
+    }
+
+    private void applyEscalationConfig() {
+        var config = core.config();
+        escalation.enabled(config.escalationEnabled());
+        escalation.maxWarnings(config.escalationMaxWarnings());
+        escalation.banMillis(config.escalationBanMillis());
+        escalation.minConfidence(config.escalationMinConfidence());
+        escalation.warnOnly(config.escalationWarnOnly());
+    }
+
+    public void applyEscalationConfigFromSettings() {
+        applyEscalationConfig();
+        core.violations().addListener(this::onViolationForEscalation);
     }
 
     public dev.snuffac.core.punish.PunishmentService punishments() {
@@ -266,6 +335,10 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.punishments = new dev.snuffac.core.punish.PunishmentService(
                 new java.io.File(getDataFolder(), "punishments").toPath(), null);
         this.punishments.load();
+        this.escalation = new dev.snuffac.core.punish.EscalationService(
+                punishments, core.config().escalationMinConfidence());
+        applyEscalationConfig();
+        core.violations().addListener(this::onViolationForEscalation);
         applyAntiXray();
         getServer().getPluginManager().registerEvents(new dev.snuffac.paper.gui.MenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MechanicsListener(this), this);

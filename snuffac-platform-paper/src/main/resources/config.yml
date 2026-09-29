@@ -44,6 +44,20 @@ compatibility:
   exempt-void-worlds: true
   void-world-floor: -60
 
+escalation:
+  # Warns a player each time a confident flag lands, then applies one timed
+  # ban once the warning limit is reached. Off by default, because automatic
+  # punishment can never be risk free. Turn this on only after tuning the
+  # thresholds on your own server.
+  enabled: false
+  max-warnings: 5
+  ban-duration-millis: 3600000
+  # Only warn on confident detections. Raise this to make the ladder much
+  # more reluctant, lower it only if you are certain about your thresholds.
+  min-confidence: 0.75
+  # Warn and never ban, so staff make the final call.
+  warn-only: false
+
 anti-xray:
   # Replaces valuable ores with a decoy state in the chunks the server sends,
   # so a client has no ore data to reveal. This drives the server's own chunk

@@ -30,6 +30,11 @@ public final class SnuffConfig {
     private double minConfidenceForPrevention = 0.55;
     private int antiXrayBandStart = -16;
     private int antiXrayBandEnd = 320;
+    private boolean escalationEnabled = false;
+    private int escalationMaxWarnings = 5;
+    private long escalationBanMillis = 3_600_000L;
+    private double escalationMinConfidence = 0.75;
+    private boolean escalationWarnOnly = false;
     private boolean antiXrayHideContainers;
     private dev.snuffac.core.world.ObfuscationPolicy antiXrayMode =
             dev.snuffac.core.world.ObfuscationPolicy.HIDDEN_ORES;
@@ -94,6 +99,11 @@ public final class SnuffConfig {
         antiXrayBandStart = source.getInt("anti-xray.band-start", antiXrayBandStart);
         antiXrayBandEnd = source.getInt("anti-xray.band-end", antiXrayBandEnd);
         antiXrayHideContainers = source.getBoolean("anti-xray.hide-containers", antiXrayHideContainers);
+        escalationEnabled = source.getBoolean("escalation.enabled", escalationEnabled);
+        escalationMaxWarnings = source.getInt("escalation.max-warnings", escalationMaxWarnings);
+        escalationBanMillis = source.getLong("escalation.ban-duration-millis", escalationBanMillis);
+        escalationMinConfidence = source.getDouble("escalation.min-confidence", escalationMinConfidence);
+        escalationWarnOnly = source.getBoolean("escalation.warn-only", escalationWarnOnly);
         String mode = source.getString("anti-xray.mode", antiXrayMode.name());
         if ("NONE".equalsIgnoreCase(mode.trim())) {
             mode = "OFF";
@@ -279,6 +289,26 @@ public final class SnuffConfig {
 
     public int voidWorldFloor() {
         return voidWorldFloor;
+    }
+
+    public boolean escalationEnabled() {
+        return escalationEnabled;
+    }
+
+    public int escalationMaxWarnings() {
+        return escalationMaxWarnings;
+    }
+
+    public long escalationBanMillis() {
+        return escalationBanMillis;
+    }
+
+    public double escalationMinConfidence() {
+        return escalationMinConfidence;
+    }
+
+    public boolean escalationWarnOnly() {
+        return escalationWarnOnly;
     }
 
     public boolean antiXrayHideContainers() {

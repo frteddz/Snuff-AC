@@ -128,6 +128,9 @@ final class PunishCommands {
             }
         }
 
+        if (kind == PunishmentService.Kind.WARN) {
+            plugin.escalation().resetForStaffAction(id);
+        }
         var record = plugin.punishments().punish(kind, id, name, ipHash, reason, sender.getName(), duration);
         applyOnline(target, kind, true);
 
@@ -162,6 +165,9 @@ final class PunishCommands {
         int removed = 0;
         for (PunishmentService.Kind kind : kinds) {
             removed += plugin.punishments().remove(id, kind, sender.getName()).size();
+        }
+        if (removed > 0) {
+            plugin.escalation().resetForStaffAction(id);
         }
         if (removed == 0) {
             msg(sender, "reverse-none", "<player>", target.getName() == null ? args[1] : target.getName());

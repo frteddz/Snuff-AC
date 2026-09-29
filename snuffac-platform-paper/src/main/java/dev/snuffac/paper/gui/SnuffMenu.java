@@ -53,6 +53,15 @@ public abstract class SnuffMenu implements InventoryHolder {
         player.openInventory(inventory);
     }
 
+    public void openParent(Player player) {
+        SnuffMenu target = parent();
+        if (target == null) {
+            close(player);
+            return;
+        }
+        target.open(player);
+    }
+
     public void close(Player player) {
         OPEN.remove(player.getUniqueId());
         player.closeInventory();

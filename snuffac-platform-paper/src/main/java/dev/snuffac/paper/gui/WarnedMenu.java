@@ -115,11 +115,7 @@ public final class WarnedMenu extends SnuffMenu {
             return;
         }
         if (action.equals(ACTION_BACK)) {
-            if (parent() != null) {
-                player.openInventory(parent().getInventory());
-            } else {
-                close(player);
-            }
+            openParent(player);
             return;
         }
         if (action.equals(ACTION_CLOSE)) {

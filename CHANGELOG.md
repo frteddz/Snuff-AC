@@ -375,3 +375,51 @@ comes from that study rather than from guesswork. No code was copied.
 
 - 165 unit tests pass, up from 157, with dedicated coverage for the join grace,
   the lag gate and both wind charge windows.
+
+## [1.0.5-dev] - 2026-09-30
+
+Escalation release. The engine could prove a player was cheating but had
+nothing to do about it beyond alerting, so detection never turned into a
+consequence.
+
+### Fixed
+
+- Menu back buttons were dead. They opened the parent inventory directly
+  instead of going through the menu open path, which left the stale child
+  menu registered as the player's open menu. Every click after going back
+  resolved against the wrong inventory, so the whole tab set appeared inert.
+  Navigation now re-registers correctly, which fixes the flagged players
+  list, the warnings list and the settings menu at the same time.
+
+### Added
+
+- A warning ladder. Each confident flag records one warning against the
+  player. When the warning count reaches the configured limit, one timed ban
+  is applied. The ban screen states which check it was for, how many warnings
+  led to it, and that a false detection can be appealed with the admins once
+  it expires.
+- The ladder is keyed by UUID, so disconnecting does not clear it, and it has
+  a cooldown so one burst of packets cannot consume the entire warning
+  allowance. A manual staff punishment or unban resets it, so staff always
+  have the final say.
+- It only acts on confident detections, and a warning limit of one is the
+  floor, so a misconfigured server cannot ban on the first flag.
+- Configurable under `escalation`, including a warn only mode that stops at
+  the limit and never bans, and a settings menu control to toggle the ladder
+  and change the warning limit without editing the file.
+- Escalation is off by default. It should only be enabled after thresholds
+  are tuned on the target server, since no automatic ban can be risk free.
+
+### Corrected
+
+- plugin.yml carried a hardcoded version instead of the build template, so
+  every build since v1.0.2 reported 1.0.2-dev at runtime regardless of the
+  real version. The template is restored and the version is verified by
+  reading it back out of the built artifact.
+
+### Verification
+
+- 176 unit tests pass, up from 165, including coverage that the first flag
+  never bans, that the ban lands exactly on the configured limit, that a
+  reconnect cannot clear the ladder, that a burst of packets cannot burn
+  warnings, and that the ban reason names the check and the appeal path.

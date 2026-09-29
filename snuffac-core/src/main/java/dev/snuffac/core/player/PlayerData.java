@@ -37,6 +37,7 @@ public final class PlayerData {
     private boolean debugEnabled;
     private boolean alertsEnabled = true;
     private boolean verboseAlerts = false;
+    private int warningsView;
     private boolean setbackEnabled = true;
     private boolean packetModificationEnabled = true;
     private boolean aliveLastTick = true;
@@ -215,6 +216,14 @@ public final class PlayerData {
 
     public void alertsEnabled(boolean value) {
         this.alertsEnabled = value;
+    }
+
+    public int warningsView() {
+        return warningsView;
+    }
+
+    public void warningsView(int value) {
+        this.warningsView = value;
     }
 
     public boolean verboseAlerts() {

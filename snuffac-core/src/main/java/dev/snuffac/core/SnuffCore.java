@@ -87,6 +87,7 @@ public final class SnuffCore {
     private volatile AlertService alerts;
     private volatile FileViolationLogger fileLogger;
     private volatile ViolationHistoryStore historyStore;
+    private volatile dev.snuffac.core.punish.EscalationService escalation;
     private volatile boolean setbackEnabled;
     private volatile java.util.concurrent.ExecutorService historyWriter;
     private volatile boolean running;
@@ -239,6 +240,10 @@ public final class SnuffCore {
 
     public java.util.Set<UUID> knownPlayerIds() {
         return java.util.Collections.unmodifiableSet(players.keySet());
+    }
+
+    public dev.snuffac.core.punish.EscalationService escalation() {
+        return escalation;
     }
 
     public ViolationHistoryStore historyStore() {

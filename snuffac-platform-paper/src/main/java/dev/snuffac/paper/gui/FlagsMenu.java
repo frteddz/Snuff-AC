@@ -109,13 +109,7 @@ public final class FlagsMenu extends SnuffMenu {
             return;
         }
         switch (action) {
-            case ACTION_BACK -> {
-                if (parent() != null) {
-                    player.openInventory(parent().getInventory());
-                } else {
-                    close(player);
-                }
-            }
+            case ACTION_BACK -> openParent(player);
             case ACTION_REFRESH -> {
                 build();
                 player.updateInventory();
