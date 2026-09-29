@@ -4,6 +4,6 @@
 # Arc: https://modrinth.com/shader/arc-shader 
 # Solas Shader: https://modrinth.com/shader/solas-shader
 # Noble Shaders: https://modrinth.com/shader/noble
-#
+# Super Duper Vanilla: https://modrinth.com/shader/super-duper-vanilla
 #
 #
