@@ -1,5 +1,5 @@
 name: SnuffAC
-version: 1.0.2-dev
+version: '${version}'
 main: dev.snuffac.paper.SnuffPaperPlugin
 api-version: '1.21'
 author: Snuff
