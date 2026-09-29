@@ -74,6 +74,7 @@ public final class CheckDispatcher {
         var movement = player.movement();
         if (packet instanceof dev.snuffac.core.packet.MovementPacket move) {
             movement.observeMovementPacket(player.network().tickCounter());
+            player.combat().observeMovement(move.arrivalNanos());
             movement.observePositionDelta(move);
         } else if (packet instanceof dev.snuffac.core.packet.BlockPlacePacket) {
             movement.markPlaced();
@@ -141,6 +142,18 @@ public final class CheckDispatcher {
 
     private boolean shouldProcess(PlayerData player) {
         return config.enabled() && player.alive() && player.joined() && !player.exempt();
+    }
+
+    public static boolean globalGate(
+            dev.snuffac.core.player.PlayerData player, double tps, double pingMillis) {
+        if (dev.snuffac.core.prediction.PredictionGraces.serverLagged(tps)) {
+            return false;
+        }
+        if (dev.snuffac.core.prediction.PredictionGraces.pingUnreliable(pingMillis)) {
+            return false;
+        }
+        return !dev.snuffac.core.prediction.PredictionGraces.joinGraceActive(
+                player.joinMillis(), System.currentTimeMillis());
     }
 
     private void debug(PlayerData player, String checkKey, String message) {

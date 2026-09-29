@@ -328,3 +328,50 @@ Staff tooling release, driven by a second round of live bug reports.
 ### Verification
 
 - 157 unit tests pass, up from 138.
+
+## [1.0.4-dev] - 2026-09-30
+
+Detection and false positive pass, built against a written study of how
+established anticheats actually discriminate. Every threshold and rule below
+comes from that study rather than from guesswork. No code was copied.
+
+### False positive fixes
+
+- A join grace of five seconds now applies to every movement check. The join
+  timestamp was recorded but never read, so a player's first five seconds of
+  movement, which is exactly when the world cache is still filling and the
+  predictor has no history, were checked against a cold model.
+- A global lag gate now suppresses movement checks below 18 TPS and above
+  300ms ping. Timing and position checks are meaningless when the server or
+  the connection is struggling, and this was only applied to the Timer check
+  before. An unmeasured TPS is not treated as lag.
+- Fly now exempts the full documented list: riptiding, slow falling, levitation,
+  recent knockback and a recent block change, in addition to the water,
+  elytra, vehicle and climbable cases it already handled. Each is now driven
+  by real potion, item and damage events.
+- ExtraPackets was flagging at three position packets in a tick. A vanilla
+  client sends one, but 1.8 clients, Bedrock and any client under packet
+  aggregation legitimately send two to three, and four is still within normal
+  variance. The threshold is now four per tick and it must be sustained across
+  six consecutive ticks before flagging, which is what the study describes as
+  the signal rather than a single busy tick.
+
+### Detection additions
+
+- Post attack timing. An attack sent immediately after a movement packet, which
+  is what a targetting assist does and a human does not, is now recorded and
+  compared against the normal 2 to 60ms gap.
+- Multi target analysis. Attacking three or more distinct entities inside one
+  second, each immediately after a movement packet, is flagged. Rotation is now
+  also compared against the angle to the target, and an attack on an entity more
+  than 90 degrees from the facing direction is flagged as hitting outside the
+  normal view.
+- Dig reach validation. Starting a dig on a block more than six blocks away, in
+  a chunk the server has actually loaded, is flagged. This is the ghost dig
+  class of abuse, where the client targets a position the server never told it
+  about.
+
+### Verification
+
+- 165 unit tests pass, up from 157, with dedicated coverage for the join grace,
+  the lag gate and both wind charge windows.

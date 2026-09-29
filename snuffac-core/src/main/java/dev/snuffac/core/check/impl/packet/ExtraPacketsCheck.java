@@ -12,7 +12,8 @@ import java.util.Set;
 public final class ExtraPacketsCheck implements Check {
 
     public static final int SERVER_TICKS_PER_SECOND = 20;
-    public static final int BURST_ALLOWANCE = 1;
+    public static final int BURST_ALLOWANCE = 4;
+    public static final int REPEAT_TICKS_REQUIRED = 6;
     public static final int REQUIRED_BURSTS = 3;
 
     @Override
@@ -61,7 +62,12 @@ public final class ExtraPacketsCheck implements Check {
             return;
         }
         state.packetsThisTick++;
-        if (state.packetsThisTick <= BURST_ALLOWANCE + 1) {
+        if (state.packetsThisTick <= BURST_ALLOWANCE) {
+            state.overBudgetTicks = 0;
+            return;
+        }
+        state.overBudgetTicks++;
+        if (state.overBudgetTicks < REPEAT_TICKS_REQUIRED) {
             return;
         }
 
@@ -72,7 +78,8 @@ public final class ExtraPacketsCheck implements Check {
 
         Map<String, Object> evidence = context.newEvidence();
         evidence.put("packetsInTick", state.packetsThisTick);
-        evidence.put("allowed", BURST_ALLOWANCE + 1);
+        evidence.put("allowed", BURST_ALLOWANCE);
+        evidence.put("consecutiveTicks", state.overBudgetTicks);
         evidence.put("bursts", state.bursts);
         evidence.put("position", context.position().x() + "," + context.position().y() + "," + context.position().z());
         context.flag("multiple position packets in one server tick", evidence, 9.0);
@@ -94,6 +101,7 @@ public final class ExtraPacketsCheck implements Check {
 
         private long lastTick = -1L;
         private int packetsThisTick;
+        private int overBudgetTicks;
         private int bursts;
     }
 }

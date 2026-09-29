@@ -11,6 +11,22 @@ public final class PredictionGraces {
     private PredictionGraces() {
     }
 
+    public static final int JOIN_GRACE_MILLIS = 5_000;
+    public static final double MIN_TPS = 18.0;
+    public static final double MAX_PING_MILLIS = 300.0;
+
+    public static boolean joinGraceActive(long joinMillis, long nowMillis) {
+        return nowMillis - joinMillis < JOIN_GRACE_MILLIS;
+    }
+
+    public static boolean serverLagged(double tps) {
+        return tps > 0.0 && tps < MIN_TPS;
+    }
+
+    public static boolean pingUnreliable(double pingMillis) {
+        return pingMillis > MAX_PING_MILLIS;
+    }
+
     public static boolean windChargeActive(MovementState movement) {
         return movement.ticksSinceWindCharge() < WIND_CHARGE_TICKS
                 || movement.ticksSinceWindChargeHit() < WIND_CHARGE_HIT_TICKS;

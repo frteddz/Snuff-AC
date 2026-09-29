@@ -12,6 +12,13 @@ public final class CombatState {
     private float lastAttackYaw;
     private float lastAttackPitch;
     private int lastAttackHand = -1;
+    private long lastMovementNanos;
+    private long lastAttackNanos;
+    private int distinctTargetsInWindow;
+    private int lastTargetIdWindow = -1;
+    private long windowStartNanos;
+    private double worstOffAngle;
+    private int distinctTargetsTotal;
 
     private long swings;
     private long lastSwingMillis;
@@ -211,6 +218,48 @@ public final class CombatState {
 
     public long[] attackTimestamps() {
         return attackTimestamps;
+    }
+
+    public void observeMovement(long arrivalNanos) {
+        this.lastMovementNanos = arrivalNanos;
+    }
+
+    public long lastMovementNanos() {
+        return lastMovementNanos;
+    }
+
+    public void observeAttack(long arrivalNanos, int targetId, double offAngle) {
+        this.lastAttackNanos = arrivalNanos;
+        this.worstOffAngle = Math.max(this.worstOffAngle, offAngle);
+        this.distinctTargetsTotal++;
+        if (windowStartNanos == 0L || arrivalNanos - windowStartNanos > 1_000_000_000L) {
+            windowStartNanos = arrivalNanos;
+            distinctTargetsInWindow = 1;
+            lastTargetIdWindow = targetId;
+            return;
+        }
+        if (targetId != lastTargetIdWindow) {
+            lastTargetIdWindow = targetId;
+            distinctTargetsInWindow++;
+        }
+    }
+
+    public long lastAttackNanos() {
+        return lastAttackNanos;
+    }
+
+    public int distinctTargetsInWindow() {
+        return distinctTargetsInWindow;
+    }
+
+    public double worstOffAngle() {
+        return worstOffAngle;
+    }
+
+    public void clearWindow() {
+        this.distinctTargetsInWindow = 0;
+        this.worstOffAngle = 0.0;
+        this.lastTargetIdWindow = -1;
     }
 
     public void reset() {

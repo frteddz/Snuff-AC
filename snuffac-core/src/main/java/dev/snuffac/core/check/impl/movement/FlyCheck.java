@@ -54,6 +54,10 @@ public final class FlyCheck extends AbstractMovementCheck {
         }
 
         var graceMovement = context.player().movement();
+        if (!dev.snuffac.core.check.CheckDispatcher.globalGate(
+                context.player(), context.tps(), context.ping())) {
+            return;
+        }
         if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
             return;
         }
@@ -64,7 +68,11 @@ public final class FlyCheck extends AbstractMovementCheck {
 
         if (movementState.onGround() || movementState.flying() || movementState.gliding()
                 || movementState.riding() || movementState.inVehicle()
-                || movementState.inWaterOrLava() || movementState.onClimbable()) {
+                || movementState.inWaterOrLava() || movementState.onClimbable()
+                || movementState.hasSlowFalling() || movementState.hasLevitation()
+                || movementState.riptiding()
+                || movementState.ticksSinceKnockback() < 12
+                || movementState.ticksSinceBlockChange() < 3) {
             state.reset();
             return;
         }
@@ -124,7 +132,8 @@ public final class FlyCheck extends AbstractMovementCheck {
         var movementState = context.player().movement();
         if (movementState.onGround() || movementState.flying() || movementState.gliding()
                 || movementState.inVehicle() || movementState.inWaterOrLava()
-                || movementState.onClimbable()) {
+                || movementState.onClimbable() || movementState.hasSlowFalling()
+                || movementState.hasLevitation() || movementState.riptiding()) {
             state.reset();
             return;
         }

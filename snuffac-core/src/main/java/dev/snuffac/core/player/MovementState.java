@@ -24,6 +24,8 @@ public final class MovementState {
     private int movementPacketsThisTick;
     private int ticksSinceWindCharge = 9999;
     private int ticksSinceWindChargeHit = 9999;
+    private boolean riptiding;
+    private int ticksSinceKnockback = 9999;
 
     private float yaw;
     private float pitch;
@@ -207,6 +209,22 @@ public final class MovementState {
         return ticksSinceWindChargeHit;
     }
 
+    public boolean riptiding() {
+        return riptiding;
+    }
+
+    public void riptiding(boolean value) {
+        this.riptiding = value;
+    }
+
+    public int ticksSinceKnockback() {
+        return ticksSinceKnockback;
+    }
+
+    public void markKnockback() {
+        ticksSinceKnockback = 0;
+    }
+
     public void markWindCharge() {
         ticksSinceWindCharge = 0;
     }
@@ -216,6 +234,9 @@ public final class MovementState {
     }
 
     public void tickWindChargeCounters() {
+        if (ticksSinceKnockback < 10000) {
+            ticksSinceKnockback++;
+        }
         if (ticksSinceWindCharge < 10000) {
             ticksSinceWindCharge++;
         }

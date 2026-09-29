@@ -499,6 +499,19 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         refreshCombat(data, player);
     }
 
+    private static boolean isRiptiding(Player player) {
+        try {
+            for (var effect : player.getActivePotionEffects()) {
+                String key = effect.getType().getKey().toString();
+                if (key.contains("riptide") || key.contains("wind_charged")) {
+                    return true;
+                }
+            }
+        } catch (RuntimeException ignored) {
+        }
+        return false;
+    }
+
     private void observeWindCharge(PlayerData data, Player player) {
         try {
             if (player.hasMetadata("snuffac.windcharge")) {
@@ -630,6 +643,10 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         state.onSoulSand(data.worldCache().kindAt(feet.offset(0, -1, 0)) == BlockKind.SOUL_SAND);
         state.hasSlowFalling(player.hasPotionEffect(PotionEffectType.SLOW_FALLING));
         state.levitation(player.hasPotionEffect(PotionEffectType.LEVITATION), amplifierOf(player, PotionEffectType.LEVITATION));
+        state.riptiding(isRiptiding(player));
+        if (player.isGliding()) {
+            state.markKnockback();
+        }
         state.swimming(player.isSwimming());
         state.effects(
                 amplifierOf(player, PotionEffectType.JUMP_BOOST),

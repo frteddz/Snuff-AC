@@ -88,6 +88,23 @@ public final class MechanicsListener implements Listener {
         return key.contains("wind_charge");
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEntityDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) {
+            return;
+        }
+        var data = plugin.dataOf(victim.getUniqueId());
+        if (data == null) {
+            return;
+        }
+        var type = event.getCause().name();
+        if (type.contains("ENTITY_EXPLOSION") || type.contains("LIGHTNING")
+                || type.contains("PISTON") || type.contains("FALL")
+                || type.contains("KNOCKBACK") || type.contains("ENTITY_ATTACK")) {
+            data.movement().markKnockback();
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onChat(org.bukkit.event.player.AsyncPlayerChatEvent event) {
         if (plugin.punishments().isMuted(event.getPlayer().getUniqueId())) {

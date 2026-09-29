@@ -58,6 +58,10 @@ public final class DriftCheck implements Check {
         }
 
         var graceMovement = context.player().movement();
+        if (!dev.snuffac.core.check.CheckDispatcher.globalGate(
+                context.player(), context.tps(), context.ping())) {
+            return;
+        }
         if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
             return;
         }

@@ -43,6 +43,10 @@ public final class ImpossibleMovementCheck extends AbstractMovementCheck {
 
         var player = context.player();
         var movementState = player.movement();
+        if (!dev.snuffac.core.check.CheckDispatcher.globalGate(
+                player, context.tps(), context.ping())) {
+            return;
+        }
         Vec3d position = movement.position();
 
         if (!validNumber(position.x()) || !validNumber(position.y()) || !validNumber(position.z())) {

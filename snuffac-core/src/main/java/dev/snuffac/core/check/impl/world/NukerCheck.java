@@ -13,6 +13,7 @@ import java.util.Set;
 public final class NukerCheck implements Check {
 
     private static final long WINDOW_MILLIS = 1000L;
+    public static final double MAX_DIG_REACH = 6.0;
     private static final long BURST_WINDOW_MILLIS = 700L;
     private static final int BURST_LIMIT = 3;
     private static final int MAX_DISTINCT_PER_SECOND = 12;
@@ -57,6 +58,19 @@ public final class NukerCheck implements Check {
             return;
         }
 
+        var player = context.player();
+        var cache = player.worldCache();
+        var environment = player.combatEnvironment();
+        if (environment.count() > 0 || cache.chunkLoaded()) {
+            double reach = context.player().position().distanceTo(digPosition(dig).toVec());
+            if (reach > MAX_DIG_REACH && cache.blockAt(digPosition(dig)) != null) {
+                Map<String, Object> far = context.newEvidence();
+                far.put("distance", round(reach));
+                far.put("maximum", MAX_DIG_REACH);
+                context.flag("started digging a block " + round(reach) + " blocks away", far, 7.0);
+            }
+        }
+
         long now = System.currentTimeMillis();
         state.recent.removeIf(entry -> now - entry >= WINDOW_MILLIS);
         state.recent.add(dig.packedPosition());
@@ -81,6 +95,10 @@ public final class NukerCheck implements Check {
         context.flag("sent " + burst + " dig packets within " + BURST_WINDOW_MILLIS
                 + "ms across " + distinct + " distinct block(s)", evidence, 6.0);
         state.recent.clear();
+    }
+
+    private static BlockPos digPosition(BlockBreakPacket dig) {
+        return BlockPos.unpack(dig.packedPosition());
     }
 
     private static double round(double value) {

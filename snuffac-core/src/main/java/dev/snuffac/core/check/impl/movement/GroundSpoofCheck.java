@@ -45,6 +45,10 @@ public final class GroundSpoofCheck extends AbstractMovementCheck {
         if (state == null) {
             return;
         }
+        if (!dev.snuffac.core.check.CheckDispatcher.globalGate(
+                context.player(), context.tps(), context.ping())) {
+            return;
+        }
 
         var player = context.player();
         var movement = player.movement();
