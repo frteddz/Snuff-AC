@@ -3,7 +3,7 @@ plugins {
 }
 
 val distJarFolder: String = "snuffac-1.21.x+paper/purpur"
-val distJarName: String = "velocity-v${project.version}.jar"
+val distJarName: String = "snuffac-v${project.version}.jar"
 
 dependencies {
     implementation(project(":snuffac-api"))

@@ -389,7 +389,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/velocity-v1.0.8-dev.jar
+snuffac-1.21.x+paper/purpur/snuffac-v1.0.8-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so
