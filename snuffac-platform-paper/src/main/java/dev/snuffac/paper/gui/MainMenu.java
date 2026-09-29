@@ -15,6 +15,7 @@ public final class MainMenu extends SnuffMenu {
     public static final String ACTION_SETTINGS = "open_settings";
     public static final String ACTION_WARNINGS = "open_warnings";
     public static final String ACTION_CLOSE = "close";
+    public static final String ACTION_REPORTS = "open_reports_admin";
 
     private final GuiBridge bridge;
     private final boolean alertsOn;
@@ -24,13 +25,18 @@ public final class MainMenu extends SnuffMenu {
     }
 
     public MainMenu(Plugin plugin, GuiBridge bridge, boolean alertsOn) {
-        super(plugin, 27, "Snuff AC");
+        super(plugin, 27, "Snuff AC",
+                GuiLayout.load(plugin, dev.snuffac.paper.GuiDefaults.MAIN));
         this.bridge = bridge;
         this.alertsOn = alertsOn;
     }
 
     @Override
     protected void render() {
+        if (layout() != null && !layout().buttons().isEmpty()) {
+            fillFromLayout();
+            return;
+        }
         set(10, Material.PLAYER_HEAD, "<white>Suspicious Players",
                 List.of("<gray>Players with recorded flags", "<gray>Click to review"), ACTION_SUSPICIOUS);
         set(14, Material.BELL, "<white>Your Alerts",
@@ -84,5 +90,7 @@ public final class MainMenu extends SnuffMenu {
         void openWarned(Player player);
 
         void alertsToggled(Player player, boolean enabled);
+
+        void openReportsAdmin(Player player);
     }
 }

@@ -131,7 +131,8 @@ public final class ViolationHandler {
             }
         }
 
-        if (player.setbackEnabled() && checkConfig.setbacksEnabled() && state.level().value() >= checkConfig.setbackThreshold()) {
+        if (player.setbackEnabled() && checkConfig.setbacksEnabled()
+                && state.level().value() >= checkConfig.effectiveSetbackThreshold()) {
             SetbackHandler handler = setbackHandler;
             if (handler != null) {
                 handler.onSetback(player, state, record, detail);

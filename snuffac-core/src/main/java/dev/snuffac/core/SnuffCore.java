@@ -232,7 +232,7 @@ public final class SnuffCore {
         double confidence = player.confidence().current();
         boolean wantsSetback = checkConfig.setbacksEnabled()
                 && setbackEnabled
-                && level >= checkConfig.setbackThreshold();
+                && level >= checkConfig.effectiveSetbackThreshold();
         if (wantsSetback) {
             applyEnforcement(EnforcementRequest.setback(
                     player.id(), checkKey, detail, target, confidence));

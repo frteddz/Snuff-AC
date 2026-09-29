@@ -52,6 +52,11 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
     }
 
     @Override
+    public void openReportsAdmin(Player player) {
+        plugin.openAdminReports(player, 0, "", "");
+    }
+
+    @Override
     public void alertsToggled(Player player, boolean enabled) {
         StaffMessages.send(player, "Your alerts are now " + (enabled ? "on" : "off") + ".");
     }

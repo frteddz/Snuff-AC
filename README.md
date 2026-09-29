@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.8-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.0.9-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server. See
 [Known limitations](#known-limitations).
 
@@ -84,6 +84,8 @@ entry points, shortcuts and console tools.
 | `/snuff settings` | Open the settings menu: retention, prevention, alert cooldown, warning ladder |
 | `/snuff punishments [player]` | Active punishments, online or offline |
 | `/snuff warns <player>` | Warning history for a player |
+| `/snuff report <player>` | Open the report category picker for an online player |
+| `/snuff reports` | Open the admin report view, claim and resolve |
 | `/snuff sounds` | Toggle your own menu and command sounds |
 | `/snuff alerts` | Toggle your own alerts |
 | `/snuff alerts verbose` | Toggle your own verbose alert line |
@@ -129,6 +131,8 @@ stripped, and a plugin namespace may be given, for example `essentials:home`.
 | `snuffac.menu` | op | Open the staff menus |
 | `snuffac.debug` | op | Receive violation alerts, enable debug output |
 | `snuffac.alerts` | op | Receive violation alerts |
+| `snuffac.sounds` | op | Hear menu and command sounds. Inherited by `snuffac.admin` |
+| `snuffac.report` | true | May file a report. On by default, it is a player-facing command |
 | `snuffac.bypass` | false | Exempt from all checks |
 | `snuffac.exempt.punish` | false | Cannot be punished by staff |
 | `snuffac.punish.ban` `tempban` `ipban` `kick` `mute` `warn` | op | The matching manual punishment |
@@ -224,6 +228,50 @@ restart, and spear attribute swapping is detected.
   data was being sent to every client in the clear.
 - The `snuffac.admin` permission node was rejected by Paper on every load due to a
   malformed child.
+
+## Menus
+
+Every menu is a YAML file in `plugins/SnuffAC/GUI`, written on first run and never
+required to exist:
+
+| File | Menu |
+| --- | --- |
+| `main-gui.yml` | `/snuff`, the root menu |
+| `settings-gui.yml` | Retention, prevention, alert cooldown, warning ladder, profile |
+| `flags-gui.yml` | Flagged players and their case pages |
+| `warned-gui.yml` | Warned players |
+| `reports-gui.yml` | The `/snuff report` category picker |
+| `reports-admin-gui.yml` | The `/snuff reports` admin view |
+
+```yaml
+title: 'Snuff AC'
+rows: 3
+filler: BLACK_STAINED_GLASS_PANE
+items:
+  10:
+    slot: 10
+    material: PLAYER_HEAD
+    name: '<white>Suspicious Players'
+    lore:
+      - '<gray>Players with recorded flags'
+      - '<gray>Click to review'
+    action: open_sus
+    permission: snuffac.admin
+    enabled: true
+    amount: 1
+    glow: false
+```
+
+Nine things per item, plus the layout. `action` is an identifier from a fixed allowlist,
+never a command string, because an owner-supplied command in a menu is remote code
+execution on a shared server. A missing key falls back to the built-in default, a
+malformed file is logged and ignored, and every slot, row count and stack amount is
+bounds checked so a bad file cannot index outside an inventory.
+
+A note player facing here: a menu item must never be removable from the inventory. Click
+cancellation is handled at `HIGHEST` without `ignoreCancelled`, and it does not depend on
+the registry lookup succeeding, so a failure degrades to a cancelled click rather than a
+free item. That was a real item duplication bug in `v1.0.5-dev`.
 
 ## Configuration
 
@@ -323,7 +371,7 @@ a particular input.
 
 ## Testing
 
-Snuff AC has **258 passing unit tests** covering:
+Snuff AC has **308 passing unit tests** covering:
 
 - Kinematics against the documented vanilla speeds, terminal velocity, jump behaviour,
   friction on ice, and speed and slowness effects
@@ -389,7 +437,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/snuffac-v1.0.8-dev.jar
+snuffac-1.21.x+paper/purpur/snuffac-v1.0.9-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so

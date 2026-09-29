@@ -4,6 +4,9 @@ general:
   alert-prefix: 'Snuff'
   alerts: true
   console-alerts: true
+  # The gradient prefix every Snuff chat message carries, including alerts.
+  # The console line is plain text on purpose, a terminal cannot render it.
+  chat-prefix: '&#EE6832&l&o[&#F18154&l&oS&#F49A76&l&oN&#F7B499&l&oU&#F9CDBB&l&oF&#FCE6DD&l&oF&#FFFFFF&l&o] '
   console-alert-format: '[{prefix}] {player} failed {check} | VL: {vl} | ping: {ping}ms'
   console-alert-format-verbose: ''
   alert-cooldown-ms: 1500
@@ -85,6 +88,12 @@ anti-xray:
   # Also withhold container block data. This can break container views in the
   # overworld, so it is off by default.
   hide-containers: false
+
+reports:
+  # Player submitted reports from /snuff report <player>. Retention is in days
+  # and defaults to 30, because a report log is personal data about named
+  # players and should not accumulate forever.
+  retention-days: 30
 
 visual:
   # Client side rendering cheats cannot be detected, only neutralised. The

@@ -101,6 +101,8 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
             case "stats" -> stats(sender);
             case "setback" -> setback(sender, args);
             case "profile" -> profile(sender, args);
+            case "reports" -> reports(sender, args);
+            case "report" -> report(sender, args);
             default -> send(sender, "unknown", Map.of("sub", sub));
         }
         return true;
@@ -339,9 +341,59 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
         raw(sender, builder.toString());
     }
 
+    private void reports(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            StaffMessages.send(sender, "Only a player can browse reports.");
+            return;
+        }
+        if (!player.hasPermission("snuffac.admin")) {
+            StaffMessages.send(player, "You do not have permission to view reports.");
+            return;
+        }
+        plugin.openAdminReports(player, 0, "", "");
+    }
+
+    private void report(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            StaffMessages.send(sender, "Only a player can file a report.");
+            return;
+        }
+        if (args.length < 2) {
+            StaffMessages.send(player, "Usage: /snuff report <player>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            target = Bukkit.getPlayer(args[1]);
+        }
+        if (target == null) {
+            StaffMessages.send(player, "That player is not online.");
+            return;
+        }
+        if (target.getUniqueId().equals(player.getUniqueId())) {
+            StaffMessages.send(player, "You cannot report yourself.");
+            return;
+        }
+        if (plugin.reports().rateLimited(player.getUniqueId())) {
+            StaffMessages.send(player, "You are filing reports too quickly. Try again later.");
+            return;
+        }
+        if (target.hasPermission("snuffac.exempt.punish")) {
+            StaffMessages.send(player, "That player is exempt from reports.");
+            return;
+        }
+        dev.snuffac.paper.gui.ReportsMenu.resetNote();
+        dev.snuffac.paper.gui.ReportsMenu menu = new dev.snuffac.paper.gui.ReportsMenu(
+                plugin, plugin.reports(), target, false, 0, "", "");
+        menu.setParent(new dev.snuffac.paper.gui.MainMenu(plugin, plugin.guiBridge()));
+        menu.forViewer(player);
+        menu.build();
+        menu.open(player);
+    }
+
     private static final List<String> SUB_COMMANDS = List.of(
             "info", "version", "reload", "debug", "alerts", "checks", "violations",
-            "toggle", "stats", "setback", "profile",
+            "toggle", "stats", "setback", "profile", "report", "reports",
             "menu", "settings", "punishments", "warns", "sounds",
             "ban", "timeout", "tempban", "ipban", "tempipban",
             "mute", "tempmute", "warn",

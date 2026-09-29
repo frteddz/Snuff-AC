@@ -9,6 +9,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Sustained unsupported flight detected from the server block view.
+      evidence: DERIVED
     speed:
       enabled: true
       buffer-threshold: 1.0
@@ -18,6 +19,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Prediction based horizontal speed with input enumeration and forgiveness.
+      evidence: DERIVED
     nofall:
       enabled: true
       buffer-threshold: 1.0
@@ -27,6 +29,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Fall damage reset by claiming ground contact while still airborne.
+      evidence: DERIVED
     airmovement:
       enabled: true
       buffer-threshold: 1.0
@@ -36,6 +39,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Airborne movement compared against predicted kinematics.
+      evidence: DERIVED
     groundspoof:
       enabled: true
       buffer-threshold: 1.0
@@ -45,6 +49,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Ground claimed with no supporting block under the player.
+      evidence: STRUCTURAL
     step:
       enabled: true
       buffer-threshold: 1.0
@@ -54,6 +59,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Vertical gain above the player step height.
+      evidence: DERIVED
     highjump:
       enabled: true
       buffer-threshold: 1.0
@@ -63,6 +69,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Launch velocity above the maximum allowed by effects.
+      evidence: DERIVED
     longjump:
       enabled: true
       buffer-threshold: 1.0
@@ -72,6 +79,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Airborne distance beyond a full sprint jump.
+      evidence: DERIVED
     impossiblemovement:
       enabled: true
       buffer-threshold: 1.0
@@ -81,6 +89,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Movement packets with impossible coordinates, deltas or rotations.
+      evidence: STRUCTURAL
     groundflag:
       enabled: true
       buffer-threshold: 1.0
@@ -90,6 +99,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Ground claimed while the server sees no supporting block.
+      evidence: DERIVED
     pitchlock:
       enabled: true
       buffer-threshold: 1.0
@@ -99,6 +109,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Pitch pinned to an exact cheat module constant.
+      evidence: DERIVED
     drift:
       enabled: true
       buffer-threshold: 1.0
@@ -108,6 +119,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Sustained constant per tick offset between prediction and client.
+      evidence: DERIVED
     velocity:
       enabled: true
       buffer-threshold: 1.0
@@ -117,6 +129,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Server knockback discarded by the client.
+      evidence: DERIVED
 
   combat:
     reach:
@@ -128,6 +141,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Eye to hitbox distance with ping and vehicle aware tolerance.
+      evidence: DERIVED
     autoclicker:
       enabled: true
       buffer-threshold: 1.0
@@ -137,6 +151,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Attack cadence and machine perfect click timing.
+      evidence: DERIVED
     aim:
       enabled: true
       buffer-threshold: 1.0
@@ -146,6 +161,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Rotation sequences quantised to a constant step.
+      evidence: DERIVED
     killaura:
       enabled: true
       buffer-threshold: 1.0
@@ -155,6 +171,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Multi target attacks and repeated pre attack aim snaps.
+      evidence: DERIVED
 
     attackangle:
       enabled: true
@@ -165,6 +182,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Look vector ray cast against the true hitbox, blocks hits the crosshair was never on.
+      evidence: DERIVED
     impossibleattack:
       enabled: true
       buffer-threshold: 1.0
@@ -174,6 +192,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Attack rate beyond the client limit.
+      evidence: STRUCTURAL
     critical:
       enabled: true
       buffer-threshold: 1.0
@@ -183,6 +202,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Forced criticals from extra movement packets before an attack.
+      evidence: DERIVED
     rotationsnapback:
       enabled: true
       buffer-threshold: 1.0
@@ -192,6 +212,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Aim rotation and reverse snap back bracketing an attack.
+      evidence: DERIVED
     invalidattackstate:
       enabled: true
       buffer-threshold: 1.0
@@ -201,6 +222,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Attacks with impossible cursor coordinates or world distance.
+      evidence: STRUCTURAL
 
   world:
     fastbreak:
@@ -212,6 +234,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Blocks broken faster than the held tool allows.
+      evidence: DERIVED
     fastplace:
       enabled: true
       buffer-threshold: 1.0
@@ -221,6 +244,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Block placement rate above the client limit.
+      evidence: DERIVED
     scaffold:
       enabled: true
       buffer-threshold: 1.0
@@ -230,6 +254,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Air scaffold tower placement pattern.
+      evidence: DERIVED
     miningbeyondview:
       enabled: true
       buffer-threshold: 1.0
@@ -239,6 +264,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Valuable ore targeted outside the region ever sent to the client.
+      evidence: DERIVED
     nuker:
       enabled: true
       buffer-threshold: 1.0
@@ -248,6 +274,7 @@ checks:
       alert-threshold: 2.0
       action: ALERT
       description: Abnormal number of distinct blocks started per second.
+      evidence: DERIVED
 
   packet:
     badpackets:
@@ -259,6 +286,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Structurally invalid packets.
+      evidence: STRUCTURAL
     packetspam:
       enabled: true
       buffer-threshold: 1.0
@@ -268,6 +296,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Packet flood beyond legitimate play.
+      evidence: DERIVED
     extrapackets:
       enabled: true
       buffer-threshold: 1.0
@@ -277,6 +306,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: More than one position packet per server tick.
+      evidence: DERIVED
     packetrate:
       enabled: true
       buffer-threshold: 1.0
@@ -286,6 +316,7 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Sustained deviation of movement packet rate from server tick rate.
+      evidence: DERIVED
     timer:
       enabled: true
       buffer-threshold: 1.0
@@ -295,3 +326,4 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Client movement rate against server ticks.
+      evidence: DERIVED

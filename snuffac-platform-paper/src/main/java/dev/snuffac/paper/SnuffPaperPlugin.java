@@ -564,6 +564,11 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.cacheTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshWorldCaches, 1L, 1L);
         this.visual = new VisualConcealment(this, core.config());
         this.sound = new SoundConcealment(this, core.config());
+        this.reports = new dev.snuffac.core.report.ReportStore(
+                getDataFolder().toPath().resolve("reports.tsv"));
+        this.reports.retentionDays(core.config().reportRetentionDays());
+        this.reports.load();
+        GuiDefaults.write(this);
         long interval = Math.max(1L, core.config().visualIntervalTicks());
         this.visualTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshVisibility, interval, interval);
         this.punishments = new dev.snuffac.core.punish.PunishmentService(
@@ -718,7 +723,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                 }
             } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
                 if (failure == null) {
-                    failure = String.valueOf(exception);
+                    failure = describe(exception);
                 }
             }
         }
@@ -736,24 +741,37 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             org.bukkit.World world,
             dev.snuffac.core.world.ObfuscationPolicy policy,
             int height) throws ReflectiveOperationException {
-        Object unsafe = world.getClass().getMethod("getUnsafe").invoke(world);
-        Object worldConfig = unsafe.getClass().getMethod("getWorldConfiguration").invoke(unsafe);
-        Object antiXrayConfig = worldConfig.getClass()
-                .getMethod("getAntiXrayConfiguration")
-                .invoke(worldConfig);
+        Object antiXrayConfig = AntiXrayBridge.configurationFor(world);
+        if (antiXrayConfig == null) {
+            throw new IllegalStateException(
+                    "no AntiXrayConfiguration could be resolved for world " + world.getName()
+                    + " after trying " + AntiXrayBridge.describeAttempts());
+        }
 
-        Class<?> engineMode = Class.forName("io.papermc.paper.world.antixray.AntiXrayEngineMode");
-        Object mode = engineMode.getMethod("valueOf", String.class)
-                .invoke(null, policy == dev.snuffac.core.world.ObfuscationPolicy.OFF
-                        ? "NONE" : "OBFUSCATE");
+        Class<?> engineMode = AntiXrayBridge.engineModeClass(antiXrayConfig);
+        Object mode = AntiXrayBridge.engineModeValue(engineMode,
+                policy == dev.snuffac.core.world.ObfuscationPolicy.OFF
+                        ? AntiXrayBridge.ObfuscationPolicy.OFF
+                        : AntiXrayBridge.ObfuscationPolicy.HIDDEN_ORES);
 
-        antiXrayConfig.getClass().getMethod("setEngineMode", engineMode)
-                .invoke(antiXrayConfig, mode);
-        antiXrayConfig.getClass().getMethod("setHeight", int.class)
-                .invoke(antiXrayConfig, height);
+        setIfPresent(antiXrayConfig, "setEngineMode", new Class<?>[] {engineMode}, mode);
+        setIfPresent(antiXrayConfig, "setHeight", new Class<?>[] {int.class}, height);
         applyBlockList(antiXrayConfig, "setHiddenBlocks", policy);
         applyBlockList(antiXrayConfig, "setReplaceBlocks", policy);
         return true;
+    }
+
+    private void setIfPresent(Object target, String setter, Class<?>[] signature, Object value)
+            throws ReflectiveOperationException {
+        for (java.lang.reflect.Method method : target.getClass().getMethods()) {
+            if (method.getName().equals(setter)
+                    && java.util.Arrays.equals(method.getParameterTypes(), signature)) {
+                method.invoke(target, value);
+                return;
+            }
+        }
+        getLogger().warning("AntiXrayConfiguration has no " + setter
+                + " method, so that setting was skipped.");
     }
 
     private void applyBlockList(
@@ -784,6 +802,24 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             }
         }
         method.invoke(antiXrayConfig, blocks);
+    }
+
+    private static String describe(Throwable throwable) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(throwable.getClass().getName());
+        if (throwable.getMessage() != null && !throwable.getMessage().isBlank()) {
+            builder.append(": ").append(throwable.getMessage());
+        }
+        StackTraceElement[] trace = throwable.getStackTrace();
+        int shown = 0;
+        for (StackTraceElement element : trace) {
+            if (shown >= 4) {
+                break;
+            }
+            builder.append("\n    at ").append(element);
+            shown++;
+        }
+        return builder.toString();
     }
 
     private static String engineModeFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
@@ -817,7 +853,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
         for (Player viewer : Bukkit.getOnlinePlayers()) {
             try {
-                visual.concealPass(viewer);
+                visual.pass(viewer);
             } catch (RuntimeException | LinkageError exception) {
                 getLogger().fine("visibility pass failed for " + viewer.getName() + ": " + exception);
             }
@@ -1321,6 +1357,26 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
         Player byName = Bukkit.getPlayerExact(user.getName());
         return byName;
+    }
+
+    public dev.snuffac.core.report.ReportStore reports;
+
+    public dev.snuffac.core.report.ReportStore reports() {
+        return reports;
+    }
+
+    public void openAdminReports(org.bukkit.entity.Player player, int page, String status, String category) {
+        dev.snuffac.paper.gui.ReportsMenu menu = new dev.snuffac.paper.gui.ReportsMenu(
+                this, reports, null, true, page, status, category);
+        menu.history(core.historyStore());
+        menu.setParent(new dev.snuffac.paper.gui.MainMenu(this, guiBridge()));
+        menu.forViewer(player);
+        menu.build();
+        menu.open(player);
+    }
+
+    public dev.snuffac.paper.gui.GuiBridgeImpl guiBridge() {
+        return new dev.snuffac.paper.gui.GuiBridgeImpl(this);
     }
 
     public boolean preventionOn() {

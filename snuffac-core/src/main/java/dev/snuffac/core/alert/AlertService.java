@@ -60,11 +60,12 @@ public final class AlertService {
 
     public void alert(ViolationInfo info, Map<String, Object> evidence) {
         String message = formatter.format(info, evidence);
+        String chat = AlertFormatter.withPrefix(message, config.chatPrefix());
         if (config.alertsEnabled()) {
             if (config.consoleAlerts()) {
-                messenger.sendConsole(message);
+                messenger.sendConsole(AlertFormatter.stripMarkup(message));
             }
-            messenger.broadcast(message, config.alertPermission());
+            messenger.broadcast(chat, config.alertPermission());
         }
         if (config.logToFile() && fileLogger != null) {
             fileLogger.log(renderFileLine(info, evidence));

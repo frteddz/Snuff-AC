@@ -40,7 +40,7 @@ public final class BukkitPlatformAdapters {
 
         @Override
         public void broadcast(String message, String permission) {
-            Component component = mini(message);
+            Component component = mini(LegacyColour.toMiniMessage(message));
             runOnMain(() -> {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     deliver(player, component, permission);

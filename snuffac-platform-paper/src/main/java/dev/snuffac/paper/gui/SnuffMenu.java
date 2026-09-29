@@ -28,11 +28,22 @@ public abstract class SnuffMenu implements InventoryHolder {
 
     protected final Plugin plugin;
     private final org.bukkit.NamespacedKey actionKey;
+
+    public org.bukkit.NamespacedKey actionKey() {
+        return actionKey;
+    }
     private final Inventory inventory;
     private String title;
     private SnuffMenu parent;
 
+    protected GuiLayout.Layout layout;
+
     protected SnuffMenu(Plugin plugin, int size, String title) {
+        this(plugin, size, title, null);
+    }
+
+    protected SnuffMenu(Plugin plugin, int size, String title, GuiLayout.Layout layout) {
+        this.layout = layout;
         this.plugin = plugin;
         this.actionKey = new org.bukkit.NamespacedKey(plugin, "action");
         this.title = title;
@@ -40,11 +51,50 @@ public abstract class SnuffMenu implements InventoryHolder {
     }
 
     public void build() {
-        for (int slot = 0; slot < inventory.getSize(); slot++) {
-            set(slot, Material.BLACK_STAINED_GLASS_PANE, " ", null, null);
-        }
         render();
     }
+
+    protected void fill(Material material) {
+        for (int slot = 0; slot < inventory.getSize(); slot++) {
+            if (inventory.getItem(slot) != null) {
+                continue;
+            }
+            set(slot, material, " ", null, null);
+        }
+    }
+
+    protected void fillFromLayout() {
+        GuiLayout.Layout layout = layout();
+        if (layout == null) {
+            return;
+        }
+        for (GuiLayout.Button button : layout.buttons()) {
+            applyButton(button);
+        }
+        if (layout.fillerEnabled()) {
+            fill(layout.filler());
+        }
+    }
+
+    public GuiLayout.Layout layout() {
+        return layout;
+    }
+
+    private void applyButton(GuiLayout.Button button) {
+        if (!button.enabled()) {
+            return;
+        }
+        if (button.permission() != null && !button.permission().isBlank()
+                && renderPlayer != null
+            && !renderPlayer.hasPermission(button.permission())) {
+            return;
+        }
+        set(button.slot(), button.material(), button.name(), button.lore(),
+                button.action().isEmpty() ? null : button.action(),
+                button.amount(), button.glow());
+    }
+
+    protected org.bukkit.entity.Player renderPlayer;
 
     protected abstract void render();
 
@@ -107,10 +157,18 @@ public abstract class SnuffMenu implements InventoryHolder {
     }
 
     public void set(int slot, Material material, String name, List<String> lore, String action) {
+        set(slot, material, name, lore, action, 1, false);
+    }
+
+    public void set(int slot, Material material, String name, List<String> lore, String action,
+            int amount, boolean glow) {
         if (slot < 0 || slot >= inventory.getSize()) {
             return;
         }
-        ItemStack item = new ItemStack(material);
+        if (material == null) {
+            return;
+        }
+        ItemStack item = new ItemStack(material, clampAmount(amount));
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             if (name != null && !name.isEmpty()) {
@@ -125,6 +183,9 @@ public abstract class SnuffMenu implements InventoryHolder {
             }
             if (action != null && !action.isEmpty()) {
                 meta.getPersistentDataContainer().set(actionKey, PersistentDataType.STRING, action);
+            }
+            if (glow) {
+                meta.setEnchantmentGlintOverride(true);
             }
             item.setItemMeta(meta);
         }
@@ -153,6 +214,13 @@ public abstract class SnuffMenu implements InventoryHolder {
     }
 
     public void onClose(InventoryCloseEvent event) {
+    }
+
+    private static int clampAmount(int amount) {
+        if (amount < 1) {
+            return 1;
+        }
+        return Math.min(amount, 64);
     }
 
     protected static Component component(String text) {

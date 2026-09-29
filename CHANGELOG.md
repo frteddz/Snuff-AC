@@ -5,6 +5,134 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.0.9-dev] - 2026-09-30
+
+Correctness release. v1.0.8 made detection real for the first time, and a legitimately
+cheating player immediately found the three places where that exposed an arithmetic error
+and two design mistakes. All five are fixed, prevention can no longer fire on a single
+derived flag, and player reports plus fully owner-editable menus are in.
+
+### Fixed
+
+**packetspam flagged every player, including a stationary one**
+
+- The rate was computed as `count * 1000 / (elapsed + 1)`. On the first packet of a
+  window that reports 1000 packets per second, on the second 666, on the third 500. The
+  window also started at an arbitrary packet rather than a clock boundary, so the bad
+  arithmetic repeated forever. Against a 400 per second threshold, a player standing still
+  was flagged every two seconds.
+- The live log proved it: `packetsPerSecond=1000.0, threshold=400.0, count=1`.
+- A window is now only evaluated once it has been open for at least 250ms, so the
+  division always means something. The rate is a real count over a real interval, the
+  window closes on the tick rather than on whichever packet arrived, a per-type breakdown
+  is recorded as evidence, and the rate must hold across three consecutive windows before
+  it alerts. This was broken for every player on every version since it was written.
+
+**badpackets reset the player's position while they bridged**
+
+- The check flagged any block interaction whose position did not match an "active dig".
+  `digActive` stays true for the whole mining duration, so placing a block or breaking the
+  next one while mining tripped it. Nobody had to be cheating, mining and building does it.
+- The rule has been removed entirely. Dig behaviour belongs to FastBreak and Nuker, and a
+  check called badpackets should only reject packets that cannot be decoded.
+- The client attack cursor is no longer validated as if it were authoritative. Reach and
+  AttackAngle already validate against the server-resolved hitbox.
+- Only non-finite coordinates are still flagged immediately, because a NaN genuinely
+  cannot come from a vanilla client. Out-of-bounds positions are buffered.
+- The world border now matches the vanilla maximum of 29999984 rather than 30000000.
+
+**Prevention could fire on a single flag from a check that guesses**
+
+- v1.0.8 set `setback-threshold: 1.0` on 23 checks, so the first flag from a behavioural
+  check teleported the player. For BadPackets that turned a chat message into a rubber
+  band the player felt every two seconds while bridging.
+- Every check now declares an `evidence` kind. `STRUCTURAL` checks are things that cannot
+  legitimately happen and may act at their own threshold. `DERIVED` checks, which is
+  everything that measures a rate, a ratio, an average or a window, are structurally
+  unable to request a setback until one violation level past their alert threshold,
+  regardless of what the config says.
+- BadPackets, ImpossibleMovement, ImpossibleAttack, InvalidAttackState and GroundSpoof are
+  structural. The other 27 are derived.
+
+**Alerts did not use the Snuff prefix**
+
+- Alerts were built by a completely separate formatter that took a plain `Snuff` from
+  `general.alert-prefix` and wrapped it in hardcoded square brackets. `LegacyColour` was
+  never involved, so the gradient never appeared. The brackets were in the format string,
+  not in the prefix, which is why adding the real prefix would have double-bracketed it.
+- Alerts now carry the same gradient prefix as `/snuff`, configured as
+  `general.chat-prefix`, and converted through `LegacyColour` before MiniMessage sees it.
+- The console line is rendered separately and is plain text, because a terminal cannot
+  show a gradient. Hex codes are resolved rather than left as literal text.
+
+**Anti-X-Ray was still guessed at**
+
+- The v1.0.8 reflection chain through `world.getUnsafe().getWorldConfiguration()` does not
+  exist. `org.bukkit.World` has no `getUnsafe`, `UnsafeValues` has no world-config
+  access, and paper-api ships no anti-xray classes at all.
+- `AntiXrayBridge` now tries four documented strategies in order and reports every one it
+  attempted. The engine mode resolves against whatever enum constants the running server
+  actually has. Setters are matched by signature and a missing one is reported by name
+  rather than thrown.
+- The diagnostic now logs the exception class, its message and the first four stack
+  frames, instead of the literal text `null`.
+
+**Entity concealment was one-way and never fired**
+
+- The visible set was only populated in the legal branch, so a hide was only ever sent for
+  something already known-visible, and on a player's first frame that set was empty.
+- There was no `showEntity` call anywhere, so reveal-radius and reveal-padding could not
+  work. A one-way hide is worse than no concealment.
+- The pass now tracks an explicit visible or hidden state per entity per viewer, seeds it
+  on the first pass, has a real reveal path, and drops state for entities that leave the
+  world. It iterates the world's actual entities rather than the combat environment. When
+  concealment is off or the viewer is exempt, everything is revealed.
+
+### Added
+
+**Player reports**
+
+- `/snuff report <player>` opens a seven category picker: cheating, exploiting, explicit
+  language, offensive behaviour, griefing, inappropriate name, and staff impersonation.
+- `/snuff reports` opens the admin view, listing reports newest first with claim and
+  resolve actions so two admins cannot both act on the same report and none is silently
+  dropped.
+- A cheating report attaches the target's flag count and most recent check from Snuff's own
+  history, so the admin sees the evidence before the reporter's note.
+- Reporter notes are stripped of markup and length limited, self reports are refused, staff
+  holding `snuffac.exempt.punish` cannot be reported, and a reporter is rate limited to
+  five reports per ten minutes. Reports persist to `plugins/SnuffAC/reports.tsv` with
+  configurable retention, defaulting to 30 days.
+
+**Every menu is now owner editable**
+
+- Six menu files are written to `plugins/SnuffAC/GUI` on first run: `main-gui.yml`,
+  `settings-gui.yml`, `flags-gui.yml`, `warned-gui.yml`, `reports-gui.yml` and
+  `reports-admin-gui.yml`.
+- Per item: material, display name, lore, slot, action, enabled, permission, stack amount
+  and glint. Layout is configurable too, with rows, title and filler.
+- A missing file falls back to built-in defaults, a malformed file is reported and ignored,
+  and every slot, row count and stack amount is bounds checked so a bad file cannot index
+  outside an inventory.
+- Actions are an allowlist of identifiers, never a command string. An owner-supplied
+  command in a menu is remote code execution on a shared server.
+- Cancellation still does not depend on the registry lookup succeeding, so a future failure
+  degrades to a cancelled click rather than a free item, which is the v1.0.5 duplication
+  bug.
+
+### Numbers
+
+- 308 passing unit tests, up from 258
+- 32 checks, unchanged
+
+### Not yet verified
+
+- Nobody has clicked through the menus by hand. This is the fourth consecutive release
+  that says so. The menus are now data driven, which is different code from the version
+  that was believed fixed three times.
+- Anti-X-Ray and entity concealment still need a live check against a real cheat client
+  before either can be claimed to work. v1.0.8 claimed both and delivered neither.
+
 ## [1.0.8-dev] - 2026-09-30
 
 Strictness release. Detection was effectively inert because the shipped thresholds were

@@ -27,6 +27,7 @@ permissions:
       snuffac.alerts: true
       snuffac.menu: true
       snuffac.sounds: true
+      snuffac.report: true
       snuffac.punish.ban: true
       snuffac.punish.tempban: true
       snuffac.punish.ipban: true
@@ -86,6 +87,9 @@ permissions:
   snuffac.punish.maxduration.30d:
     description: May punish for up to thirty days
     default: false
+  snuffac.report:
+    description: May file a report against another player
+    default: true
   snuffac.exempt.punish:
-    description: Cannot be punished by staff
+    description: Cannot be punished or reported by staff
     default: false

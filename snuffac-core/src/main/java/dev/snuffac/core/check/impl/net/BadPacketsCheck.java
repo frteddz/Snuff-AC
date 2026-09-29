@@ -12,9 +12,11 @@ import java.util.Set;
 
 public final class BadPacketsCheck implements Check {
 
-    private static final double WORLD_BORDER = 30_000_000.0;
-    private static final int MIN_Y = -2_048;
-    private static final int MAX_Y = 20_000;
+    public static final double WORLD_BORDER = 29_999_984.0;
+    public static final int MIN_Y = -2_048;
+    public static final int MAX_Y = 20_000;
+    public static final int VANILLA_MAX_Y = 320;
+    public static final int VANILLA_MIN_Y = -64;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -102,25 +104,22 @@ public final class BadPacketsCheck implements Check {
         if (position.y() < MIN_Y || position.y() > MAX_Y) {
             flag(context, action + " position outside build limits", Map.of(
                     "x", position.x(), "y", position.y(), "z", position.z()));
-            return;
         }
-        if (context.player().worldCache().chunkLoaded() && context.player().world().digActive()
-                && !sameAsActiveDig(context, packed)) {
-            flag(context, action + " position does not match an active dig", Map.of(
-                    "x", position.x(), "y", position.y(), "z", position.z()));
-        }
-    }
-
-    private static boolean sameAsActiveDig(CheckContext context, long packed) {
-        var world = context.player().world();
-        return BlockPos.pack(world.lastDigX(), world.lastDigY(), world.lastDigZ()) == packed;
     }
 
     private static void flag(CheckContext context, String reason, Map<String, Object> extra) {
         var evidence = context.newEvidence();
         evidence.put("reason", reason);
         evidence.putAll(extra);
-        context.flagImmediately(reason, evidence);
+        if (structurallyImpossible(reason)) {
+            context.flagImmediately(reason, evidence);
+            return;
+        }
+        context.flag(reason, evidence, 9.0);
+    }
+
+    private static boolean structurallyImpossible(String reason) {
+        return reason.contains("non finite");
     }
 
     private static boolean finite(double value) {

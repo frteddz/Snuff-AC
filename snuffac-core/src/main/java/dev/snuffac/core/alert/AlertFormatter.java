@@ -39,6 +39,47 @@ public final class AlertFormatter {
         return apply(template, placeholders);
     }
 
+    public static String withPrefix(String rendered, String prefix) {
+        if (prefix == null || prefix.isEmpty()) {
+            return rendered;
+        }
+        return prefix + rendered;
+    }
+
+    public static String stripMarkup(String input) {
+        if (input == null) {
+            return "";
+        }
+        String withoutTags = input.replaceAll("<[^>]*>", "");
+        StringBuilder builder = new StringBuilder(withoutTags.length());
+        int i = 0;
+        while (i < withoutTags.length()) {
+            char c = withoutTags.charAt(i);
+            if ((c == '&' || c == '\u00a7') && i + 1 < withoutTags.length()) {
+                char next = Character.toLowerCase(withoutTags.charAt(i + 1));
+                if (next == '#') {
+                    i += 2;
+                    while (i < withoutTags.length() && isHexDigit(withoutTags.charAt(i))) {
+                        i++;
+                    }
+                    continue;
+                }
+                if (Character.isLetter(next)) {
+                    i += 2;
+                    continue;
+                }
+            }
+            builder.append(c);
+            i++;
+        }
+        return builder.toString();
+    }
+
+    private static boolean isHexDigit(char c) {
+        char lower = Character.toLowerCase(c);
+        return (lower >= '0' && lower <= '9') || (lower >= 'a' && lower <= 'f');
+    }
+
     private static String apply(String template, Map<String, Object> placeholders) {
         String result = template;
         for (Map.Entry<String, Object> entry : placeholders.entrySet()) {
