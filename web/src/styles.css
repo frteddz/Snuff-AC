@@ -28,7 +28,7 @@ button { color: inherit; font: inherit; }
 .nav-github .pixel-icon { filter: invert(1); }
 .menu-button { display: none; position: absolute; right: 0; border: 1px solid var(--line); background: transparent; padding: 9px; }
 .hero { min-height: 810px; padding-top: 190px; display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center; position: relative; }
-.hero-background { position: absolute; z-index: -3; top: 0; left: 0; right: 0; width: 100%; height: 100%; transform: none; object-fit: cover; object-position: center; opacity: .9; filter: brightness(1.18); }
+.hero-background { position: absolute; z-index: -3; top: 0; left: 0; right: 0; width: 100%; height: 100%; transform: none; object-fit: fill; object-position: center; opacity: .9; filter: brightness(1.18); }
 .hero:before { content: ''; position: absolute; inset: 0 -50vw; z-index: -2; background: linear-gradient(90deg, rgba(10,10,9,.98) 18%, rgba(10,10,9,.82) 50%, rgba(10,10,9,.34) 100%), linear-gradient(0deg, var(--ink) 0%, rgba(10,10,9,.12) 50%, var(--ink) 100%), url('/images/solas-shader-3.png') center/cover; opacity: .93; }
 .eyebrow, .section-label, .support-line, .card-top, .detail-category, .release-stamp, .platform-card span, .platform-card b, .research-list small, .roadmap-list small { font-family: var(--mono); text-transform: uppercase; letter-spacing: .11em; font-size: 10px; }
 .eyebrow { color: var(--muted); display: flex; align-items: center; gap: 9px; }
