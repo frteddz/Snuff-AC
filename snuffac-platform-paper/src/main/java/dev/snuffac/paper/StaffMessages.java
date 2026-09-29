@@ -8,8 +8,7 @@ import org.bukkit.entity.Player;
 
 public final class StaffMessages {
 
-    public static final String PREFIX =
-            "&#EE6832&l&o[&#F18154&l&oS&#F49A76&l&oN&#F7B499&l&oU&#F9CDBB&l&oF&#FCE6DD&l&oF&#FFFFFF&l&o] ";
+    public static final String PREFIX = LegacyColour.PREFIX;
 
     private static final MiniMessage MINI = MiniMessage.miniMessage();
 
@@ -17,11 +16,11 @@ public final class StaffMessages {
     }
 
     public static Component render(String body) {
-        String prepared = LegacyColour.toMiniMessage(body);
+        String joined = LegacyColour.joined(body);
         try {
-            return MINI.deserialize(PREFIX + prepared);
+            return MINI.deserialize(joined);
         } catch (RuntimeException exception) {
-            return Component.text(stripped(PREFIX + prepared));
+            return Component.text(stripped(joined));
         }
     }
 

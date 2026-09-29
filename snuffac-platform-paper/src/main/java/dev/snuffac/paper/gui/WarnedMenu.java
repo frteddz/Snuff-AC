@@ -128,13 +128,11 @@ public final class WarnedMenu extends SnuffMenu {
         }
         try {
             java.util.UUID id = java.util.UUID.fromString(target);
-            StringBuilder builder = new StringBuilder("[Snuff] Warnings for ")
-                    .append(Bukkit.getOfflinePlayer(id).getName())
-                    .append(':');
-            player.sendMessage(net.kyori.adventure.text.Component.text(builder.toString()));
+            player.sendMessage(dev.snuffac.paper.StaffMessages.render(
+                    "Warnings for " + Bukkit.getOfflinePlayer(id).getName() + ":"));
             for (PunishmentService.Punishment record : plugin.punishments().history(id)) {
                 if (record.kind() == PunishmentService.Kind.WARN) {
-                    player.sendMessage(net.kyori.adventure.text.Component.text("  " + record.reason()
+                    player.sendMessage(dev.snuffac.paper.StaffMessages.render("  " + record.reason()
                             + " | by " + record.staff()
                             + " | " + Durations.describe(System.currentTimeMillis() - record.createdMillis())
                             + " ago"));

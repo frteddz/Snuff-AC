@@ -26,6 +26,7 @@ permissions:
       snuffac.debug: true
       snuffac.alerts: true
       snuffac.menu: true
+      snuffac.sounds: true
       snuffac.punish.ban: true
       snuffac.punish.tempban: true
       snuffac.punish.ipban: true
@@ -34,7 +35,10 @@ permissions:
       snuffac.punish.warn: true
       snuffac.punish.unban: true
       snuffac.punish.maxduration.30d: true
-      snuffac.bypass: false
+      snuffac.sounds:
+    description: Hear Snuff AC menu and command sounds
+    default: op
+  snuffac.bypass: false
   snuffac.menu:
     description: Open the Snuff AC menus
     default: op
@@ -43,6 +47,9 @@ permissions:
     default: op
   snuffac.alerts:
     description: Receive violation alerts
+    default: op
+  snuffac.sounds:
+    description: Hear Snuff AC menu and command sounds
     default: op
   snuffac.bypass:
     description: Exempt from all Snuff AC checks

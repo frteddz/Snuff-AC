@@ -130,10 +130,15 @@ public final class MechanicsListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onCommand(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
-        if (plugin.punishments().isMuted(event.getPlayer().getUniqueId())) {
-            event.setCancelled(true);
-            StaffMessages.send(event.getPlayer(), "You are muted and cannot run commands.");
+        if (!plugin.punishments().isMuted(event.getPlayer().getUniqueId())) {
+            return;
         }
+        String message = event.getMessage();
+        if (plugin.core().config().mutedCommandAllowed(message)) {
+            return;
+        }
+        event.setCancelled(true);
+        StaffMessages.send(event.getPlayer(), "You are muted and cannot run commands.");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

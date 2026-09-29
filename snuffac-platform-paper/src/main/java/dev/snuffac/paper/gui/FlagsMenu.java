@@ -66,7 +66,8 @@ public final class FlagsMenu extends SnuffMenu {
             lore.add("<gray>Top: <white>" + String.join(", ", entry.topChecks()));
         }
         if (entry.lastFlagMillis() > 0L) {
-            lore.add("<gray>Last flag: <white>" + STAMP.format(Instant.ofEpochMilli(entry.lastFlagMillis())));
+            lore.add("<gray>Last flag: <white>"
+                    + dev.snuffac.paper.TimeFormat.both(entry.lastFlagMillis()));
         }
         lore.add("<gray>Left click to see their history");
 

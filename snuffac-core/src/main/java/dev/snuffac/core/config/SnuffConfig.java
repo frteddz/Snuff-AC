@@ -35,6 +35,8 @@ public final class SnuffConfig {
     private long escalationBanMillis = 3_600_000L;
     private double escalationMinConfidence = 0.75;
     private boolean escalationWarnOnly = false;
+    private java.util.List<String> mutedAllowedCommands = new java.util.ArrayList<>();
+    private boolean staffSounds = true;
     private boolean antiXrayHideContainers;
     private dev.snuffac.core.world.ObfuscationPolicy antiXrayMode =
             dev.snuffac.core.world.ObfuscationPolicy.HIDDEN_ORES;
@@ -104,6 +106,17 @@ public final class SnuffConfig {
         escalationBanMillis = source.getLong("escalation.ban-duration-millis", escalationBanMillis);
         escalationMinConfidence = source.getDouble("escalation.min-confidence", escalationMinConfidence);
         escalationWarnOnly = source.getBoolean("escalation.warn-only", escalationWarnOnly);
+        mutedAllowedCommands.clear();
+        for (String entry : source.getStringList("mute.allowed-commands", new java.util.ArrayList<>())) {
+            String cleaned = entry.trim().toLowerCase(java.util.Locale.ROOT);
+            if (cleaned.startsWith("/")) {
+                cleaned = cleaned.substring(1);
+            }
+            if (!cleaned.isBlank() && !mutedAllowedCommands.contains(cleaned)) {
+                mutedAllowedCommands.add(cleaned);
+            }
+        }
+        staffSounds = source.getBoolean("sounds.enabled", staffSounds);
         String mode = source.getString("anti-xray.mode", antiXrayMode.name());
         if ("NONE".equalsIgnoreCase(mode.trim())) {
             mode = "OFF";
@@ -329,6 +342,33 @@ public final class SnuffConfig {
 
     public boolean escalationWarnOnly() {
         return escalationWarnOnly;
+    }
+
+    public java.util.List<String> mutedAllowedCommands() {
+        return java.util.Collections.unmodifiableList(mutedAllowedCommands);
+    }
+
+    public boolean mutedCommandAllowed(String command) {
+        if (command == null) {
+            return false;
+        }
+        String cleaned = command.trim().toLowerCase(java.util.Locale.ROOT);
+        if (cleaned.startsWith("/")) {
+            cleaned = cleaned.substring(1);
+        }
+        int space = cleaned.indexOf(' ');
+        if (space > 0) {
+            cleaned = cleaned.substring(0, space);
+        }
+        int colon = cleaned.indexOf(':');
+        if (colon > 0) {
+            cleaned = cleaned.substring(colon + 1);
+        }
+        return mutedAllowedCommands.contains(cleaned);
+    }
+
+    public boolean staffSounds() {
+        return staffSounds;
     }
 
     public boolean antiXrayHideContainers() {

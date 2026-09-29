@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.6-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.0.7-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server. See
 [Known limitations](#known-limitations).
 
@@ -84,6 +84,7 @@ entry points, shortcuts and console tools.
 | `/snuff settings` | Open the settings menu: retention, prevention, alert cooldown, warning ladder |
 | `/snuff punishments [player]` | Active punishments, online or offline |
 | `/snuff warns <player>` | Warning history for a player |
+| `/snuff sounds` | Toggle your own menu and command sounds |
 | `/snuff alerts` | Toggle your own alerts |
 | `/snuff alerts verbose` | Toggle your own verbose alert line |
 | `/snuff info` | Version, platform, check count, enabled state, TPS, tracked players |
@@ -113,7 +114,12 @@ Staff only. No check and no report can reach any of these.
 
 Durations accept `m`, `h` and `d` in any order and combination, so `1h 10s` and `10s 1h`
 are both valid. A reason is mandatory on every punish command. Bans are enforced at pre
-login, mutes block chat and commands, and everything persists per UUID across restarts.
+login, and everything persists per UUID across restarts.
+
+A mute blocks chat and, by default, every command. `mute.allowed-commands` grants
+specific commands back; the default is an empty list, so an owner who configures nothing
+keeps the strict behaviour. Names are matched case insensitively with any leading slash
+stripped, and a plugin namespace may be given, for example `essentials:home`.
 
 ## Permissions
 
@@ -226,6 +232,10 @@ tolerance:
 The latency and tick rate terms exist so that a player is never punished because of
 their ping or because the server is struggling. Both are capped.
 
+Player ping is measured every tick on the platform and fed into the model. This was
+inert until v1.0.7, so earlier releases made every tolerance decision as if every player
+had zero latency.
+
 ### The warning ladder
 
 `escalation` controls the only automatic action in the project. It ships **disabled**.
@@ -286,7 +296,7 @@ a particular input.
 
 ## Testing
 
-Snuff AC has **193 passing unit tests** covering:
+Snuff AC has **201 passing unit tests** covering:
 
 - Kinematics against the documented vanilla speeds, terminal velocity, jump behaviour,
   friction on ice, and speed and slowness effects
@@ -352,7 +362,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/velocity-v1.0.6-dev.jar
+snuffac-1.21.x+paper/purpur/velocity-v1.0.7-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so

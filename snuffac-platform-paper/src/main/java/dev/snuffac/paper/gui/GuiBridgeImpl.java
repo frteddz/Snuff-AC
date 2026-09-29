@@ -109,10 +109,11 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
         int shown = 0;
         for (int i = records.size() - 1; i >= 0 && shown < 10; i--, shown++) {
             ViolationInfo info = records.get(i);
+            String ping = info.pingMillis() < 0.0 ? "unknown" : Math.round(info.pingMillis()) + "ms";
             StaffMessages.send(player, "  " + info.checkName()
-                    + " VL " + info.violationLevel()
-                    + " ping " + info.pingMillis()
-                    + "ms at " + info.timestampMillis());
+                    + " | VL " + info.violationLevel()
+                    + " | ping " + ping
+                    + " | " + dev.snuffac.paper.TimeFormat.both(info.timestampMillis()));
         }
     }
 

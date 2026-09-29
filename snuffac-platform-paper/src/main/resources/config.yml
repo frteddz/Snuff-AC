@@ -58,6 +58,20 @@ escalation:
   # Warn and never ban, so staff make the final call.
   warn-only: false
 
+mute:
+  # Commands a muted player may still use. Empty means every command is
+  # blocked, which is the safe default. Names only, lower case, no slash.
+  # Namespace with a colon to be specific, for example essentials:home.
+  allowed-commands: []
+  #  - msg
+  #  - r
+  #  - help
+
+sounds:
+  # Menu and command feedback sounds. Individual staff can mute these with
+  # /snuff sounds off without disabling it for everyone.
+  enabled: true
+
 anti-xray:
   # Replaces valuable ores with a decoy state in the chunks the server sends,
   # so a client has no ore data to reveal. This drives the server's own chunk

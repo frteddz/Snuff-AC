@@ -113,6 +113,7 @@ final class PunishCommands {
         }
 
         if (duration > 0L && !withinStaffCap(sender, duration)) {
+            cue(sender, StaffSounds.REJECT);
             msg(sender, "punish-too-long", "duration", Durations.describe(duration));
             return true;
         }
@@ -134,6 +135,7 @@ final class PunishCommands {
         var record = plugin.punishments().punish(kind, id, name, ipHash, reason, sender.getName(), duration);
         applyOnline(target, kind, true);
 
+        cue(sender, StaffSounds.PUNISH);
         msg(sender, "punish-applied", Map.of(
                 "type", kind.label(),
                 "player", name,
@@ -178,6 +180,7 @@ final class PunishCommands {
             boolean stillBanned = plugin.punishments().isBanned(id);
             applyOnline(online, PunishmentService.Kind.BAN, stillBanned);
         }
+        cue(sender, StaffSounds.SUCCESS);
         msg(sender, "reverse-applied", Map.of(
                 "type", sub.replace("un", ""),
                 "player", target.getName() == null ? args[1] : target.getName(),
@@ -353,5 +356,11 @@ final class PunishCommands {
 
     private void msg(CommandSender sender, String key, Map<String, String> values) {
         StaffMessages.send(sender, key, values);
+    }
+
+    private void cue(CommandSender sender, String cue) {
+        if (sender instanceof Player player) {
+            StaffSounds.play(player, cue);
+        }
     }
 }

@@ -8,6 +8,7 @@ import dev.snuffac.core.violation.ViolationRecord;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -338,33 +339,86 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
         raw(sender, builder.toString());
     }
 
-    @Override
+    private static final List<String> SUB_COMMANDS = List.of(
+            "info", "version", "reload", "debug", "alerts", "checks", "violations",
+            "toggle", "stats", "setback", "profile",
+            "menu", "settings", "punishments", "warns", "sounds",
+            "ban", "timeout", "tempban", "ipban", "tempipban",
+            "mute", "tempmute", "warn",
+            "unban", "untimeout", "untempban", "unipban", "untempipban",
+            "unmute", "untempmute", "unwarn");
+
+    private static final List<String> DURATION_SUGGESTIONS =
+            List.of("1h", "6h", "1d", "3d", "7d", "14d", "30d");
+
+    private static final Set<String> NEEDS_PLAYER = Set.of(
+            "debug", "alerts", "violations", "setback", "profile",
+            "punishments", "warns", "ban", "timeout", "tempban", "ipban",
+            "tempipban", "mute", "tempmute", "warn",
+            "unban", "untimeout", "untempban", "unipban", "untempipban",
+            "unmute", "untempmute", "unwarn");
+
+    private static final Set<String> NEEDS_DURATION = Set.of(
+            "timeout", "tempban", "tempipban", "tempmute");
+
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("snuffac.admin")) {
             return List.of();
         }
-        List<String> subs = new ArrayList<>(Arrays.asList(
-                "info", "version", "reload", "debug", "alerts", "checks", "violations",
-                "toggle", "stats", "setback", "profile"));
+        String sub = args.length >= 1 ? args[0].toLowerCase(Locale.ROOT) : "";
+
         if (args.length == 1) {
-            return subs.stream().filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).collect(Collectors.toList());
+            return matching(SUB_COMMANDS, args[0]);
         }
         if (args.length == 2) {
-            String sub = args[0].toLowerCase(Locale.ROOT);
             if (sub.equals("toggle")) {
-                return plugin.core().checkKeys().stream()
-                        .filter(k -> k.startsWith(args[1].toLowerCase(Locale.ROOT)))
-                        .collect(Collectors.toList());
+                return matching(plugin.core().checkKeys(), args[1]);
             }
-            if (sub.equals("debug") || sub.equals("alerts") || sub.equals("violations")
-                    || sub.equals("setback") || sub.equals("profile")) {
-                return Bukkit.getOnlinePlayers().stream()
-                        .map(Player::getName)
-                        .filter(n -> n.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
-                        .collect(Collectors.toList());
+            if (NEEDS_PLAYER.contains(sub)) {
+                return matching(onlineNames(), args[1]);
+            }
+            if (sub.equals("punishments") || sub.equals("warns") || sub.equals("violations")) {
+                return matching(knownNames(), args[1]);
+            }
+            if (sub.equals("alerts")) {
+                return matching(List.of("verbose"), args[1]);
             }
         }
+        if (args.length == 3 && NEEDS_DURATION.contains(sub)) {
+            return matching(DURATION_SUGGESTIONS, args[2]);
+        }
         return List.of();
+    }
+
+    private static List<String> matching(Iterable<String> source, String prefix) {
+        String lower = prefix.toLowerCase(Locale.ROOT);
+        List<String> result = new ArrayList<>();
+        for (String candidate : source) {
+            if (candidate.toLowerCase(Locale.ROOT).startsWith(lower)) {
+                result.add(candidate);
+            }
+        }
+        return result;
+    }
+
+    private static List<String> onlineNames() {
+        return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+    }
+
+    private List<String> knownNames() {
+        List<String> names = new ArrayList<>(onlineNames());
+        var store = plugin.core().historyStore();
+        if (store != null) {
+            for (var id : plugin.core().knownPlayerIds()) {
+                for (var record : store.history(id)) {
+                    String name = record.playerName();
+                    if (name != null && !name.isBlank() && !names.contains(name)) {
+                        names.add(name);
+                    }
+                }
+            }
+        }
+        return names;
     }
 
     private void send(CommandSender sender, String key, Map<String, String> placeholders) {

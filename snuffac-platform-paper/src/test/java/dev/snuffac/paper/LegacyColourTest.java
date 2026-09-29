@@ -25,7 +25,7 @@ class LegacyColourTest {
 
     @Test
     void convertsTheExactPrefixTheUserSupplied() {
-        String prefix = StaffMessages.PREFIX;
+        String prefix = LegacyColour.PREFIX;
         String converted = LegacyColour.toMiniMessage(prefix);
         assertTrue(converted.startsWith("<color:#EE6832><bold><italic>["),
                 "got: " + converted);

@@ -9,22 +9,23 @@ public final class Messages {
 
     static {
         TEMPLATES.put("usage", "<gray>Usage: <white>/snuff</white> opens the menu. Try <white>version</white>, <white>violations [player]</white>, <white>settings</white>, <white>punishments [player]</white>");
-        TEMPLATES.put("punish-usage", "<red>Usage: <white><use></white>");
-        TEMPLATES.put("bad-duration", "<red>Bad duration <white><input></white>: <gray><why></gray>");
-        TEMPLATES.put("punish-no-reason", "<red>A reason is required. <white><use></white>");
-        TEMPLATES.put("punish-unknown", "<red>Unknown or uncached player <white><player></white>.");
-        TEMPLATES.put("punish-protected", "<red><player> cannot be punished.");
-        TEMPLATES.put("punish-too-long", "<red>You are not allowed to punish for <white><duration></white>.");
+        TEMPLATES.put("punish-usage", "<gray>Usage <white><use></white>");
+        TEMPLATES.put("bad-duration", "<red>That duration is not valid. <white><input></white> <dark_gray><why>");
+        TEMPLATES.put("punish-no-reason", "<red>A reason is required. <gray>Example: <white><use>");
+        TEMPLATES.put("punish-unknown", "<red>No cached player called <white><player></white><gray>. They must have joined before.");
+        TEMPLATES.put("punish-protected", "<red><player> is marked unpunishable.");
+        TEMPLATES.put("punish-too-long", "<red>Your permission cap does not allow <white><duration></white>.");
         TEMPLATES.put("punish-applied", "<green><type> <white><player></white> <gray>for <white><duration></white>. <gray>Reason: <white><reason></white> <dark_gray>(<id>)");
         TEMPLATES.put("reverse-applied", "<green>Removed <white><type></white> from <white><player></white> <gray>(<count> record(s))");
-        TEMPLATES.put("reverse-none", "<red>No active <white><player></white> punishment of that type.");
-        TEMPLATES.put("punish-none", "<gray><player> has no active punishments.");
+        TEMPLATES.put("reverse-none", "<gray><player> has no active punishment of that type.");
+        TEMPLATES.put("punish-none", "<gray>Nothing is active against <white><player></white>.");
         TEMPLATES.put("punish-none-online", "<gray>No online player has an active punishment.");
         TEMPLATES.put("punish-online-header", "<gray>Online players with active punishments: <white><count></white>");
         TEMPLATES.put("punish-list-header", "<gray>Active punishments for <white><player></white>: <white><count></white>");
-        TEMPLATES.put("warn-none", "<gray><player> has no warnings.");
+        TEMPLATES.put("warn-none", "<gray><white><player></white> has no warnings.");
         TEMPLATES.put("warn-header", "<gray>Warnings for <white><player></white>: <white><count></white>");
         TEMPLATES.put("muted", "<red>You are muted. Reason: <white><reason></white>");
+        TEMPLATES.put("sounds-toggled", "<gray>Your Snuff sounds are now <white><state></white>.");
         TEMPLATES.put("no-permission", "<red>You do not have permission to use this command.</red>");
         TEMPLATES.put("unknown", "<red>Unknown subcommand <white><sub></white>.</red>");
         TEMPLATES.put("unknown-check", "<red>Unknown check <white><check></white>.</red>");

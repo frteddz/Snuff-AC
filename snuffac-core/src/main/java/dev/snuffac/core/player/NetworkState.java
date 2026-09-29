@@ -82,7 +82,11 @@ public final class NetworkState {
     }
 
     public double ping() {
-        return smoothedPingMillis < 0.0 ? 0.0 : smoothedPingMillis;
+        return smoothedPingMillis < 0.0 ? -1.0 : smoothedPingMillis;
+    }
+
+    public boolean pingMeasured() {
+        return smoothedPingMillis >= 0.0;
     }
 
     public double rawPing() {

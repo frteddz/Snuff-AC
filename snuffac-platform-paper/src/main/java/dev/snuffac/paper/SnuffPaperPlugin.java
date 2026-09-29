@@ -71,6 +71,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     public void openMainMenu(Player player) {
+        StaffSounds.play(player, StaffSounds.MENU_OPEN);
         var bridge = new dev.snuffac.paper.gui.GuiBridgeImpl(this);
         var menu = new dev.snuffac.paper.gui.MainMenu(this, bridge, alertsEnabledFor(player));
         menu.build();
@@ -159,7 +160,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     public void promptForRetention(Player player, dev.snuffac.paper.gui.SettingsMenu.RetentionKind kind) {
         retentionPrompts.put(player.getUniqueId(), new RetentionPrompt(
                 kind, System.currentTimeMillis() + RETENTION_PROMPT_MILLIS));
-        StaffMessages.send(player, "Type the new number of days in chat, or type <b>cancel</b>.");
+        StaffMessages.send(player, "Type the number of days, for example "
+                + "<white>30</white> or <white>5d</white>, or type <white>cancel</white>.");
     }
 
     public void persistRetention() {
@@ -177,20 +179,26 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     public boolean handleRetentionChat(Player player, String message) {
-        RetentionPrompt prompt = retentionPrompts.remove(player.getUniqueId());
+        RetentionPrompt prompt = retentionPrompts.get(player.getUniqueId());
         if (prompt == null) {
             return false;
         }
         String text = sanitizeChatInput(message);
         if (text.equalsIgnoreCase("cancel")) {
-            StaffMessages.send(player, "Cancelled, the value is unchanged.");
+            retentionPrompts.remove(player.getUniqueId());
+            StaffMessages.send(player, "Cancelled, nothing changed.");
             return true;
         }
-        int days;
-        try {
-            days = Integer.parseInt(text);
-        } catch (NumberFormatException invalid) {
-            StaffMessages.send(player, "That is not a number. Nothing was changed.");
+        if (text.isEmpty()) {
+            return false;
+        }
+        if (!Character.isDigit(text.charAt(0))) {
+            return false;
+        }
+        int days = parseRetentionDays(text);
+        if (days < 0) {
+            StaffMessages.send(player, "That is not a number of days. "
+                    + "Try <white>30</white> or <white>5d</white>.");
             return true;
         }
         if (days < 1 || days > 3650) {
@@ -208,8 +216,27 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             config.historyRetentionDays(days);
         }
         persistRetention();
-        StaffMessages.send(player, "Saved. Retention is now <b>" + days + "</b> days.");
+        StaffSounds.play(player, StaffSounds.SUCCESS);
+        StaffMessages.send(player, "Retention set to <white>" + days + "</white> days.");
         return true;
+    }
+
+    private static int parseRetentionDays(String text) {
+        try {
+            int plain = Integer.parseInt(text);
+            return plain > 0 ? plain : -1;
+        } catch (NumberFormatException notPlain) {
+            try {
+                long millis = dev.snuffac.core.punish.Durations.parseMillis(text);
+                long days = millis / 86_400_000L;
+                if (millis % 86_400_000L != 0L) {
+                    days = Math.max(1L, Math.round((double) millis / 86_400_000.0));
+                }
+                return days > 0 ? (int) days : -1;
+            } catch (IllegalArgumentException notDuration) {
+                return -1;
+            }
+        }
     }
 
     private static String sanitizeChatInput(String message) {
@@ -245,6 +272,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             core.enforcement().preventionEnabled(core.config().preventionEnabled());
             core.enforcement().minConfidenceForPrevention(core.config().minConfidenceForPrevention());
             core.alerts().clearCooldowns();
+            SnuffSounds.enabled(core.config().staffSounds());
             getLogger().info("configuration reloaded");
         } catch (RuntimeException failure) {
             getLogger().warning("reload failed: " + failure);
@@ -425,6 +453,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.punishments = new dev.snuffac.core.punish.PunishmentService(
                 new java.io.File(getDataFolder(), "punishments").toPath(), null);
         this.punishments.load();
+        SnuffSounds.enabled(core.config().staffSounds());
         this.escalation = new dev.snuffac.core.punish.EscalationService(
                 punishments, core.config().escalationMinConfidence());
         applyEscalationConfig();
@@ -534,6 +563,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     private void resolveMiningProbes(PlayerData data, Player player) {
         observeWindCharge(data, player);
         observeWeaponAttributes(data, player);
+        observePing(data, player);
         var analyser = data.mining();
         var probes = analyser.drainProbes(16);
         if (probes.isEmpty()) {
@@ -694,6 +724,16 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         } catch (RuntimeException ignored) {
         }
         return false;
+    }
+
+    private void observePing(PlayerData data, Player player) {
+        try {
+            int ping = player.getPing();
+            if (ping >= 0) {
+                data.network().recordPing(ping);
+            }
+        } catch (RuntimeException ignored) {
+        }
     }
 
     private void observeWindCharge(PlayerData data, Player player) {

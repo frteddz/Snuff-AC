@@ -539,3 +539,66 @@ Closes the whole v1.0.5 bug report. 31 checks, 193 unit tests, up from 176.
   mistake in the fix, where the stored menu was being compared against the
   closing inventory so the entry could never clear. The registry now stores both
   and compares like with like.
+
+## [1.0.7-dev] - 2026-09-30
+
+Detection accuracy and usability release. 31 checks, 201 unit tests, up from 193.
+
+### Fixed, the most important one in the project so far
+
+- **Ping was never measured.** The engine had a working ping recorder that also feeds the
+  min, max and smoothed values the tolerance model uses, and nothing on Paper ever called
+  it. Every alert reported 0ms. The user, who actually has 50 to 60ms, was told 0ms.
+  Paper now reads the player ping every tick and feeds the model.
+- This is not a display bug. The tolerance model is documented as widening its allowance
+  as latency rises so that nobody is punished for their ping, and that entire term had
+  been inert since the project began. Every tolerance decision has been made as if every
+  player had zero latency. It is a plausible contributing cause of the false flagging
+  reported throughout testing.
+- Ping now reports as unknown rather than a fake 0 when it has not been measured, so a
+  missing measurement can never again be read as a real zero.
+
+### Fixed
+
+- **The gradient prefix is now rendered.** The legacy converter was applied to the message
+  body but never to the prefix, so the prefix reached players as literal `&` and `#`
+  characters. The prefix and the join now live in `LegacyColour`, which has no
+  dependencies and is directly testable.
+- The warnings listing was still building its own plain `[Snuff]` string instead of using
+  the shared sender, so that one path would have stayed wrong even after the prefix fix.
+  Both paths are routed now, and the audit is for every literal prefix, not one.
+- Flag history no longer prints a raw epoch integer. It shows a real date and time plus a
+  relative value, which is what was originally asked for back in v1.0.2.
+- Tab completion covers the punishment commands and every subcommand added since the
+  completer was written. The previous list was hardcoded and contained none of them, so
+  `/snuff mute` was not special, every new subcommand was missing. Player names, offline
+  known names, and duration suggestions are all offered now.
+- The retention prompt accepts the same duration syntax the punishment commands teach, so
+  `5d` works instead of being rejected as not a number. It no longer consumes the first
+  chat message it sees, so unrelated chatter passes through to chat and leaves the prompt
+  standing. A message that is not a value attempt is not cancelled at all.
+- Command feedback rewritten to be calmer. Errors are red and short, hints are grey,
+  usage lines no longer shout.
+
+### Added
+
+- **Mute command allowlist.** Muted players previously could not run a single command.
+  A new `mute.allowed-commands` list lets an owner grant specific commands. The default
+  is an empty list, so an owner who configures nothing keeps today's strict behaviour.
+  Names are matched case insensitively, with any leading slash stripped and plugin
+  namespaces supported, because a client sends the bare name and a slash would silently
+  never match.
+- **Sound effects** on menus and command outcomes, limited to meaningful moments rather
+  than every button: opening a menu, a successful action, a rejected action, a punishment
+  applied. Individual staff can silence their own with `/snuff sounds off` without
+  changing it for everyone, and a new `snuffac.sounds` permission covers it.
+- The flag history line now reads as a sentence, with the check, the violation level, the
+  ping and the time, rather than a run of values with a raw timestamp.
+
+### Verification
+
+- 201 unit tests pass, up from 193.
+- New coverage is deliberately aimed at the integration rather than the mechanism, since
+  that is how the previous three releases each slipped through: the prefix is now asserted
+  through the join that was actually broken, and the body is checked for surviving legacy
+  codes, the presence of all seven gradient stops, and safety on a null or malformed body.
