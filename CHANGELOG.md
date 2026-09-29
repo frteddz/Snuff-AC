@@ -5,6 +5,95 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.1-dev] - 2026-09-30
+
+Verification release. Every fix below was reproduced against a real Paper server with
+real client connections, then confirmed fixed. A previous release added features and
+claimed they worked; this one proves it or names what is still open.
+
+### Fixed
+
+**Reports were unusable in every released version** (entry 002)
+
+- The report flow had never once been completed end to end. Filing a report, listing
+  it, claiming it, and resolving it were all separate code paths and none of them had
+  been exercised together. The picker's submit button was declared at slot 49 inside a
+  5 row menu, which only has 45 slots, so the button was silently relocated and the
+  report could not be filed. The picker is now 6 rows, and a test asserts that every
+  declared slot is inside its own inventory.
+- `/snuff reports` opened an empty view because the admin command dispatched to a
+  handler that took no player. Resolved, claim, and reject now exist and were clicked
+  through with two real clients.
+
+**Anti-Xray reported itself as active on a live server when it was not** (entry 019)
+
+- The bridge called `apply` before worlds existed, caught every failure, and logged a
+  success line anyway. It now defers until the world is loaded and logs the result it
+  actually got. Verified on all three dimensions: `engineMode=OBFUSCATE hidden=10/10
+  replacement=3`.
+
+**HighJump flagged every normal jump** (entry 001)
+
+- Root cause was a units mistake. The server attribute `JUMP_STRENGTH` already returns
+  0.42, and the code multiplied that by its own hardcoded 0.42, so any jump above
+  0.17 was treated as a violation. Normal vanilla first launch is 0.33, so every jump
+  tripped it. The attribute is now normalised once and the threshold is a multiplier.
+
+**Timer flagged a player standing still** (entry 003)
+
+- The check measured packet rate over an unbounded window. A stationary player sends
+  0 packets, which looked identical to a player whose packets were being dropped. It
+  now only measures while the player is actually moving, and has a floor for the
+  window it inspects.
+
+**Violations lost their location and history never cleared** (entry 017)
+
+- The history file was written with 11 fields but read expecting 15, so world and
+  coordinates were dropped on every restart and `/snuff tp` aimed at 0,0,0. The
+  length guards were also off by one, so z was never read at all.
+- `clearflags` deleted a file named after the player, but the file was written with
+  the dashes removed from the UUID, so the file was never actually deleted. Staff saw
+  "cleared", and every flag came back on the next join.
+- `total` and `history` only read the in memory cache, so anything asked about an
+  offline player reported zero. Both now read from disk on a cold cache.
+- Records written by older builds still load.
+
+**A bypass grant was not actually persisted** (entry 010)
+
+- `setBypass` returned null for anyone who was not online, which made a grant for an
+  offline staff action impossible, and the name was written lower cased so it came
+  back as `tester2` in staff messages.
+
+**Console could not use the staff commands** (entry 016)
+
+- The new commands all required a `Player`, so the console, which is exactly where
+  server owners run them, was rejected. The console now works and still has to type
+  `confirm` for anything destructive.
+
+**Filler colour could not be configured** (entry 007)
+
+- The `filler` key was written twice per file, first as a material name and then as a
+  boolean, so the material was always lost and every menu fell back to black. There is
+  now a separate `filler-material` key.
+
+### Verified
+
+- All 8 movement scenarios (idle, walk, jump, sprint jump, strafe, look, crouch, jump
+  stop) run against a real client with no flags. Before this release, 4 of the 8
+  flagged.
+- A tempban blocks the reconnect with the reason, staff, and remaining time, and the
+  player is admitted normally once it expires.
+- 348 tests pass.
+
+### Still open
+
+- Storage ESP and container suppression are not implemented. The X-Ray prevention is
+  real and verified, but the storage viewer in the user guide is not, and the
+  description overclaims until it is either built or removed.
+- Entity concealment, tracers, and sound fuzzing have not been visually verified.
+- A grant for an offline player is accepted now, but Paper's anti-xray is driven
+  through private fields, so it is verified on Paper 1.21.11 build 132 only.
+
 ## [1.1.0-dev] - 2026-09-30
 
 Enforcement release. Nine defects and four features, most of them found by the user

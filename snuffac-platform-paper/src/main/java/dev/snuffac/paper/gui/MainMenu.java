@@ -73,6 +73,11 @@ public final class MainMenu extends SnuffMenu {
                 }
             }
             case ACTION_WARNINGS -> bridge.openWarned(player);
+            case ACTION_REPORTS -> {
+                if (player.hasPermission("snuffac.reports.manage")) {
+                    bridge.openReportsAdmin(player);
+                }
+            }
             case ACTION_CLOSE -> close(player);
             default -> {
             }

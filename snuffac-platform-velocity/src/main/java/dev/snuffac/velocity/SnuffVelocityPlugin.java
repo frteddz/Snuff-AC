@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 @Plugin(
         id = "snuffac",
         name = "SnuffAC",
-        version = "1.1.0-dev",
+        version = "1.1.1-dev",
         description = "Snuff AC, an independent movement and combat anticheat.",
         authors = {"Snuff"})
 public final class SnuffVelocityPlugin {

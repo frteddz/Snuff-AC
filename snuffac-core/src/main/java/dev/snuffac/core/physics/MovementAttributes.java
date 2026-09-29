@@ -11,6 +11,8 @@ public record MovementAttributes(
         double waterMovementEfficiency
 ) {
 
+    public static final double SERVER_JUMP_STRENGTH = 0.42;
+
     public static final MovementAttributes DEFAULT = new MovementAttributes(
             MovementConstants.BASE_MOVEMENT_SPEED,
             1.0,
@@ -20,6 +22,13 @@ public record MovementAttributes(
             1.0,
             1.0,
             1.0);
+
+    public static double normaliseJumpStrength(double serverAttributeValue) {
+        if (serverAttributeValue <= 0.0) {
+            return 1.0;
+        }
+        return serverAttributeValue / SERVER_JUMP_STRENGTH;
+    }
 
     public double effectiveGravity() {
         return MovementConstants.GRAVITY * gravity;

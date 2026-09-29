@@ -21,7 +21,14 @@ public final class ReportsMenu extends SnuffMenu {
     public static final String ACTION_SUBMIT = "report_submit";
     public static final String ACTION_CLAIM = "report_claim";
     public static final String ACTION_RELEASE = "report_unclaim";
-    public static final String ACTION_RESOLVE = "report_dismiss";
+    public static final String ACTION_RESOLVE = "report_resolve";
+    public static final String ACTION_REPORT_CHEATING = "report_cheating";
+    public static final String ACTION_REPORT_EXPLOITING = "report_exploiting";
+    public static final String ACTION_REPORT_LANGUAGE = "report_language";
+    public static final String ACTION_REPORT_OFFENSIVE = "report_offensive";
+    public static final String ACTION_REPORT_GRIEFING = "report_griefing";
+    public static final String ACTION_REPORT_NAME = "report_name";
+    public static final String ACTION_REPORT_IMPERSONATION = "report_impersonation";
 
     private final SnuffPaperPlugin plugin;
     private final ReportStore store;
@@ -306,29 +313,79 @@ public final class ReportsMenu extends SnuffMenu {
         if (action == null || action.isEmpty() || "none".equals(action)) {
             return;
         }
-        if (!plugin.canUseMenu(player)) {
+        if (adminView && !plugin.canUseMenu(player)) {
             player.closeInventory();
             return;
         }
-        if (ADMIN_ACTIONS.contains(action) && !player.hasPermission("snuffac.admin")) {
+        if (!adminView && !player.hasPermission("snuffac.report")) {
+            player.closeInventory();
+            return;
+        }
+        if (ADMIN_ACTIONS.contains(action) && !player.hasPermission("snuffac.reports.manage")) {
             StaffMessages.send(player, "You do not have permission to handle reports.");
             return;
         }
         switch (action) {
             case ACTION_BACK -> openParent(player);
             case ACTION_SUBMIT -> submit(player);
+            case ACTION_CLAIM -> claim(player);
+            case ACTION_RESOLVE -> resolve(player);
+            case ACTION_REPORT_CHEATING -> select("cheating", player);
+            case ACTION_REPORT_EXPLOITING -> select("exploiting", player);
+            case ACTION_REPORT_LANGUAGE -> select("language", player);
+            case ACTION_REPORT_OFFENSIVE -> select("offensive", player);
+            case ACTION_REPORT_GRIEFING -> select("griefing", player);
+            case ACTION_REPORT_NAME -> select("name", player);
+            case ACTION_REPORT_IMPERSONATION -> select("impersonation", player);
             default -> {
-                if (action.startsWith("report_") && !ADMIN_ACTIONS.contains(action)) {
-                    selectedCategory = action.substring("report_".length());
-                    renderPicker();
-                    refresh(player);
-                }
             }
         }
     }
 
     private static final java.util.Set<String> ADMIN_ACTIONS = java.util.Set.of(
             ACTION_CLAIM, ACTION_RELEASE, ACTION_RESOLVE, ACTION_OPEN_ADMIN);
+
+    public static java.util.Set<String> categoryActions() {
+        return java.util.Set.of(
+                ACTION_REPORT_CHEATING, ACTION_REPORT_EXPLOITING, ACTION_REPORT_LANGUAGE,
+                ACTION_REPORT_OFFENSIVE, ACTION_REPORT_GRIEFING, ACTION_REPORT_NAME,
+                ACTION_REPORT_IMPERSONATION);
+    }
+
+    private void select(String category, Player player) {
+        selectedCategory = category;
+        refresh(player);
+    }
+
+    private void claim(Player player) {
+        ReportCategory.Entry entry = firstVisible();
+        if (entry == null) {
+            StaffMessages.send(player, "There is no report to claim.");
+            return;
+        }
+        entry.claim(player.getUniqueId(), player.getName());
+        store.save();
+        StaffMessages.send(player, "You claimed the report against " + entry.targetName() + ".");
+        refreshAdmin(player);
+    }
+
+    private void resolve(Player player) {
+        ReportCategory.Entry entry = firstVisible();
+        if (entry == null) {
+            StaffMessages.send(player, "There is no report to resolve.");
+            return;
+        }
+        entry.resolve("handled by " + player.getName());
+        store.save();
+        StaffMessages.send(player, "Resolved the report against " + entry.targetName() + ".");
+        refreshAdmin(player);
+    }
+
+    private void refreshAdmin(Player player) {
+        getInventory().clear();
+        renderAdmin();
+        player.updateInventory();
+    }
 
     private void submit(Player player) {
         if (selectedCategory == null) {

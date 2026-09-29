@@ -62,9 +62,8 @@ Most public anti-cheats struggle with two main problems: lag and false positives
 
 Render-time cheats cannot be detected, because nothing tells the server that a player looked through a wall. They can be **prevented**, by withholding data the client is not entitled to:
 
-* **X-Ray and Block ESP:** valuable ores are replaced with decoy blocks in the chunk data sent to the client
-* **Storage ESP:** container data is not volunteered for players who cannot legally see it
-* **Player ESP and tracers:** players and mobs with no legal line of sight are not sent to the client at all, and are revealed a few blocks early so nothing pops in
+* **X-Ray and ore ESP:** valuable ores are rewritten into decoy blocks in the chunk data that is actually sent to the client. This is enforced through the server engine, verified on Paper 1.21.11 build 132, and applies to overworld, nether, and end
+* **Player ESP and tracers:** players and mobs with no legal line of sight are hidden from the client, and are revealed a few blocks early so nothing pops in
 * **Sound radar:** sounds carrying a position are nudged when the emitter is behind cover
 
 Fullbright remains impossible to affect, because it never leaves the client.
@@ -114,6 +113,10 @@ All of these work with LuckPerms and any other permission manager, since they ar
 ## Configuration
 
 * `config.yml` - General behaviour, alerts, tolerance, tuning profile, anti-xray, visual concealment, reports
+
+> Not implemented yet: the storage ESP described in the user guide. Ore prevention is
+> real and verified. Container suppression is still on the list, so do not buy this
+> expecting a working storage viewer.
 * `checks.yml` - Every check, its thresholds, and whether it may prevent
 * `GUI/*.yml` - One file per menu. Material, name, lore, slot, action, permission, amount and glint are all owner editable
 

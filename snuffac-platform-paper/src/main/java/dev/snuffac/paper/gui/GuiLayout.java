@@ -55,6 +55,8 @@ public final class GuiLayout {
             new Layout("empty", "Snuff AC", 3, Material.BLACK_STAINED_GLASS_PANE, List.of(), true);
 
     private static final Map<String, Layout> CACHE = new LinkedHashMap<>();
+    private static final List<String> OUT_OF_RANGE = java.util.Collections.synchronizedList(
+            new ArrayList<>());
 
     private GuiLayout() {
     }
@@ -65,6 +67,13 @@ public final class GuiLayout {
 
     public static void reload(Plugin plugin) {
         CACHE.clear();
+        OUT_OF_RANGE.clear();
+    }
+
+    public static List<String> outOfRangeSlots() {
+        synchronized (OUT_OF_RANGE) {
+            return List.copyOf(OUT_OF_RANGE);
+        }
     }
 
     public static Layout load(Plugin plugin, String id) {
@@ -95,7 +104,7 @@ public final class GuiLayout {
         int rows = clampRows(source.getInt("rows", 3));
         int size = rows * 9;
         String title = source.getString("title", "Snuff AC");
-        Material filler = material(source.getString("filler", "BLACK_STAINED_GLASS_PANE"),
+        Material filler = material(source.getString("filler-material", "BLACK_STAINED_GLASS_PANE"),
                 Material.BLACK_STAINED_GLASS_PANE);
         boolean fillerEnabled = source.getBoolean("filler", true);
 
@@ -111,6 +120,10 @@ public final class GuiLayout {
             }
             int configuredSlot = source.getInt(base + ".slot", slot);
             int safeSlot = clampSlot(configuredSlot, size);
+            if (safeSlot != configuredSlot) {
+                OUT_OF_RANGE.add(id + " slot " + configuredSlot + " is outside a "
+                        + size + " slot inventory and was moved to " + safeSlot);
+            }
             String action = sanitizeAction(source.getString(base + ".action", ""));
             String permission = source.getString(base + ".permission", "");
             int amount = clampAmount(source.getInt(base + ".amount", 1));

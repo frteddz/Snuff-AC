@@ -42,7 +42,7 @@ public final class GuiDefaults {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Snuff AC");
         yaml.set("rows", 3);
-        yaml.set("filler", "BLACK_STAINED_GLASS_PANE");
+        yaml.set("filler-material", "BLACK_STAINED_GLASS_PANE");
         yaml.set("filler", true);
         item(yaml, 10, "PLAYER_HEAD", "Suspicious Players",
                 List.of("Players with recorded flags", "Click to review"), "open_sus", "snuffac.admin", 1, false);
@@ -62,7 +62,8 @@ public final class GuiDefaults {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Snuff AC Settings");
         yaml.set("rows", 3);
-        yaml.set("filler", "GRAY_STAINED_GLASS_PANE");
+        yaml.set("filler-material", "GRAY_STAINED_GLASS_PANE");
+        yaml.set("filler", true);
         item(yaml, 10, "BOOK", "Log Retention", List.of("Days of violation history to keep"), "none",
                 "snuffac.admin", 1, false);
         item(yaml, 12, "COMPARATOR", "Prevention", List.of("Toggle prevention and setbacks"), "none",
@@ -81,7 +82,8 @@ public final class GuiDefaults {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Snuff AC Cases");
         yaml.set("rows", 6);
-        yaml.set("filler", "LIGHT_BLUE_STAINED_GLASS_PANE");
+        yaml.set("filler-material", "LIGHT_BLUE_STAINED_GLASS_PANE");
+        yaml.set("filler", true);
         item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
         return yaml;
     }
@@ -90,7 +92,8 @@ public final class GuiDefaults {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Snuff AC Warnings");
         yaml.set("rows", 6);
-        yaml.set("filler", "YELLOW_STAINED_GLASS_PANE");
+        yaml.set("filler-material", "YELLOW_STAINED_GLASS_PANE");
+        yaml.set("filler", true);
         item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
         return yaml;
     }
@@ -98,8 +101,9 @@ public final class GuiDefaults {
     private static YamlConfiguration reports() {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Report a player");
-        yaml.set("rows", 5);
-        yaml.set("filler", "RED_STAINED_GLASS_PANE");
+        yaml.set("rows", 6);
+        yaml.set("filler-material", "RED_STAINED_GLASS_PANE");
+        yaml.set("filler", true);
         item(yaml, 10, "DIAMOND_SWORD", "Cheating", List.of("Use of a client that gives an unfair advantage"),
                 "report_cheating", "snuffac.report", 1, false);
         item(yaml, 11, "TNT", "Exploiting", List.of("Duplication, crashes, or abusing a flaw"),
@@ -124,7 +128,8 @@ public final class GuiDefaults {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("title", "Snuff AC Reports");
         yaml.set("rows", 6);
-        yaml.set("filler", "PURPLE_STAINED_GLASS_PANE");
+        yaml.set("filler-material", "PURPLE_STAINED_GLASS_PANE");
+        yaml.set("filler", true);
         item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
         item(yaml, 48, "LIME_CONCRETE", "Claim", List.of("Take ownership of the top report"),
                 "report_claim", "snuffac.admin", 1, false);

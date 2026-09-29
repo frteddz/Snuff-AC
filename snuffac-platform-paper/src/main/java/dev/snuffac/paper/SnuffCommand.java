@@ -403,35 +403,37 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
 
     private final PendingConfirm confirmations = new PendingConfirm();
 
+    private static String staffName(CommandSender sender) {
+        return sender instanceof Player player ? player.getName() : "CONSOLE";
+    }
+
     private void bypass(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) {
-            StaffMessages.send(sender, "Only a player can bypass another player.");
+        if (args.length < 2) {
+            StaffMessages.send(sender, "Usage: /snuff bypass <player> [on|off]");
             return;
         }
-        if (args.length < 2) {
-            StaffMessages.send(player, "Usage: /snuff bypass <player> [on|off]");
+        if (!sender.hasPermission("snuffac.bypass.give")) {
+            StaffMessages.send(sender, "You do not have permission to grant a bypass.");
             return;
         }
         UUID id = PendingConfirm.resolve(args[1]);
         if (id == null) {
-            StaffMessages.send(player, "That player is unknown to this server.");
-            return;
-        }
-        if (!player.hasPermission("snuffac.bypass.give")) {
-            StaffMessages.send(player, "You do not have permission to grant a bypass.");
+            StaffMessages.send(sender, "That player is unknown to this server.");
             return;
         }
         boolean grant = args.length < 3 || !args[2].equalsIgnoreCase("off");
-        var target = plugin.permitManager().setBypass(id, grant, player.getName());
+        Player live = Bukkit.getPlayer(id);
+        var target = plugin.permitManager().setBypass(id, grant, staffName(sender),
+                live == null ? args[1] : live.getName());
         if (target == null) {
-            StaffMessages.send(player, "That player is not online, so the bypass could not be applied.");
+            StaffMessages.send(sender, "That bypass could not be applied.");
             return;
         }
-        StaffMessages.send(player, (grant ? "Bypass granted to " : "Bypass revoked for ") + target
-                + ". They will not be flagged.");
+        StaffMessages.send(sender, (grant ? "Bypass granted to " : "Bypass revoked for ") + target
+                + (grant ? ". They will not be flagged." : ". They will be flagged again."));
         StaffMessages.sendToAll(Bukkit.getOnlinePlayers().stream()
                 .filter(staff -> staff.hasPermission("snuffac.debug"))
-                .toList(), player.getName() + " "
+                .toList(), staffName(sender) + " "
                 + (grant ? "granted" : "revoked") + " an anticheat bypass for " + target + ".");
     }
 
@@ -452,32 +454,32 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
 
     private void destructive(CommandSender sender, String[] args, String action, String permission,
             String what) {
-        if (!(sender instanceof Player player)) {
-            StaffMessages.send(sender, "Only a player can do that.");
+        if (!sender.hasPermission(permission)) {
+            StaffMessages.send(sender, "You do not have permission to do that.");
             return;
         }
         if (args.length < 2) {
-            StaffMessages.send(player, "Usage: /snuff " + action + " <player> [confirm]");
-            return;
-        }
-        if (!player.hasPermission(permission)) {
-            StaffMessages.send(player, "You do not have permission to do that.");
+            StaffMessages.send(sender, "Usage: /snuff " + action + " <player> confirm");
             return;
         }
         UUID id = PendingConfirm.resolve(args[1]);
         String name = PendingConfirm.nameOf(id, args[1]);
         if (id == null) {
-            StaffMessages.send(player, "That player is unknown to this server.");
+            StaffMessages.send(sender, "That player is unknown to this server.");
             return;
         }
 
         if (args.length >= 3 && args[2].equalsIgnoreCase("confirm")) {
-            executeDestructive(player, action, id, name);
+            executeDestructive(sender, action, id, name);
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            StaffMessages.send(sender, "This will " + what + " for " + name
+                    + " and cannot be undone. Re-run with confirm to continue.");
             return;
         }
 
-        var entry = confirmations.open(player.getUniqueId(), action, id, name,
-                what + " for " + name);
+        confirmations.open(player.getUniqueId(), action, id, name, what + " for " + name);
         StaffMessages.send(player, "This will " + what + " for " + name
                 + ". This cannot be undone.");
         StaffMessages.send(player, "Run /snuff " + action + " " + args[1]
@@ -485,8 +487,10 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
                 + " to abort. The prompt expires in 20 seconds.");
     }
 
-    private void executeDestructive(Player staff, String action, UUID id, String name) {
-        confirmations.clear(staff.getUniqueId());
+    private void executeDestructive(CommandSender staff, String action, UUID id, String name) {
+        if (staff instanceof Player player) {
+            confirmations.clear(player.getUniqueId());
+        }
         int count;
         String result;
         switch (action) {
@@ -521,13 +525,13 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
         StaffMessages.send(staff, result + ".");
         StaffMessages.sendToAll(Bukkit.getOnlinePlayers().stream()
                 .filter(online -> online.hasPermission("snuffac.debug"))
-                .toList(), staff.getName() + " cleared " + action.replace("clear", "")
+                .toList(), staffName(staff) + " cleared " + action.replace("clear", "")
                 + " for " + name + " (" + count + ").");
     }
 
     private void teleportTo(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            StaffMessages.send(sender, "Only a player can teleport.");
+            StaffMessages.send(sender, "Teleport needs a player, only a player can be moved.");
             return;
         }
         if (!player.hasPermission("snuffac.teleport")) {

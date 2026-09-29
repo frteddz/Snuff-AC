@@ -48,7 +48,7 @@ public final class ViolationHistoryStore implements AutoCloseable {
         int removed = history == null ? 0 : history.size();
         if (directory != null) {
             try {
-                java.nio.file.Files.deleteIfExists(directory.resolve(playerId + EXTENSION));
+                Files.deleteIfExists(fileFor(playerId));
             } catch (java.io.IOException ignored) {
             }
         }
@@ -91,6 +91,7 @@ public final class ViolationHistoryStore implements AutoCloseable {
     }
 
     public List<ViolationInfo> history(UUID playerId) {
+        load(playerId, null);
         Deque<ViolationInfo> history = cache.get(playerId);
         if (history == null || history.isEmpty()) {
             return List.of();
@@ -101,10 +102,12 @@ public final class ViolationHistoryStore implements AutoCloseable {
     }
 
     public int total(UUID playerId) {
+        load(playerId, null);
         return history(playerId).size();
     }
 
     public int totalInLastHours(UUID playerId, int hours) {
+        load(playerId, null);
         long cutoff = System.currentTimeMillis() - Duration.ofHours(hours).toMillis();
         int count = 0;
         for (ViolationInfo info : history(playerId)) {
@@ -174,7 +177,11 @@ public final class ViolationHistoryStore implements AutoCloseable {
                 Double.toString(info.pingMillis()),
                 Double.toString(info.tps()),
                 oneLine(info.playerName()),
-                oneLine(info.detail()));
+                oneLine(info.detail()),
+                info.worldName() == null ? "" : oneLine(info.worldName()),
+                Double.toString(info.x()),
+                Double.toString(info.y()),
+                Double.toString(info.z()));
     }
 
     private ViolationInfo parse(String line, UUID playerId, String fallbackName) {
@@ -185,6 +192,7 @@ public final class ViolationHistoryStore implements AutoCloseable {
         if (parts.length < 11) {
             return null;
         }
+
         try {
             CheckCategory category = CheckCategory.valueOf(parts[3].toUpperCase(Locale.ROOT));
             return new ViolationInfo(
@@ -201,10 +209,10 @@ public final class ViolationHistoryStore implements AutoCloseable {
                     Double.parseDouble(parts[8]),
                     Long.parseLong(parts[0]),
                     platform,
-                    parts.length > 12 ? parts[11] : "",
-                    parts.length > 13 ? Double.parseDouble(parts[12]) : 0.0,
-                    parts.length > 14 ? Double.parseDouble(parts[13]) : 0.0,
-                    parts.length > 15 ? Double.parseDouble(parts[14]) : 0.0);
+                    parts.length > 11 ? parts[11] : "",
+                    parts.length > 12 ? Double.parseDouble(parts[12]) : 0.0,
+                    parts.length > 13 ? Double.parseDouble(parts[13]) : 0.0,
+                    parts.length > 14 ? Double.parseDouble(parts[14]) : 0.0);
         } catch (IllegalArgumentException malformed) {
             return null;
         }

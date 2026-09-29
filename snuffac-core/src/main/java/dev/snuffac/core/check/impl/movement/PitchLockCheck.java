@@ -13,9 +13,10 @@ public final class PitchLockCheck implements Check {
 
     public static final double DOWN_PITCH = 90.0;
     public static final double ELYTRA_PITCH = 40.0;
-    public static final int MIN_HELD_TICKS = 20;
-    public static final int REQUIRED = 3;
+    public static final int MIN_HELD_TICKS = 40;
+    public static final int REQUIRED = 4;
     public static final int RELEVANT_TICKS = 12;
+    public static final double LEVEL_PITCH = 0.0;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -72,14 +73,7 @@ public final class PitchLockCheck implements Check {
         }
 
         float pitch = Math.abs(movement.pitch());
-        boolean interesting = pitchIsLocked(pitch)
-                || relevantContext(movementState);
-
-        if (!interesting) {
-            state.reset();
-            return;
-        }
-        if (!relevantContext(movementState)) {
+        if (!pitchIsLocked(pitch) || !relevantContext(movementState)) {
             state.reset();
             return;
         }
@@ -112,21 +106,21 @@ public final class PitchLockCheck implements Check {
         state.reset();
     }
 
-    private static boolean pitchIsLocked(float pitch) {
+    public static boolean pitchIsLocked(float pitch) {
+        if (Math.abs(pitch - LEVEL_PITCH) <= 0.0001) {
+            return false;
+        }
         return Math.abs(pitch - DOWN_PITCH) <= 0.0001 || Math.abs(pitch - ELYTRA_PITCH) <= 0.0001;
     }
 
-    private static boolean relevantContext(dev.snuffac.core.player.MovementState movement) {
+    public static boolean relevantContext(dev.snuffac.core.player.MovementState movement) {
         if (movement.ticksSincePlace() <= RELEVANT_TICKS) {
             return true;
         }
         if (movement.ticksSinceBreak() <= RELEVANT_TICKS) {
             return true;
         }
-        if (movement.gliding() || movement.ticksSinceGlide() <= 4) {
-            return true;
-        }
-        return !movement.onGround() && movement.ticksSinceGround() > 2;
+        return movement.gliding() || movement.ticksSinceGlide() <= 4;
     }
 
     static final class PitchState {

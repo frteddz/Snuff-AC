@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.bukkit.entity.Player;
 
-public final class PermitManager {
+public final class PermitManager implements AutoCloseable {
 
     private static final char FIELD = '\t';
 
@@ -62,23 +62,36 @@ public final class PermitManager {
         return entry != null && entry.granted();
     }
 
-    public synchronized String setBypass(UUID id, boolean grant, String staff) {
-        if (id == null) {
-            return null;
-        }
-        Player online = org.bukkit.Bukkit.getPlayer(id);
-        if (online == null) {
+    public synchronized String setBypass(UUID id, boolean grant, String staff, String name) {
+        if (id == null || name == null || name.isBlank()) {
             return null;
         }
         bypass.put(id, new Entry(grant, staff == null ? "console" : staff,
                 System.currentTimeMillis()));
-        names.put(id, online.getName());
+        names.put(id, name);
         save();
-        return online.getName();
+        return name;
+    }
+
+    public synchronized String setBypass(UUID id, boolean grant, String staff) {
+        return setBypass(id, grant, staff, null);
+    }
+
+    public synchronized boolean isBypassed(UUID id) {
+        return bypassed(id);
+    }
+
+    public synchronized String nameOf(UUID id) {
+        return names.get(id);
     }
 
     public synchronized int count() {
         return (int) bypass.values().stream().filter(Entry::granted).count();
+    }
+
+    @Override
+    public synchronized void close() {
+        save();
     }
 
     private static UUID parse(String raw) {
@@ -103,7 +116,7 @@ public final class PermitManager {
                     .append(FIELD)
                     .append(entry.getValue().millis())
                     .append(FIELD)
-                    .append(names.getOrDefault(entry.getKey(), "").toLowerCase(Locale.ROOT))
+                    .append(names.getOrDefault(entry.getKey(), ""))
                     .append('\n');
         }
         try {

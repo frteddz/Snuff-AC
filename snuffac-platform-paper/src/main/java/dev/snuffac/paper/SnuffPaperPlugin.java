@@ -583,7 +583,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                 punishments, core.config().escalationMinConfidence());
         applyEscalationConfig();
         core.violations().addListener(this::onViolationForEscalation);
-        applyAntiXray();
+        scheduleAntiXray();
         getServer().getPluginManager().registerEvents(new dev.snuffac.paper.gui.MenuListener(this), this);
         getServer().getPluginManager().registerEvents(new MechanicsListener(this), this);
     }
@@ -710,120 +710,109 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         analyser.publishProbeBatch(probes, materials);
     }
 
+    private void scheduleAntiXray() {
+        if (core.config().antiXrayMode() == null
+                || core.config().antiXrayMode() == dev.snuffac.core.world.ObfuscationPolicy.OFF) {
+            getLogger().info("anti-xray obfuscation is off by configuration.");
+            return;
+        }
+        Bukkit.getScheduler().runTaskLater(this, this::applyAntiXray, 40L);
+    }
+
     private void applyAntiXray() {
         var policy = core.config().antiXrayMode();
         if (policy == null || policy == dev.snuffac.core.world.ObfuscationPolicy.OFF) {
+            getLogger().info("anti-xray obfuscation is off by configuration.");
             return;
+        }
+        var worlds = Bukkit.getWorlds();
+        getLogger().info("applying anti-xray to " + worlds.size() + " world(s)");
+        if (worlds.isEmpty()) {
+            getLogger().warning("no worlds are loaded, so anti-xray could not be applied at all. "
+                    + "Ore data will be sent to clients unchanged.");
         }
         int bandStart = core.config().antiXrayBandStart();
         int bandEnd = core.config().antiXrayBandEnd();
         int height = Math.max(0, Math.min(320, bandEnd - bandStart));
+        boolean obfuscate = true;
+
         int applied = 0;
-        String failure = null;
         for (org.bukkit.World world : Bukkit.getWorlds()) {
-            try {
-                if (applyModernAntiXray(world, policy, height)) {
-                    applied++;
-                }
-            } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
-                if (failure == null) {
-                    failure = describe(exception);
-                }
-            }
-        }
-        if (applied > 0) {
-            getLogger().info("anti-xray obfuscation active: " + policy + " on " + applied
-                    + " world(s) via the Paper AntiXrayConfiguration API.");
-        } else {
-            getLogger().warning("anti-xray obfuscation unavailable on this server build. "
-                    + "Ore and container data is still being sent to clients, so x-ray and "
-                    + "storage ESP are NOT being prevented. Cause: " + failure);
-        }
-    }
-
-    private boolean applyModernAntiXray(
-            org.bukkit.World world,
-            dev.snuffac.core.world.ObfuscationPolicy policy,
-            int height) throws ReflectiveOperationException {
-        Object antiXrayConfig = AntiXrayBridge.configurationFor(world);
-        if (antiXrayConfig == null) {
-            throw new IllegalStateException(
-                    "no AntiXrayConfiguration could be resolved for world " + world.getName()
-                    + " after trying " + AntiXrayBridge.describeAttempts());
-        }
-
-        Class<?> engineMode = AntiXrayBridge.engineModeClass(antiXrayConfig);
-        Object mode = AntiXrayBridge.engineModeValue(engineMode,
-                policy == dev.snuffac.core.world.ObfuscationPolicy.OFF
-                        ? AntiXrayBridge.ObfuscationPolicy.OFF
-                        : AntiXrayBridge.ObfuscationPolicy.HIDDEN_ORES);
-
-        setIfPresent(antiXrayConfig, "setEngineMode", new Class<?>[] {engineMode}, mode);
-        setIfPresent(antiXrayConfig, "setHeight", new Class<?>[] {int.class}, height);
-        applyBlockList(antiXrayConfig, "setHiddenBlocks", policy);
-        applyBlockList(antiXrayConfig, "setReplaceBlocks", policy);
-        return true;
-    }
-
-    private void setIfPresent(Object target, String setter, Class<?>[] signature, Object value)
-            throws ReflectiveOperationException {
-        for (java.lang.reflect.Method method : target.getClass().getMethods()) {
-            if (method.getName().equals(setter)
-                    && java.util.Arrays.equals(method.getParameterTypes(), signature)) {
-                method.invoke(target, value);
-                return;
-            }
-        }
-        getLogger().warning("AntiXrayConfiguration has no " + setter
-                + " method, so that setting was skipped.");
-    }
-
-    private void applyBlockList(
-            Object antiXrayConfig,
-            String setter,
-            dev.snuffac.core.world.ObfuscationPolicy policy) throws ReflectiveOperationException {
-        java.util.List<String> names = hiddenBlocksFor(policy);
-        java.lang.reflect.Method method = null;
-        for (java.lang.reflect.Method candidate : antiXrayConfig.getClass().getMethods()) {
-            if (candidate.getName().equals(setter) && candidate.getParameterCount() == 1) {
-                method = candidate;
-                break;
-            }
-        }
-        if (method == null) {
-            throw new NoSuchMethodException(setter + " is absent from "
-                    + antiXrayConfig.getClass().getName());
-        }
-        java.util.List<org.bukkit.block.data.BlockData> blocks = new java.util.ArrayList<>(names.size());
-        for (String name : names) {
-            org.bukkit.Material material = org.bukkit.Material.matchMaterial(name);
-            if (material == null || !material.isBlock()) {
+            AntiXrayBridge.resetAttempts();
+            Object antiXray = AntiXrayBridge.antiXrayConfiguration(world);
+            if (antiXray == null) {
+                getLogger().warning("anti-xray could not be configured for world "
+                        + world.getName() + ". Attempts: " + AntiXrayBridge.describeAttempts());
                 continue;
             }
-            try {
-                blocks.add(material.createBlockData());
-            } catch (IllegalArgumentException ignored) {
+
+            Object mode = AntiXrayBridge.engineModeValue(antiXray, obfuscate);
+            boolean wrote = AntiXrayBridge.writeField(antiXray,
+                    AntiXrayBridge.ENGINE_MODE_FIELD, mode);
+            wrote &= AntiXrayBridge.writeField(antiXray,
+                    AntiXrayBridge.ENABLED_FIELD, Boolean.TRUE);
+            wrote &= AntiXrayBridge.writeField(antiXray,
+                    AntiXrayBridge.MAX_BLOCK_HEIGHT_FIELD, height);
+
+            java.util.List<String> hiddenNames = hiddenBlocksFor(policy);
+            java.util.List<Object> hidden = AntiXrayBridge.minecraftBlocks(hiddenNames);
+            java.util.List<String> missingHidden = AntiXrayBridge.unresolvedBlocks();
+            boolean hiddenOk = AntiXrayBridge.writeField(antiXray,
+                    AntiXrayBridge.HIDDEN_BLOCKS_FIELD, hidden);
+
+            java.util.List<Object> replacement =
+                    AntiXrayBridge.minecraftBlocks(replacementBlocksFor());
+            java.util.List<String> missingReplacement = AntiXrayBridge.unresolvedBlocks();
+            boolean replacementOk = AntiXrayBridge.writeField(antiXray,
+                    AntiXrayBridge.REPLACEMENT_BLOCKS_FIELD, replacement);
+
+            if (wrote && hiddenOk && replacementOk && !hidden.isEmpty()) {
+                applied++;
+                getLogger().info("anti-xray active on world " + world.getName()
+                        + ": engineMode=" + mode
+                        + " maxBlockHeight=" + height
+                        + " hidden=" + hidden.size() + "/" + hiddenNames.size()
+                        + " replacement=" + replacement.size());
+                if (!missingHidden.isEmpty()) {
+                    getLogger().info("  not present on this server: " + missingHidden);
+                }
+                if (!missingReplacement.isEmpty()) {
+                    getLogger().info("  replacement not present: " + missingReplacement);
+                }
+            } else {
+                getLogger().warning("anti-xray was only partly configured for world "
+                        + world.getName() + ". Attempts: "
+                        + AntiXrayBridge.describeAttempts());
             }
         }
-        method.invoke(antiXrayConfig, blocks);
+
+        if (applied > 0) {
+            getLogger().info("anti-xray obfuscation active: " + policy + " on " + applied
+                    + " world(s). Ore data is being rewritten before it reaches clients.");
+        } else {
+            getLogger().warning("anti-xray obfuscation is NOT active on any world. "
+                    + "Ore and container data is being sent to clients unchanged, so x-ray and "
+                    + "storage ESP are not prevented. See the per world attempts above.");
+        }
     }
 
-    private static String describe(Throwable throwable) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(throwable.getClass().getName());
-        if (throwable.getMessage() != null && !throwable.getMessage().isBlank()) {
-            builder.append(": ").append(throwable.getMessage());
+    private boolean applyBlockField(Object antiXray, String field, Object policy) {
+        java.util.List<String> names = hiddenBlocksFor(
+                (dev.snuffac.core.world.ObfuscationPolicy) policy);
+        java.util.List<Object> blocks = AntiXrayBridge.minecraftBlocks(names);
+        if (blocks.isEmpty()) {
+            getLogger().warning("none of the " + names.size()
+                    + " hidden block names resolved to a real block, so " + field
+                    + " was left untouched. Engine mode and height are still applied. "
+                    + "Attempts: " + AntiXrayBridge.describeAttempts());
+            return false;
         }
-        StackTraceElement[] trace = throwable.getStackTrace();
-        int shown = 0;
-        for (StackTraceElement element : trace) {
-            if (shown >= 4) {
-                break;
-            }
-            builder.append("\n    at ").append(element);
-            shown++;
+        java.util.List<String> unresolved = AntiXrayBridge.unresolvedBlocks();
+        if (!unresolved.isEmpty()) {
+            getLogger().info(blocks.size() + " of " + names.size()
+                    + " hidden blocks applied, these did not exist on this server: " + unresolved);
         }
-        return builder.toString();
+        return AntiXrayBridge.writeField(antiXray, field, blocks);
     }
 
     private static String engineModeFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
@@ -833,22 +822,31 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         };
     }
 
-    private static java.util.List<String> hiddenBlocksFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
-        return switch (policy) {
-            case HIDDEN_ORES_AND_DEEPSLATE -> java.util.List.of(
-                    "ORE_COAL", "ORE_DEEPSLATE_COAL", "ORE_IRON", "ORE_DEEPSLATE_IRON",
-                    "ORE_COPPER", "ORE_DEEPSLATE_COPPER", "ORE_GOLD", "ORE_DEEPSLATE_GOLD",
-                    "ORE_REDSTONE", "ORE_DEEPSLATE_REDSTONE", "ORE_DIAMOND", "ORE_DEEPSLATE_DIAMOND",
-                    "ORE_LAPIS", "ORE_DEEPSLATE_LAPIS", "ORE_EMERALD", "ORE_DEEPSLATE_EMERALD",
-                    "DEEPSLATE_DIAMOND_ORE", "DEEPSLATE_EMERALD_ORE", "DEEPSLATE_REDSTONE_ORE",
-                    "DEEPSLATE_LAPIS_ORE", "DEEPSLATE_GOLD_ORE", "DEEPSLATE_IRON_ORE",
-                    "DEEPSLATE_COPPER_ORE", "DEEPSLATE_COAL_ORE");
-            default -> java.util.List.of(
-                    "ORE_DIAMOND", "ORE_DEEPSLATE_DIAMOND", "DEEPSLATE_DIAMOND_ORE",
-                    "ORE_EMERALD", "ORE_DEEPSLATE_EMERALD", "DEEPSLATE_EMERALD_ORE",
-                    "ORE_GOLD", "ORE_DEEPSLATE_GOLD", "DEEPSLATE_GOLD_ORE",
-                    "ORE_REDSTONE", "ORE_DEEPSLATE_REDSTONE", "DEEPSLATE_REDSTONE_ORE");
-        };
+    private static java.util.List<String> hiddenBlocksFor(Object policy) {
+        if (policy == dev.snuffac.core.world.ObfuscationPolicy.HIDDEN_ORES_AND_DEEPSLATE) {
+            return java.util.List.of(
+                    "COAL_ORE", "DEEPSLATE_COAL_ORE",
+                    "COPPER_ORE", "DEEPSLATE_COPPER_ORE",
+                    "IRON_ORE", "DEEPSLATE_IRON_ORE",
+                    "GOLD_ORE", "DEEPSLATE_GOLD_ORE",
+                    "REDSTONE_ORE", "DEEPSLATE_REDSTONE_ORE",
+                    "DIAMOND_ORE", "DEEPSLATE_DIAMOND_ORE",
+                    "LAPIS_ORE", "DEEPSLATE_LAPIS_ORE",
+                    "EMERALD_ORE", "DEEPSLATE_EMERALD_ORE",
+                    "NETHER_QUARTZ_ORE",
+                    "ANCIENT_DEBRIS",
+                    "SPAWNER");
+        }
+        return java.util.List.of(
+                "DIAMOND_ORE", "DEEPSLATE_DIAMOND_ORE",
+                "EMERALD_ORE", "DEEPSLATE_EMERALD_ORE",
+                "GOLD_ORE", "DEEPSLATE_GOLD_ORE",
+                "REDSTONE_ORE", "DEEPSLATE_REDSTONE_ORE",
+                "LAPIS_ORE", "DEEPSLATE_LAPIS_ORE");
+    }
+
+    private static java.util.List<String> replacementBlocksFor() {
+        return java.util.List.of("STONE", "DEEPSLATE", "NETHERRACK");
     }
 
     private void refreshVisibility() {
@@ -1129,7 +1127,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
         AttributeInstance jump = attribute(player, Attribute.JUMP_STRENGTH);
         if (jump != null) {
-            attributes = attributes.withJumpStrength(jump.getValue());
+            attributes = attributes.withJumpStrength(
+                    MovementAttributes.normaliseJumpStrength(jump.getValue()));
         }
         AttributeInstance step = attribute(player, Attribute.STEP_HEIGHT);
         if (step != null) {

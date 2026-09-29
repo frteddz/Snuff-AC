@@ -9,8 +9,8 @@ import java.util.Map;
 
 public final class HighJumpCheck extends AbstractMovementCheck {
 
-    private static final double MIN_EXCESS = 0.02;
-    private static final int REQUIRED_CONSECUTIVE = 2;
+    public static final double MIN_EXCESS = 0.08;
+    public static final int REQUIRED_CONSECUTIVE = 3;
 
     @Override
     public String key() {
@@ -62,7 +62,7 @@ public final class HighJumpCheck extends AbstractMovementCheck {
             state.excessTicks = 0;
             return;
         }
-        if (movement.onGround() || movement.ticksSinceGround() > 6) {
+        if (movement.onGround() || movement.ticksSinceGround() > 1) {
             state.excessTicks = 0;
             return;
         }
@@ -73,12 +73,12 @@ public final class HighJumpCheck extends AbstractMovementCheck {
         double excess = observed - maximum;
 
         if (excess < MIN_EXCESS) {
-            state.excessTicks = 0;
+            state.badJumps = 0;
             return;
         }
 
-        state.excessTicks++;
-        if (state.excessTicks < REQUIRED_CONSECUTIVE) {
+        state.badJumps++;
+        if (state.badJumps < REQUIRED_CONSECUTIVE) {
             return;
         }
 
@@ -89,15 +89,18 @@ public final class HighJumpCheck extends AbstractMovementCheck {
         evidence.put("jumpBoost", movement.jumpBoostLevel());
         evidence.put("sprinting", movement.sprinting());
         evidence.put("airTicks", movement.ticksSinceGround());
-        context.requestSetback("jump apex above the legal launch velocity");
-        context.flag("launch velocity " + round(observed) + " above maximum " + round(maximum), evidence, 10.0);
-        state.excessTicks = 0;
+        evidence.put("jumpStrength", round(movement.attributes().jumpStrength()));
+        evidence.put("tolerance", MIN_EXCESS);
+        evidence.put("consecutiveBadJumps", state.badJumps);
+        context.flag("launch velocity " + round(observed) + " above maximum " + round(maximum)
+                + " on " + state.badJumps + " consecutive jumps", evidence, 10.0);
+        state.badJumps = 0;
     }
 
     @Override
     public void onTick(CheckContext context) {
         var state = (JumpState) state(context.player());
-        if (state != null && movement(context).ticksSinceGround() == 0) {
+        if (state != null && movement(context).onGround()) {
             state.excessTicks = 0;
         }
     }
@@ -116,5 +119,6 @@ public final class HighJumpCheck extends AbstractMovementCheck {
     static final class JumpState {
 
         private int excessTicks;
+        private int badJumps;
     }
 }

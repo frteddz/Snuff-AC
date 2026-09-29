@@ -13,9 +13,13 @@ import java.util.Set;
 
 public final class VelocityCheck extends AbstractMovementCheck {
 
-    private static final int EXPIRY_TICKS = 40;
-    private static final double MIN_MOTION_RATIO = 0.02;
-    private static final double MIN_ABSOLUTE_DROPPED = 0.06;
+    public static final int EXPIRY_TICKS = 40;
+    public static final double MIN_MOTION_RATIO = 0.15;
+    public static final double MIN_ABSOLUTE_DROPPED = 0.12;
+    public static final int REQUIRED_DROPPED_TICKS = 3;
+    public static final double HORIZONTAL_FRICTION = 0.91;
+    public static final double VERTICAL_FRICTION = 0.98;
+    public static final double GRAVITY = 0.08;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -88,7 +92,17 @@ public final class VelocityCheck extends AbstractMovementCheck {
             state.pending = null;
             return;
         }
-        if (context.player().movement().ticksSinceTeleport() <= 1) {
+        var state0 = context.player().movement();
+        if (state0.ticksSinceTeleport() <= 1
+                || state0.inWaterOrLava()
+                || state0.onClimbable()
+                || state0.riding()
+                || state0.inVehicle()
+                || state0.onSlime()
+                || state0.onHoney()
+                || state0.ticksSinceWindChargeHit() <= 2
+                || state0.ticksSinceBlockChange() <= 2
+                || state0.levitationAmplifier() > 0) {
             state.pending = null;
             return;
         }
@@ -98,7 +112,9 @@ public final class VelocityCheck extends AbstractMovementCheck {
         }
 
         Vec3d applied = context.player().movement().delta();
-        Vec3d expected = state.pending;
+        Vec3d raw = state.pending;
+        int sinceApplied = state.expiry == 0 ? 0 : EXPIRY_TICKS - state.expiry;
+        Vec3d expected = predictedDisplacement(raw, sinceApplied);
 
         double expectedLength = expected.length();
         double appliedLength = applied.length();
@@ -125,7 +141,7 @@ public final class VelocityCheck extends AbstractMovementCheck {
         }
 
         state.droppedTicks++;
-        if (state.droppedTicks < 2) {
+        if (state.droppedTicks < REQUIRED_DROPPED_TICKS) {
             return;
         }
 
@@ -162,6 +178,18 @@ public final class VelocityCheck extends AbstractMovementCheck {
             state.pending = null;
             state.droppedTicks = 0;
         }
+    }
+
+    public static Vec3d predictedDisplacement(Vec3d impulse, int ticks) {
+        if (impulse == null || ticks <= 0) {
+            return Vec3d.ZERO;
+        }
+        double horizontal = Math.pow(HORIZONTAL_FRICTION, ticks);
+        double verticalY = impulse.y();
+        for (int i = 0; i < ticks; i++) {
+            verticalY = (verticalY - GRAVITY) * VERTICAL_FRICTION;
+        }
+        return new Vec3d(impulse.x() * horizontal, verticalY, impulse.z() * horizontal);
     }
 
     private static double round(double value) {

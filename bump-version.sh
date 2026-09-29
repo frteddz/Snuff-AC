@@ -5,6 +5,10 @@ set -euo pipefail
 cd "$(dirname "$0")"
 if [ -n "${1:-}" ]; then
   TARGET="$1"
+  case "$TARGET" in
+    *-dev) ;;
+    *) TARGET="$TARGET-dev" ;;
+  esac
 else
   CURRENT=$(grep -oE 'version=[0-9.]+' gradle.properties | head -1 | cut -d= -f2)
   BASE=${CURRENT%-dev}

@@ -14,8 +14,10 @@ public final class TimerCheck implements Check {
     private static final int WARMUP_TICKS = 40;
     private static final int MEASURE_TICKS = 200;
     private static final double EXPECTED_PER_TICK = 1.0;
-    private static final double POSITIVE_THRESHOLD = 1.15;
-    private static final double NEGATIVE_THRESHOLD = 0.82;
+    public static final double POSITIVE_THRESHOLD = 1.6;
+    public static final double NEGATIVE_THRESHOLD = 0.35;
+    public static final int MIN_PACKETS_PER_WINDOW = 40;
+    public static final int REQUIRED_WINDOWS = 3;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -57,6 +59,16 @@ public final class TimerCheck implements Check {
             return;
         }
         state.packetsThisTick++;
+        var now = context.player().movement().position();
+        if (state.lastX != 0.0 || state.lastZ != 0.0) {
+            double dx = now.x() - state.lastX;
+            double dz = now.z() - state.lastZ;
+            if (dx * dx + dz * dz > 1.0E-8) {
+                state.moved = true;
+            }
+        }
+        state.lastX = now.x();
+        state.lastZ = now.z();
         context.player().network().movementReceived(packet.arrivalNanos(), 0L);
     }
 
@@ -86,6 +98,15 @@ public final class TimerCheck implements Check {
         double windowTicks = state.measuredTicks - WARMUP_TICKS;
         double perTick = state.totalPackets / windowTicks;
 
+        if (!state.moved) {
+            state.reset();
+            return;
+        }
+        if (state.totalPackets < MIN_PACKETS_PER_WINDOW) {
+            state.reset();
+            return;
+        }
+
         boolean positive = perTick > POSITIVE_THRESHOLD;
         boolean negative = perTick < NEGATIVE_THRESHOLD;
 
@@ -96,6 +117,7 @@ public final class TimerCheck implements Check {
             }
             Map<String, Object> evidence = context.newEvidence();
             evidence.put("packetsPerTick", round(perTick));
+            evidence.put("movedInWindow", true);
             evidence.put("expected", EXPECTED_PER_TICK);
             evidence.put("totalPackets", state.totalPackets);
             evidence.put("windowTicks", (int) windowTicks);
@@ -127,11 +149,17 @@ public final class TimerCheck implements Check {
         private int packetsThisTick;
         private int measuredTicks;
         private long totalPackets;
+        private boolean moved;
+        private int deviations;
+        private double lastX;
+        private double lastZ;
 
         private void reset() {
             packetsThisTick = 0;
             measuredTicks = 0;
             totalPackets = 0L;
+            moved = false;
+            deviations = 0;
         }
     }
 }
