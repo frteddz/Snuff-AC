@@ -252,3 +252,79 @@ Minecraft cheat clients and by false positives observed during live play.
 - 130 unit tests pass, up from 94.
 - Clean build with 31 checks registered.
 - Zero code comments and zero em dash characters across the project.
+
+## [1.0.3-dev] - 2026-09-30
+
+Staff tooling release, driven by a second round of live bug reports.
+
+### Fixed
+
+**Menus could be looted**
+
+- Inventory events were handled at HIGH priority with `ignoreCancelled = true`. If
+  any other plugin cancelled a click first, Snuff skipped its own handler and the
+  button items could be picked up, which is an item duplication vector.
+  Handling now runs at HIGHEST priority and never skips. Number key swaps,
+  offhand swaps, middle clicks and double click collect are additionally
+  short circuited, and drag events are cancelled regardless of prior state.
+
+**Nuker was not detected**
+
+- The check counted *distinct* block positions per second. A nuker that repeatedly
+  dug the same position, or burst many digs inside a short window, never tripped
+  it. Detection is now on dig packet rate: three dig packets inside 700ms, or the
+  distinct position signal as a second condition.
+
+**Wind charge flagged legitimate players**
+
+- A wind charge gives a large horizontal impulse and being hit by one gives
+  knockback. Neither was modelled, so Fly, Speed, AirMovement, HighJump,
+  LongJump, Drift, Step, NoFall, Velocity and PitchLock all flagged normal play.
+  A wind charge now grants three seconds of grace after the player uses one and
+  one second after the player is hit by one, applied centrally so every movement
+  check inherits it. Detection is driven from real item use, projectile launch
+  and damage events.
+
+**Spear and mace attributes were ignored**
+
+- Equipment tracked only mining attributes and could not tell a spear, mace or
+  trident from any other item, so attribute changes from those weapons were
+  invisible to the model. The held weapon type and whether it carries an
+  attribute modifier are now tracked per tick on the main thread.
+
+### Added
+
+**Manual punishments**
+
+- `ban`, `timeout`, `tempban`, `ipban`, `tempipban`, `mute`, `tempmute` and
+  `warn`, each with a reverse: `unban`, `untimeout`, `untempban`, `unipban`,
+  `untempipban`, `unmute`, `untempmute` and `unwarn`.
+- Duration syntax accepts `m`, `h` and `d` in any order and any combination, so
+  `/snuff tempban frteddz 1h 10s cheating` works. Zero, negative, unitless and
+  absurd durations are rejected.
+- A reason is mandatory on every punish command.
+- `/snuff punishments [player]` lists active punishments, online or offline.
+- `/snuff warns <player>` lists warnings.
+- Bans are enforced at pre-login, mutes block chat and commands, and everything
+  persists per UUID across restarts.
+- Staff caps via `snuffac.punish.maxduration.*`, and `snuffac.exempt.punish`
+  protects staff from being punished.
+- Snuff still never punishes on its own. Every one of these is a staff action
+  and no check or report can reach it.
+
+**Settings menu**
+
+- `/snuff settings` opens an admin menu for log retention, history retention,
+  the prevention switch and the alert cooldown, with in place reload.
+
+**Simplified command surface**
+
+- `/snuff` with no arguments now opens the menu instead of printing a command
+  list. `/snuff violations [player]` opens the flagged players menu or that
+  player's history rather than printing text.
+- Flagged players and warned players are shown with their real skin when they
+  are online.
+
+### Verification
+
+- 157 unit tests pass, up from 138.

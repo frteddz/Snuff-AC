@@ -59,6 +59,10 @@ import org.bukkit.scheduler.BukkitTask;
 public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     private static int messengerFailures;
+    private dev.snuffac.core.punish.PunishmentService punishments;
+
+    private void applyMuteOnDisable() {
+    }
 
     public boolean canUseMenu(Player player) {
         return player != null && player.hasPermission("snuffac.menu") && core != null;
@@ -67,6 +71,48 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     public void openMainMenu(Player player) {
         var bridge = new dev.snuffac.paper.gui.GuiBridgeImpl(this);
         var menu = new dev.snuffac.paper.gui.MainMenu(this, bridge, alertsEnabledFor(player));
+        menu.build();
+        menu.open(player);
+    }
+
+    public dev.snuffac.core.punish.PunishmentService punishments() {
+        return punishments;
+    }
+
+    public void reloadEverything() {
+        try {
+            reloadConfiguration();
+            core.enforcement().preventionEnabled(core.config().preventionEnabled());
+            core.enforcement().minConfidenceForPrevention(core.config().minConfidenceForPrevention());
+            core.alerts().clearCooldowns();
+            getLogger().info("configuration reloaded");
+        } catch (RuntimeException failure) {
+            getLogger().warning("reload failed: " + failure);
+        }
+    }
+
+    public void openSuspicious(Player player) {
+        new dev.snuffac.paper.gui.GuiBridgeImpl(this).openSuspicious(player, 0);
+    }
+
+    public void openSuspiciousByName(Player player, String name) {
+        new dev.snuffac.paper.gui.GuiBridgeImpl(this).openSuspicious(player, 0);
+        player.sendMessage(net.kyori.adventure.text.Component.text(
+                "[Snuff] Showing flagged players. Looking for " + name + "."));
+    }
+
+    public void openCase(Player player, String uuid) {
+        new dev.snuffac.paper.gui.GuiBridgeImpl(this).openCase(player, uuid);
+    }
+
+    public void openWarned(Player player) {
+        var menu = new dev.snuffac.paper.gui.WarnedMenu(this);
+        menu.build();
+        menu.open(player);
+    }
+
+    public void openSettings(Player player) {
+        var menu = new dev.snuffac.paper.gui.SettingsMenu(this);
         menu.build();
         menu.open(player);
     }
@@ -144,6 +190,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     @Override
     public void onDisable() {
         dev.snuffac.paper.gui.SnuffMenu.closeAll();
+        applyMuteOnDisable();
         if (tickTask != null) {
             tickTask.cancel();
         }
@@ -216,8 +263,12 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     private void startTasks() {
         this.tickTask = Bukkit.getScheduler().runTaskTimer(this, core::tick, 1L, 1L);
         this.cacheTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshWorldCaches, 1L, 1L);
+        this.punishments = new dev.snuffac.core.punish.PunishmentService(
+                new java.io.File(getDataFolder(), "punishments").toPath(), null);
+        this.punishments.load();
         applyAntiXray();
         getServer().getPluginManager().registerEvents(new dev.snuffac.paper.gui.MenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new MechanicsListener(this), this);
     }
 
     void registerPlayer(Player player) {
@@ -319,6 +370,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     private void resolveMiningProbes(PlayerData data, Player player) {
+        observeWindCharge(data, player);
+        observeWeaponAttributes(data, player);
         var analyser = data.mining();
         var probes = analyser.drainProbes(16);
         if (probes.isEmpty()) {
@@ -444,6 +497,28 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         applyEnvironment(data, player, onGroundBelow);
         applyEquipment(data, player);
         refreshCombat(data, player);
+    }
+
+    private void observeWindCharge(PlayerData data, Player player) {
+        try {
+            if (player.hasMetadata("snuffac.windcharge")) {
+                data.movement().markWindCharge();
+            }
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    private void observeWeaponAttributes(PlayerData data, Player player) {
+        try {
+            var held = player.getInventory().getItemInMainHand();
+            String name = held == null ? "" : held.getType().name();
+            boolean spearLike = name.contains("SPEAR")
+                    || name.contains("MACE")
+                    || name.contains("TRIDENT");
+            data.equipment().weaponType(name);
+            data.equipment().weaponAttributeActive(spearLike);
+        } catch (RuntimeException ignored) {
+        }
     }
 
     private void refreshCombat(PlayerData data, Player player) {
@@ -658,7 +733,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         return getDataFolder().toPath().resolve("logs");
     }
 
-    void reloadConfiguration() {
+    public void reloadConfiguration() {
         reloadConfig();
         saveResourceIfMissing("checks.yml");
         this.configSource = new YamlConfigSource(getConfig());

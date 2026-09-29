@@ -56,6 +56,11 @@ public final class PitchLockCheck implements Check {
         if (state == null) {
             return;
         }
+
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
         var movementState = context.player().movement();
         if (movementState.ticksSinceTeleport() <= 2 || movementState.riding() || movementState.inVehicle()) {
             state.reset();

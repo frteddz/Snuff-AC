@@ -79,9 +79,14 @@ public final class FlagsMenu extends SnuffMenu {
                 rendered.add(component(line));
             }
             meta.lore(rendered);
-            OfflinePlayer offline = Bukkit.getOfflinePlayer(entry.uuid());
-            if (offline.getName() != null) {
-                meta.setOwningPlayer(offline);
+            Player live = Bukkit.getPlayer(entry.uuid());
+            if (live != null) {
+                meta.setOwningPlayer(live);
+            } else {
+                OfflinePlayer offline = Bukkit.getOfflinePlayer(entry.uuid());
+                if (offline.getName() != null) {
+                    meta.setOwningPlayer(offline);
+                }
             }
             meta.getPersistentDataContainer().set(
                     new org.bukkit.NamespacedKey(plugin, "action"),

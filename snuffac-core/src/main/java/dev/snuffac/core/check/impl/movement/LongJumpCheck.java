@@ -45,6 +45,11 @@ public final class LongJumpCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         var movement = movement(context);
         if (movement.onGround() || movement.ticksSinceGround() < MIN_AIR_TICKS) {
             state.reset();

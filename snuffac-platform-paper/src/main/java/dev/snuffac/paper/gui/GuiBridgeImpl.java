@@ -32,6 +32,24 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
         menu.open(player);
     }
 
+    public void openCase(Player player, String uuid) {
+        try {
+            showCase(player, java.util.UUID.fromString(uuid));
+        } catch (IllegalArgumentException malformed) {
+            player.sendMessage(Component.text("[Snuff] Bad player id."));
+        }
+    }
+
+    @Override
+    public void openSettings(Player player) {
+        plugin.openSettings(player);
+    }
+
+    @Override
+    public void openWarned(Player player) {
+        plugin.openWarned(player);
+    }
+
     @Override
     public void alertsToggled(Player player, boolean enabled) {
         player.sendMessage(Component.text(

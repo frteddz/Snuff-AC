@@ -7,6 +7,8 @@ public final class EquipmentState {
     private boolean validTool;
     private int heldItemSlot = -1;
     private boolean holdingPlaceable;
+    private String weaponType = "AIR";
+    private boolean weaponAttributeActive;
 
     public static final EquipmentState DEFAULT = new EquipmentState();
 
@@ -43,12 +45,30 @@ public final class EquipmentState {
         this.holdingPlaceable = holdingPlaceable;
     }
 
+    public String weaponType() {
+        return weaponType;
+    }
+
+    public void weaponType(String value) {
+        this.weaponType = value == null || value.isEmpty() ? "AIR" : value;
+    }
+
+    public boolean weaponAttributeActive() {
+        return weaponAttributeActive;
+    }
+
+    public void weaponAttributeActive(boolean value) {
+        this.weaponAttributeActive = value;
+    }
+
     public void reset() {
         this.miningSpeed = 1.0;
         this.blockBreakSpeed = 1.0;
         this.validTool = false;
         this.heldItemSlot = -1;
         this.holdingPlaceable = false;
+        this.weaponType = "AIR";
+        this.weaponAttributeActive = false;
     }
 
     public static double breakTicks(double hardness, double miningSpeed, double blockBreakSpeed) {

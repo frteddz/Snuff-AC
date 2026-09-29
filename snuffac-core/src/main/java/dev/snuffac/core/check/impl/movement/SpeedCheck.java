@@ -48,6 +48,11 @@ public final class SpeedCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         var player = context.player();
         var movement = player.movement();
         var toleranceModel = tolerance(context);

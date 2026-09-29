@@ -54,6 +54,11 @@ public final class VelocityCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         if (packet instanceof ServerVelocityPacket velocity) {
             if (velocity.entityId() != context.player().entityId()) {
                 return;

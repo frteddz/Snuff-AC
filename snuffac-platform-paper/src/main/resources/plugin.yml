@@ -26,6 +26,14 @@ permissions:
       snuffac.debug: true
       snuffac.alerts: true
       snuffac.menu: true
+      snuffac.punish.ban: true
+      snuffac.punish.tempban: true
+      snuffac.punish.ipban: true
+      snuffac.punish.kick: true
+      snuffac.punish.mute: true
+      snuffac.punish.warn: true
+      snuffac.punish.unban: true
+      snuffac.punish.maxduration.30d: true
       snuffac.bypass: false
   snuffac.menu:
     description: Open the Snuff AC menus
@@ -38,4 +46,40 @@ permissions:
     default: op
   snuffac.bypass:
     description: Exempt from all Snuff AC checks
+    default: false
+  snuffac.punish.ban:
+    description: Ban and temporary ban players
+    default: op
+  snuffac.punish.tempban:
+    description: Temporary ban players
+    default: op
+  snuffac.punish.ipban:
+    description: Ban by address
+    default: op
+  snuffac.punish.kick:
+    description: Kick and timeout players
+    default: op
+  snuffac.punish.mute:
+    description: Mute players
+    default: op
+  snuffac.punish.warn:
+    description: Warn players
+    default: op
+  snuffac.punish.unban:
+    description: Lift any punishment
+    default: op
+  snuffac.punish.maxduration.1h:
+    description: May punish for up to one hour
+    default: false
+  snuffac.punish.maxduration.1d:
+    description: May punish for up to one day
+    default: false
+  snuffac.punish.maxduration.7d:
+    description: May punish for up to seven days
+    default: false
+  snuffac.punish.maxduration.30d:
+    description: May punish for up to thirty days
+    default: false
+  snuffac.exempt.punish:
+    description: Cannot be punished by staff
     default: false

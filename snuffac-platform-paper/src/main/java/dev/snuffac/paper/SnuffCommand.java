@@ -27,24 +27,64 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
     private static final String PREFIX = "<gray>[</gray><red>Snuff</red><gray>]</gray> ";
 
     private final SnuffPaperPlugin plugin;
+    private final PunishCommands punishCommands;
 
     public SnuffCommand(SnuffPaperPlugin plugin) {
         this.plugin = plugin;
+        this.punishCommands = new PunishCommands(plugin);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
+            if (sender instanceof Player player && player.hasPermission("snuffac.menu")) {
+                plugin.openMainMenu(player);
+                return true;
+            }
             send(sender, "usage");
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (PunishCommands.REVERSE.contains(sub)) {
+            if (!sender.hasPermission("snuffac.punish.unban")) {
+                send(sender, "no-permission");
+                return true;
+            }
+            return punishCommands.reverse(sender, sub, args);
+        }
+        if (PunishCommands.PUNISH.contains(sub)) {
+            if (!sender.hasPermission(PunishCommands.permissionFor(sub))) {
+                send(sender, "no-permission");
+                return true;
+            }
+            return punishCommands.execute(sender, sub, args);
+        }
+        if (sub.equals("punishments")) {
+            if (!sender.hasPermission("snuffac.punish.ban")) {
+                send(sender, "no-permission");
+                return true;
+            }
+            return punishCommands.view(sender, args);
+        }
+        if (sub.equals("warns")) {
+            if (!sender.hasPermission("snuffac.punish.warn")) {
+                send(sender, "no-permission");
+                return true;
+            }
+            return punishCommands.warns(sender, args);
+        }
+        if (sub.equals("settings")) {
+            if (!sender.hasPermission("snuffac.admin")) {
+                send(sender, "no-permission");
+                return true;
+            }
+            return punishCommands.settings(sender);
+        }
         if (!sender.hasPermission("snuffac.admin")) {
             send(sender, "no-permission");
             return true;
         }
         switch (sub) {
-            case "menu", "gui" -> menu(sender);
             case "info" -> info(sender);
             case "version" -> send(sender, "version", Map.ofEntries(
                     Map.entry("version", plugin.api().version()),
@@ -90,7 +130,7 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
                 Map.entry("minTps", format(core.server().minTps()))));
     }
 
-    private void menu(CommandSender sender) {
+    private void violationsConsole(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
             send(sender, "gui-needs-player");
             return;
@@ -205,6 +245,20 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
     }
 
     private void violations(CommandSender sender, String[] args) {
+        if (args.length >= 2 && sender instanceof Player player) {
+            var target = Bukkit.getPlayerExact(args[1]);
+            if (target != null) {
+                plugin.openCase(player, target.getUniqueId().toString());
+                return;
+            }
+            plugin.openSuspiciousByName(player, args[1]);
+            return;
+        }
+        if (sender instanceof Player player) {
+            plugin.openSuspicious(player);
+            return;
+        }
+        violationsConsole(sender, args);
         Player target = args.length > 1
                 ? Bukkit.getPlayerExact(args[1])
                 : sender instanceof Player player ? player : null;

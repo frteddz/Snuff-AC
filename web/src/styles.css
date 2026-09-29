@@ -152,3 +152,10 @@ main section.scroll-reveal.in-view > * { opacity: 1; transform: none; }
 @media (max-width:760px){
  .whatsnew-row{grid-template-columns:1fr;gap:.45rem}
 }
+
+.punish-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:3rem}
+.punish-card{background:var(--bg);padding:1.5rem 1.35rem;display:flex;flex-direction:column;gap:.5rem}
+.punish-card b{font-size:1rem;font-weight:600}
+.punish-card p{margin:0;font-size:.85rem;line-height:1.6;color:var(--muted)}
+@media (max-width:900px){ .punish-grid{grid-template-columns:1fr 1fr} }
+@media (max-width:620px){ .punish-grid{grid-template-columns:1fr} }

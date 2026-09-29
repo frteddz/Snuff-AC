@@ -19,7 +19,7 @@ public final class MenuListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
@@ -29,6 +29,13 @@ public final class MenuListener implements Listener {
             return;
         }
         event.setCancelled(true);
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.NUMBER_KEY
+                || event.getClick() == org.bukkit.event.inventory.ClickType.SWAP_OFFHAND
+                || event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK
+                || event.getClick() == org.bukkit.event.inventory.ClickType.MIDDLE
+                || event.getAction() == org.bukkit.event.inventory.InventoryAction.COLLECT_TO_CURSOR) {
+            return;
+        }
         if (event.getClickedInventory() == null) {
             return;
         }
@@ -47,7 +54,7 @@ public final class MenuListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
         if (event.getWhoClicked() instanceof Player player && SnuffMenu.of(player) != null) {
             event.setCancelled(true);

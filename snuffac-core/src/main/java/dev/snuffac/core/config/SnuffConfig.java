@@ -15,6 +15,7 @@ public final class SnuffConfig {
     private boolean logToFile = true;
     private String logDirectory = "plugins/SnuffAC/logs";
     private int historyRetentionDays = 90;
+    private int logRetentionDays = 30;
     private int historyPerPlayer = 200;
     private boolean alertOnRejoinWithHistory = true;
     private String debugPermission = "snuffac.debug";
@@ -77,6 +78,7 @@ public final class SnuffConfig {
         logToFile = source.getBoolean("general.log-to-file", logToFile);
         logDirectory = source.getString("general.log-directory", logDirectory);
         historyRetentionDays = source.getInt("general.history-retention-days", historyRetentionDays);
+        logRetentionDays = source.getInt("general.log-retention-days", logRetentionDays);
         historyPerPlayer = source.getInt("general.history-per-player", historyPerPlayer);
         alertOnRejoinWithHistory = source.getBoolean("general.alert-on-rejoin-with-history", alertOnRejoinWithHistory);
         debugPermission = source.getString("general.permissions.debug", debugPermission);
@@ -177,6 +179,26 @@ public final class SnuffConfig {
 
     public boolean alertOnRejoinWithHistory() {
         return alertOnRejoinWithHistory;
+    }
+
+    public void logRetentionDays(int value) {
+        this.logRetentionDays = Math.max(1, value);
+    }
+
+    public int logRetentionDays() {
+        return logRetentionDays;
+    }
+
+    public void historyRetentionDays(int value) {
+        this.historyRetentionDays = Math.max(1, value);
+    }
+
+    public void preventionEnabled(boolean value) {
+        this.preventionEnabled = value;
+    }
+
+    public void alertCooldownMillis(int value) {
+        this.alertCooldownMillis = Math.max(0, value);
     }
 
     public int historyRetentionDays() {

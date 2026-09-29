@@ -22,6 +22,8 @@ public final class MovementState {
     private int ticksSinceBreak = 9999;
     private long movementTick = Long.MIN_VALUE;
     private int movementPacketsThisTick;
+    private int ticksSinceWindCharge = 9999;
+    private int ticksSinceWindChargeHit = 9999;
 
     private float yaw;
     private float pitch;
@@ -195,6 +197,31 @@ public final class MovementState {
 
     public int ticksSinceBreak() {
         return ticksSinceBreak;
+    }
+
+    public int ticksSinceWindCharge() {
+        return ticksSinceWindCharge;
+    }
+
+    public int ticksSinceWindChargeHit() {
+        return ticksSinceWindChargeHit;
+    }
+
+    public void markWindCharge() {
+        ticksSinceWindCharge = 0;
+    }
+
+    public void markWindChargeHit() {
+        ticksSinceWindChargeHit = 0;
+    }
+
+    public void tickWindChargeCounters() {
+        if (ticksSinceWindCharge < 10000) {
+            ticksSinceWindCharge++;
+        }
+        if (ticksSinceWindChargeHit < 10000) {
+            ticksSinceWindChargeHit++;
+        }
     }
 
     public void markPlaced() {
@@ -394,6 +421,7 @@ public final class MovementState {
 
     public void tickCounters() {
         tickPlaceCounters();
+        tickWindChargeCounters();
         ticksSinceGround = onGround ? 0 : ticksSinceGround + 1;
         ticksSinceLiquid = inWaterOrLava() ? 0 : ticksSinceLiquid + 1;
         ticksSinceClimbable = onClimbable ? 0 : ticksSinceClimbable + 1;

@@ -51,6 +51,11 @@ public final class AirMovementCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         var player = context.player();
         var movement = player.movement();
         var cache = player.worldCache();

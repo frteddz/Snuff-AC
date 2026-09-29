@@ -53,6 +53,11 @@ public final class FlyCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         var player = context.player();
         var movementState = player.movement();
         var cache = player.worldCache();

@@ -47,6 +47,11 @@ public final class HighJumpCheck extends AbstractMovementCheck {
             return;
         }
 
+        var graceMovement = context.player().movement();
+        if (dev.snuffac.core.prediction.PredictionGraces.windChargeActive(graceMovement)) {
+            return;
+        }
+
         var movement = movement(context);
         if (movement.ticksSinceTeleport() <= 1 || movement.riding() || movement.inVehicle()
                 || movement.inWaterOrLava() || movement.onClimbable() || movement.gliding() || movement.flying()) {

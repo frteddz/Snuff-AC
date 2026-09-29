@@ -147,7 +147,9 @@ public final class SnuffCore {
 
         this.config.load(source);
         this.registry.loadConfigurations(source);
-        this.fileLogger = config.logToFile() ? new FileViolationLogger(logDirectory, 30) : null;
+        this.fileLogger = config.logToFile()
+                ? new FileViolationLogger(logDirectory, config.logRetentionDays())
+                : null;
         this.alerts = new AlertService(config, messenger, permissions, logger, fileLogger);
         this.historyWriter = java.util.concurrent.Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "SnuffAC-History");

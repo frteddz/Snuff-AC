@@ -13,6 +13,8 @@ import java.util.Set;
 public final class NukerCheck implements Check {
 
     private static final long WINDOW_MILLIS = 1000L;
+    private static final long BURST_WINDOW_MILLIS = 700L;
+    private static final int BURST_LIMIT = 3;
     private static final int MAX_DISTINCT_PER_SECOND = 12;
 
     @Override
@@ -59,13 +61,16 @@ public final class NukerCheck implements Check {
         state.recent.removeIf(entry -> now - entry >= WINDOW_MILLIS);
         state.recent.add(dig.packedPosition());
 
+        long burst = state.recent.stream().filter(entry -> now - entry < BURST_WINDOW_MILLIS).count();
         long distinct = state.recent.stream().distinct().count();
-        if (distinct <= MAX_DISTINCT_PER_SECOND) {
+
+        if (burst < BURST_LIMIT && distinct <= MAX_DISTINCT_PER_SECOND) {
             return;
         }
 
         BlockPos sample = BlockPos.unpack(state.recent.peekLast());
         Map<String, Object> evidence = context.newEvidence();
+        evidence.put("digPacketsInBurst", burst);
         evidence.put("distinctBlocks", distinct);
         evidence.put("maximum", MAX_DISTINCT_PER_SECOND);
         evidence.put("window", WINDOW_MILLIS);
@@ -73,7 +78,8 @@ public final class NukerCheck implements Check {
         evidence.put("sampleY", sample.y());
         evidence.put("sampleZ", sample.z());
         evidence.put("distance", round(context.player().position().distanceTo(sample.toVec())));
-        context.flag("started digging " + distinct + " distinct blocks in one second", evidence, 6.0);
+        context.flag("sent " + burst + " dig packets within " + BURST_WINDOW_MILLIS
+                + "ms across " + distinct + " distinct block(s)", evidence, 6.0);
         state.recent.clear();
     }
 
