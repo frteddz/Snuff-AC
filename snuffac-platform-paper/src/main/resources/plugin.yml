@@ -4,7 +4,7 @@ main: dev.snuffac.paper.SnuffPaperPlugin
 api-version: '1.21'
 author: Snuff
 description: Snuff AC, an independent movement and combat anticheat.
-website: https://github.com/snuff-ac/Snuff-AC
+website: https://github.com/frteddz/Snuff-AC
 folia-supported: false
 load: STARTUP
 softdepend:

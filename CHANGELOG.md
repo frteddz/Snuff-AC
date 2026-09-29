@@ -253,6 +253,56 @@ Minecraft cheat clients and by false positives observed during live play.
 - Clean build with 31 checks registered.
 - Zero code comments and zero em dash characters across the project.
 
+## [1.0.2-dev] - 2026-09-30
+
+First release driven by live bug reports rather than by feature ideas. 31 checks,
+138 unit tests, up from 130.
+
+### Verified
+
+- 138 unit tests pass, up from 130.
+- Clean build with 31 checks registered.
+
+### Fixed
+
+- Alerts never reached staff in game. The alert path ran on the check thread, where the
+  online player lookup returns nothing, so the console worked while chat silently
+  produced no recipients. Delivery now runs on the main thread, and each recipient is
+  isolated so one failure cannot abort the rest. The Velocity messenger had empty
+  broadcast and console bodies, so alerts reached nobody on Velocity at all.
+- Flag history was discarded the moment a player quit, which made reconnecting the
+  cheapest way to wipe a record. History is now persisted per UUID with retention, a per
+  player cap and an async writer, and staff are notified when a player returns carrying
+  flags.
+- The enforcement pipeline was unreachable. Nothing called it, so no confidence ever
+  accumulated and no setback or cancel ever ran. It is now routed from the violation
+  path and gated on confidence.
+- The auto punishment path was deleted rather than guarded. The command execution
+  interface and its call site were removed along with the dead state they used. All 31
+  checks still ship with alert only.
+- MiningBeyondView could never fire. The world cache is a three block box, so the
+  material at any real dig target was always null. Dig positions are now probed on the
+  main thread, and the chunk distance maths compares relative chunk coordinates instead
+  of the difference of two radii.
+- Reach read creative mode as a hardcoded false and never evaluated line of sight. The
+  combat environment now carries the game mode, and the check samples the segment from
+  eye to target.
+- Three false positive sources were removed. PitchLock required only pitch near ninety
+  for six ticks, which flags anyone glancing down; it now requires bit constant pitch
+  while placing, mining, gliding or airborne. Critical counted ordinary airborne movement
+  and now requires genuine extra packets in the same tick. Drift read an offset another
+  check happened to leave behind and now reads a centrally tracked delta.
+
+### Added
+
+- A staff menu with a flagged players list, opened with `/snuff`. Commands are unchanged
+  and still work from console. Inventory events are cancelled and permissions are
+  rechecked at click time.
+- A staff permission for the menu, a per staff verbose alert toggle, and an on and off
+  form for the alerts command.
+- Eight regression tests, and a fix so the artifact name derives from the project
+  version instead of drifting behind it.
+
 ## [1.0.3-dev] - 2026-09-30
 
 Staff tooling release, driven by a second round of live bug reports.

@@ -169,9 +169,19 @@ say why. Deciding what to do about it is entirely `ViolationHandler`'s problem.
 
 `ViolationHandler` is the single place where a detection becomes an action. In order:
 record the violation, add to history, notify API listeners, alert if above the alert
-threshold, apply a setback if above the setback threshold, run a configured command if
-above its threshold, and log. Adding a punishment action later means adding a step here
-and nowhere else.
+threshold, route enforcement, apply a setback if above the setback threshold, and log.
+
+There is deliberately no command execution step. An earlier version had one, and it was
+deleted rather than disabled: a dead code path that can run arbitrary commands on a
+violation is exactly the kind of thing that gets wired up by accident during a late
+configuration change. All 31 checks ship with alert only. The only automatic action in
+the project is the warning ladder, described below, and it is off by default.
+
+Enforcement is reached through `SnuffCore.applyEnforcement`, which accumulates
+confidence and then passes the request to `EnforcementService`. The service chooses an
+`EnforcementType` by threshold, not by which check fired, so no single check can escalate
+on its own. This matters: for a full release the path existed but nothing called it, so
+no confidence ever accumulated and no correction ever ran.
 
 ## Developer API
 
@@ -190,17 +200,45 @@ Movement prediction is tested against the documented vanilla speeds rather than 
 recorded traces of a real client. Recorded traces remain the right long-term addition and
 are not yet present.
 
+## Warning ladder and manual punishment
+
+`EscalationService` sits beside the detection path and is the only automatic action in
+the project. Each confident flag records one warning against the player; when the count
+reaches the configured limit, one timed ban is applied.
+
+Its safeguards are the point rather than an afterthought. The ladder is keyed by UUID, so
+disconnecting does not clear it. It has a cooldown, so one burst of packets cannot spend
+the entire warning allowance. The warning limit has a floor of one, so a misconfigured
+value cannot ban on the first flag. It only acts above a confidence floor. A warn only
+mode stops at the limit and never bans. Any manual staff punishment or unban resets it,
+so staff keep the final say. It ships disabled.
+
+`PunishmentService` stores manual punishments per UUID and persists them across restarts.
+Bans are enforced at pre login, mutes block chat and commands. Durations are parsed from
+`m`, `h` and `d` in any order and stored as an absolute expiry.
+
+## Threading boundary
+
+Every Bukkit call reachable from the check thread is a latent bug, and one shipped as a
+live false negative: the alert path called `Bukkit.getOnlinePlayers()` from the check
+thread, which returns nothing, so console worked and chat silently did not.
+
+The rule the engine now follows is that the check thread may touch immutable records in
+`PlayerData` and nothing else. Anything needing Bukkit is snapshotted on the main thread
+during the scheduled refresh, which is how the world cache, the combat environment and
+the equipment record are all populated.
+
 ## Planned work, in priority order
 
-1. A packet derived world replica, so client side block prediction is modelled rather
-   than forgiven.
-2. Recorded movement traces from a real client as regression fixtures.
-3. Per block tool tier accuracy for break time, replacing the coarse material table.
-4. More prediction candidates covering jump plus strafe combinations and the post 1.8.2
+1. Recorded movement traces from a real client as regression fixtures.
+2. Per block tool tier accuracy for break time, replacing the coarse material table.
+3. More prediction candidates covering jump plus strafe combinations and the post 1.8.2
    tick skip behaviour.
-5. Expanded Velocity capability, including network wide alert delivery and server
-   switching awareness.
-6. Automatic punishments, only once the detection system is further validated.
+4. Acknowledged velocity modelling, so a client cannot ignore knockback by delaying its
+   transaction responses.
+5. Player submitted reports and the staff case workflow.
+6. Expanded Velocity capability, including network wide alert delivery.
+7. A Folia compatibility decision, made early rather than retrofitted.
 
 ## v1.0.1 additions
 
