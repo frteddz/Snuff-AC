@@ -28,7 +28,8 @@ button { color: inherit; font: inherit; }
 .nav-github .pixel-icon { filter: invert(1); }
 .menu-button { display: none; position: absolute; right: 0; border: 1px solid var(--line); background: transparent; padding: 9px; }
 .hero { min-height: 810px; padding-top: 190px; display: grid; grid-template-columns: 1fr 1fr; gap: 70px; align-items: center; position: relative; }
-.hero-background { position: absolute; z-index: -3; top: 0; left: 0; right: 0; width: 100%; height: 100%; transform: none; object-fit: fill; object-position: center; opacity: .9; filter: brightness(1.18); }
+.hero { position: relative; isolation: isolate; }
+.hero-background { position: absolute; z-index: -1; top: 0; bottom: 0; left: 50%; width: 100vw; height: 100%; transform: translateX(-50%); object-fit: fill; object-position: center; opacity: .9; filter: brightness(1.18); pointer-events: none; }
 .hero:before { content: ''; position: absolute; inset: 0 -50vw; z-index: -2; background: linear-gradient(90deg, rgba(10,10,9,.98) 18%, rgba(10,10,9,.82) 50%, rgba(10,10,9,.34) 100%), linear-gradient(0deg, var(--ink) 0%, rgba(10,10,9,.12) 50%, var(--ink) 100%), url('/images/solas-shader-3.png') center/cover; opacity: .93; }
 .eyebrow, .section-label, .support-line, .card-top, .detail-category, .release-stamp, .platform-card span, .platform-card b, .research-list small, .roadmap-list small { font-family: var(--mono); text-transform: uppercase; letter-spacing: .11em; font-size: 10px; }
 .eyebrow { color: var(--muted); display: flex; align-items: center; gap: 9px; }
@@ -97,18 +98,18 @@ h1 em, h2 em { color: var(--orange); font-style: normal; }
 .footer { display: flex; justify-content: center; }
 .footer a { display: inline-flex; align-items: center; gap: 6px; }
 .footer a .pixel-icon { width: 15px; height: 15px; }
-.section#method { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.96), rgba(10,10,9,.78)), url('/images/bliss-shaders-1.png'); background-position: center, center top; background-size: cover, 100% auto; background-repeat: no-repeat; }
+.section#method::before { background-image: linear-gradient(90deg, rgba(10,10,9,.96), rgba(10,10,9,.78)), url('/images/bliss-shaders-1.png'); background-position: center, center top; }
 .dark-section#prediction { background: linear-gradient(90deg, rgba(17,18,17,.96), rgba(17,18,17,.78)), url('/images/solas-shader-4.png') center/cover; }
 .dark-section#checks { background: linear-gradient(90deg, rgba(17,18,17,.97), rgba(17,18,17,.8)), url('/images/arc-2.png') center/cover; }
 .platform-section { background: linear-gradient(90deg, rgba(17,18,17,.96), rgba(17,18,17,.8)), url('/images/arc-1.png') center/cover; }
-.roadmap { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.96), rgba(10,10,9,.82)), url('/images/noble-shaders-3.png'); background-position: center, center top; background-size: cover, 100% auto; background-repeat: no-repeat; }
+.roadmap::before { background-image: linear-gradient(90deg, rgba(10,10,9,.96), rgba(10,10,9,.82)), url('/images/noble-shaders-3.png'); background-position: center, center top; }
 .section#method, .roadmap { background-position: center !important; background-size: 100% 100% !important; background-repeat: no-repeat !important; }
 .section#method, .roadmap { width: 100%; max-width: none; padding-left: max(32px, calc((100% - 1180px) / 2)); padding-right: max(32px, calc((100% - 1180px) / 2)); }
 .tolerance-section, section#architecture, .threading, .honesty { width: 100%; max-width: none; padding-left: max(32px, calc((100% - 1180px) / 2)); padding-right: max(32px, calc((100% - 1180px) / 2)); background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
-.tolerance-section { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/bliss-shaders-2.png'); }
-section#architecture { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/noble-shaders-1.png'); }
-.threading { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/solas-shader-1.png'); }
-.honesty { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/solas-shader-2.png'); }
+.tolerance-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/bliss-shaders-2.png'); }
+section#architecture::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/noble-shaders-1.png'); }
+.threading::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/solas-shader-1.png'); }
+.honesty::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/solas-shader-2.png'); }
 .section#method, .dark-section#prediction, .dark-section#checks, .tolerance-section, section#architecture, .threading, .honesty, .platform-section, .roadmap, .cta-section { background-attachment: fixed; }
 .section#method, .dark-section#prediction, .dark-section#checks, .tolerance-section, section#architecture, .threading, .honesty, .platform-section, .roadmap, .cta-section { background-attachment: fixed !important; }
 @media (max-width: 900px) { .section#method, .roadmap { padding-left: 20px; padding-right: 20px; } }
@@ -161,11 +162,13 @@ main section.scroll-reveal.in-view > * { opacity: 1; transform: none; }
 @media (max-width:900px){ .punish-grid{grid-template-columns:1fr 1fr} }
 @media (max-width:620px){ .punish-grid{grid-template-columns:1fr} }
 
-.punish-section { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.94), rgba(10,10,9,.74)), url('/images/punish-eclipse.png'); background-position: center, center; background-size: cover, cover; background-repeat: no-repeat; }
-.whatsnew-section { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/whatsnew-night.png'); background-position: center, center; background-size: cover, cover; background-repeat: no-repeat; }
-.prevention-section { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.82)), url('/images/prevention-deep.png'); background-position: center, center; background-size: cover, cover; background-repeat: no-repeat; }
-.limits-section { background-color: var(--ink); background-image: linear-gradient(90deg, rgba(10,10,9,.93), rgba(10,10,9,.86)), url('/images/limits-haze.png'); background-position: center, center; background-size: cover, cover; background-repeat: no-repeat; }
-.cta-section { background-image: linear-gradient(90deg, rgba(10,10,9,.9), rgba(10,10,9,.7)), url('/images/cta-sunset.png'); background-position: center, center; background-size: cover, cover; background-repeat: no-repeat; }
+.section.shell { position: relative; isolation: isolate; background-color: var(--ink); }
+.section.shell::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%); background-repeat: no-repeat; background-position: center; background-size: cover; z-index: -1; pointer-events: none; }
+.punish-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.94), rgba(10,10,9,.74)), url('/images/punish-eclipse.png'); }
+.whatsnew-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.8)), url('/images/whatsnew-night.png'); }
+.prevention-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.95), rgba(10,10,9,.82)), url('/images/prevention-deep.png'); }
+.limits-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.93), rgba(10,10,9,.86)), url('/images/limits-haze.png'); }
+.cta-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.9), rgba(10,10,9,.7)), url('/images/cta-sunset.png'); }
 
 .shader-list{margin-top:2.5rem;border-top:1px solid var(--line)}
 .shader-list a{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 0;border-bottom:1px solid var(--line);color:var(--paper);text-decoration:none}
