@@ -14,20 +14,42 @@ commands:
   snuff:
     description: Snuff AC administration
     usage: /snuff help
-    permission: snuffac.admin
     aliases:
       - snuffac
 
 permissions:
+  snuffac.use:
+    description: Allows running the snuff command at all
+    default: true
+  snuffac.version:
+    description: Allows viewing the plugin version, platform and check count
+    default: true
+  snuffac.report:
+    description: Allows filing a report against another player
+    default: true
+  snuffac.report.status:
+    description: Allows viewing the status of your own reports
+    default: true
   snuffac.admin:
     description: Full access to every Snuff AC command
     default: op
     children:
-      snuffac.debug: true
+      snuffac.use: true
+      snuffac.version: true
+      snuffac.report: true
+      snuffac.report.status: true
       snuffac.alerts: true
+      snuffac.debug: true
       snuffac.menu: true
       snuffac.sounds: true
-      snuffac.report: true
+      snuffac.violations: true
+      snuffac.checks: true
+      snuffac.reload: true
+      snuffac.stats: true
+      snuffac.profile: true
+      snuffac.setback: true
+      snuffac.teleport: true
+      snuffac.escalation.manage: true
       snuffac.punish.ban: true
       snuffac.punish.tempban: true
       snuffac.punish.ipban: true
@@ -36,24 +58,63 @@ permissions:
       snuffac.punish.warn: true
       snuffac.punish.unban: true
       snuffac.punish.maxduration.30d: true
-  snuffac.bypass:
-    description: Exempt from all Snuff AC checks
-    default: false
-  snuffac.menu:
-    description: Open the Snuff AC menus
+  snuffac.alerts:
+    description: Receive violation alerts
     default: op
   snuffac.debug:
     description: Receive violation alerts and use debug output
     default: op
-  snuffac.alerts:
-    description: Receive violation alerts
+  snuffac.menu:
+    description: Open the staff menus
     default: op
   snuffac.sounds:
     description: Hear Snuff AC menu and command sounds
     default: op
+  snuffac.violations:
+    description: Browse flagged players and their history
+    default: op
+  snuffac.checks:
+    description: List checks and toggle them
+    default: op
+  snuffac.reload:
+    description: Reload configuration
+    default: op
+  snuffac.stats:
+    description: View server wide statistics
+    default: op
+  snuffac.profile:
+    description: View per player protocol, latency and reach
+    default: op
+  snuffac.setback:
+    description: Apply a manual setback
+    default: op
+  snuffac.teleport:
+    description: Teleport to a flagged player or their last known position
+    default: op
+  snuffac.escalation.manage:
+    description: Enable and configure the automatic warning ladder
+    default: op
   snuffac.bypass:
     description: Exempt from all Snuff AC checks
     default: false
+  snuffac.bypass.give:
+    description: Grant or revoke the anticheat bypass on another player
+    default: op
+  snuffac.reports.manage:
+    description: Open the report admin view, claim and resolve reports
+    default: op
+  snuffac.clear.flags:
+    description: Clear a player recorded violation history
+    default: op
+  snuffac.clear.warns:
+    description: Clear a player escalation warning count
+    default: op
+  snuffac.clear.punishments:
+    description: Clear every active punishment on a player
+    default: op
+  snuffac.clear.all:
+    description: Clear flags, warns and punishments for every player
+    default: op
   snuffac.punish.ban:
     description: Ban and temporary ban players
     default: op
@@ -87,9 +148,6 @@ permissions:
   snuffac.punish.maxduration.30d:
     description: May punish for up to thirty days
     default: false
-  snuffac.report:
-    description: May file a report against another player
-    default: true
   snuffac.exempt.punish:
     description: Cannot be punished or reported by staff
     default: false

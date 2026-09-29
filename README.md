@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.9-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.1.0-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server. See
 [Known limitations](#known-limitations).
 
@@ -84,7 +84,13 @@ entry points, shortcuts and console tools.
 | `/snuff settings` | Open the settings menu: retention, prevention, alert cooldown, warning ladder |
 | `/snuff punishments [player]` | Active punishments, online or offline |
 | `/snuff warns <player>` | Warning history for a player |
+| `/snuff menu` | Open the staff menu |
 | `/snuff report <player>` | Open the report category picker for an online player |
+| `/snuff tp <player>` | Teleport to a flagged player, or their last known position |
+| `/snuff bypass <player> [on\|off]` | Grant or revoke the anticheat bypass on a player |
+| `/snuff clearflags <player>` | Clear a player's recorded violation history |
+| `/snuff clearwarns <player>` | Reset the automatic warning ladder count |
+| `/snuff clearpunishments <player>` | Clear every active punishment |
 | `/snuff reports` | Open the admin report view, claim and resolve |
 | `/snuff sounds` | Toggle your own menu and command sounds |
 | `/snuff alerts` | Toggle your own alerts |
@@ -132,7 +138,24 @@ stripped, and a plugin namespace may be given, for example `essentials:home`.
 | `snuffac.debug` | op | Receive violation alerts, enable debug output |
 | `snuffac.alerts` | op | Receive violation alerts |
 | `snuffac.sounds` | op | Hear menu and command sounds. Inherited by `snuffac.admin` |
-| `snuffac.report` | true | May file a report. On by default, it is a player-facing command |
+| `snuffac.use` | true | Run `/snuff` at all |
+| `snuffac.version` | true | View the version, platform and check count |
+| `snuffac.report` | true | File a report against another player |
+| `snuffac.report.status` | true | View the status of your own reports |
+| `snuffac.violations` | op | Browse flagged players and their history |
+| `snuffac.checks` | op | List checks |
+| `snuffac.reload` | op | Reload configuration |
+| `snuffac.stats` | op | Server wide statistics |
+| `snuffac.profile` | op | Per player protocol, latency and reach |
+| `snuffac.setback` | op | Manually setback a player |
+| `snuffac.teleport` | op | Teleport to a flagged player or their last position |
+| `snuffac.bypass.give` | op | Grant or revoke the bypass on another player |
+| `snuffac.reports.manage` | op | Open the report admin view, claim and resolve |
+| `snuffac.escalation.manage` | op | Enable and configure the warning ladder |
+| `snuffac.clear.flags` | op | Clear a player's violation history |
+| `snuffac.clear.warns` | op | Clear a player's warning ladder count |
+| `snuffac.clear.punishments` | op | Clear every active punishment on a player |
+| `snuffac.clear.all` | op | Clear flags, warns and punishments for everyone |
 | `snuffac.bypass` | false | Exempt from all checks |
 | `snuffac.exempt.punish` | false | Cannot be punished by staff |
 | `snuffac.punish.ban` `tempban` `ipban` `kick` `mute` `warn` | op | The matching manual punishment |
@@ -371,7 +394,7 @@ a particular input.
 
 ## Testing
 
-Snuff AC has **308 passing unit tests** covering:
+Snuff AC has **321 passing unit tests** covering:
 
 - Kinematics against the documented vanilla speeds, terminal velocity, jump behaviour,
   friction on ice, and speed and slowness effects
@@ -437,7 +460,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/snuffac-v1.0.9-dev.jar
+snuffac-1.21.x+paper/purpur/snuffac-v1.1.0-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so

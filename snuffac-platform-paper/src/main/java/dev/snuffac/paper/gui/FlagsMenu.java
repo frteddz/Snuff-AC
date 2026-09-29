@@ -62,6 +62,13 @@ public final class FlagsMenu extends SnuffMenu {
         List<String> lore = new ArrayList<>();
         lore.add("<gray>Status: <white>" + (entry.online() ? "online" : "offline"));
         lore.add("<gray>Flags: <white>" + entry.total());
+        if (entry.lastCheck() != null && !entry.lastCheck().isBlank()) {
+            lore.add("<gray>Last flag: <white>" + entry.lastCheck());
+        }
+        if (entry.world() != null && !entry.world().isBlank()) {
+            lore.add("<gray>Last seen: <white>" + entry.world()
+                    + " " + entry.blockX() + ", " + entry.blockY() + ", " + entry.blockZ());
+        }
         if (!entry.topChecks().isEmpty()) {
             lore.add("<gray>Top: <white>" + String.join(", ", entry.topChecks()));
         }
@@ -155,7 +162,12 @@ public final class FlagsMenu extends SnuffMenu {
             boolean online,
             int total,
             List<String> topChecks,
-            long lastFlagMillis) {
+            long lastFlagMillis,
+            String lastCheck,
+            String world,
+            int blockX,
+            int blockY,
+            int blockZ) {
     }
 
     public record Summary(List<String> topChecks, long lastFlagMillis) {

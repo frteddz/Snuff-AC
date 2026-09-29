@@ -60,6 +60,7 @@ public final class SnuffConfig {
     private String tuningProfile = "strict";
     private String chatPrefix = "";
     private int reportRetentionDays = 30;
+    private String bypassFile = "bypass.tsv";
     private double pingToleranceFloor = 0.001;
     private double pingTolerancePerMilli = 0.00002;
     private double maxPingTolerance = 0.06;
@@ -149,6 +150,7 @@ public final class SnuffConfig {
         tuningProfile = source.getString("tuning.profile", tuningProfile);
         chatPrefix = source.getString("general.chat-prefix", chatPrefix);
         reportRetentionDays = Math.max(0, source.getInt("reports.retention-days", reportRetentionDays));
+        bypassFile = source.getString("bypass.file", bypassFile);
         visualEntityHiding = source.getBoolean("visual.entity-hiding", visualEntityHiding);
         visualSoundFuzzing = source.getBoolean("visual.sound-fuzzing", visualSoundFuzzing);
         visualRevealRadius = source.getDouble("visual.reveal-radius", visualRevealRadius);
@@ -439,6 +441,10 @@ public final class SnuffConfig {
 
     public int visualIntervalTicks() {
         return visualIntervalTicks;
+    }
+
+    public String bypassFile() {
+        return bypassFile;
     }
 
     public int reportRetentionDays() {

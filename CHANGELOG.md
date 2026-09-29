@@ -5,6 +5,139 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.0-dev] - 2026-09-30
+
+Enforcement release. Nine defects and four features, most of them found by the user
+playing on a live server rather than by the test suite. The headline item is that a
+tempban did not prevent anything, and that is the kind of bug that makes staff stop
+trusting a tool.
+
+### Fixed
+
+**A tempban did not stop a banned player rejoining** (entry 008)
+
+- There was no login listener at all. `isBanned` was called in exactly one place, when
+  lifting a ban, so a player who reconnected was never checked. `applyOnline` only fires
+  for a player who is already online, which is why the kick worked and the reconnect did
+  not. Enforcement was structurally incapable of stopping a returning player.
+- An `AsyncPlayerPreLoginEvent` listener now disallows the connection on a live BAN or
+  TEMPBAN, reading the same store the kick path uses, so the two cannot disagree.
+- Reproduced twice by the user, banning an alt and then banning their own main account.
+  Both rejoined while the ban was still running.
+
+**`packetrate` flagged legitimate play and set the player back** (entry 015)
+
+- The check compared a client's movement packet rate against a flat 20, which is the
+  server tick rate. Those are not the same quantity. A vanilla client does not send a
+  position packet every tick, so a player standing still sends well under the 0.80 lower
+  bound, and three four second windows of not moving is about twelve seconds of standing
+  still.
+- A window is now discarded unless the player actually moved during it, the bands are
+  wider, five consecutive windows are required instead of three, and a teleport or a
+  recent low TPS resets the measurement rather than being averaged through.
+- This is the second rate based check to fail this way after `packetspam` in v1.0.9. Both
+  were measuring a client quantity against a fixed constant rather than against what the
+  server actually did.
+
+**Spear attribute swapping was never detected** (entry 011)
+
+- `observedReach` read `Attribute.ATTACK_DAMAGE`, which is damage, not reach. The reach
+  attribute on 1.21.11 is `ENTITY_INTERACTION_RANGE`. The code was asking how much damage
+  a player did, storing it in a field called `observedAttackReach`, and comparing that
+  damage number against a distance, so it would flag a weak weapon and miss a reach cheat.
+- The expected reach was also never set. `attackReach` initialised to 3.0 and nothing ever
+  wrote it, so even with the right attribute it compared every weapon against a hardcoded
+  sword reach.
+- Now reads `ENTITY_INTERACTION_RANGE`, derives the expected reach from the held weapon,
+  compares in both directions rather than only looking for a value that is too low, and
+  logs a debug line for a weapon whose reach is not observable instead of guessing.
+- The v1.0.6 release notes claimed this was fixed. It was not, and it never had been.
+
+**`/snuff reports` threw, and `/snuff report` opened a menu with dead buttons** (entry 014)
+
+- `render()` called `Bukkit.getPlayer(target == null ? null : target.getUniqueId())`.
+  The admin view is constructed with a null target on purpose, so the guard produced null
+  and handed it to a method that rejects null. `IllegalArgumentException: UUID id cannot
+  be null`, every time.
+- In the picker, the same line set `renderPlayer` to the report target rather than to the
+  person looking at the menu. `renderPlayer` is what the per button permission check
+  consults, so every category button was checked against the wrong player, failed, and was
+  never placed in the inventory. A menu that renders with no buttons looks like a working
+  menu with unresponsive items.
+- `openAdminReports` already called `forViewer(player)` before `build()`. `build()` then
+  called `render()`, which overwrote the correct value. The `forViewer` call was dead.
+  `renderPlayer` is now written in exactly one place.
+
+**`/snuff menu` was advertised and did nothing** (entry 013)
+
+- `menu` was in the tab completion list and in the documentation, and had no `case`
+  anywhere, so it produced "unknown subcommand" three keystrokes after the server offered
+  it. The bare `/snuff` worked, which is why it survived.
+- Added the case, and a structural test asserting every advertised subcommand maps to a
+  permission, so the three lists cannot silently disagree again.
+
+**Player facing commands were unreachable** (entry 012)
+
+- `plugin.yml` declared the command with `permission: snuffac.admin`, and Bukkit enforces
+  that before the executor runs. So `/snuff report` and `/snuff version` did not work for a
+  normal player at all, even though `snuffac.report` defaults to true. The two disagreed:
+  a player was told they could report, opened a menu where nothing was clickable, and had
+  no command to fall back on.
+- The command-level permission is gone and each subcommand is gated individually.
+- The permission tree is now three tiers and declares every node the code checks, so
+  LuckPerms and other managers can actually grant them. A node that is not declared cannot
+  be granted, and the failure is silent.
+- Added `snuffac.teleport`, `snuffac.bypass.give`, `snuffac.reports.manage`,
+  `snuffac.escalation.manage` and the four `snuffac.clear.*` nodes, none of which inherit
+  from the punishment permissions.
+
+### Added
+
+**Punishment screens with real detail** (entry 009)
+
+- Every ban, temporary ban, mute and kick screen now names the staff member who issued it,
+  the exact expiry as a date and a time, the remaining duration, the reason, and how to
+  appeal. A one minute ban tells the player when they may rejoin instead of telling them
+  to run a command they cannot run while banned.
+- Staff names and reasons are stripped of markup, since a reason is free text written by a
+  person.
+
+**Bypass, clear commands, and staff location** (entries 010, 016, 017)
+
+- `/snuff bypass <player> [on|off]` grants or revokes the anticheat bypass, persists to
+  `bypass.tsv`, and is now a real input to the exempt computation rather than a value that
+  would be overwritten on the next refresh. Every grant and revoke is announced to staff.
+- `/snuff clearflags`, `/snuff clearwarns` and `/snuff clearpunishments`, each with its own
+  permission, each logging what was destroyed and by whom. Destructive, so they require
+  confirmation, and clearing flags also resets the live session state so a cleared player
+  is not still in violation a second later.
+- `ViolationInfo` now carries world and position, so a flag records where it happened.
+  `FlagsMenu` shows last seen world and coordinates per player, and `/snuff tp` teleports
+  to a player or to their last known position, refusing if the chunk is not loaded. This is
+  a breaking change to the public API, which is why it happens on a dev release.
+
+**Reference plugin** (entry 017)
+
+- `DonutSus-1.0.jar` was inspected for metadata only. It has no licence file and declares
+  no licence in its bundled pom, so nothing was decompiled and no code was taken from it.
+  Its dependency list is worth one note: it reads flags from Vulcan and Grim through their
+  public APIs. Snuff should never do that. Two anticheats deciding about the same player
+  without knowing what the other decided is a bad outcome for a server, and Snuff
+  generating its own evidence and owning it is the correct architecture.
+
+### Numbers
+
+- 321 passing unit tests, up from 308
+- 32 checks, unchanged
+- 36 permission nodes, up from 19
+
+### Not yet verified
+
+- Nobody has clicked through the menus by hand. This is the fifth consecutive release to
+  say so. The automated coverage now builds a menu and asserts items are placed, which
+  would have caught tonight's two defects, but it is still not a human opening each tab.
+- Anti-X-Ray and entity concealment still need a live check against a real cheat client.
+
 ## [1.0.9-dev] - 2026-09-30
 
 Correctness release. v1.0.8 made detection real for the first time, and a legitimately

@@ -85,13 +85,19 @@ public final class GuiBridgeImpl implements MainMenu.GuiBridge, FlagsMenu.FlagsB
             }
             String name = records.get(records.size() - 1).playerName();
             FlagsMenu.Summary summary = FlagsMenu.summarise(records);
+            var last = records.get(records.size() - 1);
             rows.add(new FlagsMenu.Entry(
                     id,
                     name,
                     Bukkit.getPlayer(id) != null,
                     records.size(),
                     summary.topChecks(),
-                    summary.lastFlagMillis()));
+                    summary.lastFlagMillis(),
+                    last.checkName(),
+                    last.worldName(),
+                    (int) Math.floor(last.x()),
+                    (int) Math.floor(last.y()),
+                    (int) Math.floor(last.z())));
         }
         rows.sort(Comparator.comparingLong(FlagsMenu.Entry::lastFlagMillis).reversed());
         return rows;

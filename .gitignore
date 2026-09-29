@@ -21,3 +21,6 @@ web/dist
 V1.0.*-PLANS.txt
 V1.0.2-ROADMAP.private.txt
 anticheat_knowledge.md
+
+# third party reference jars, never committed
+DonutSus-*.jar

@@ -88,7 +88,6 @@ public final class ReportsMenu extends SnuffMenu {
 
     @Override
     protected void render() {
-        renderPlayer = Bukkit.getPlayer(target == null ? null : target.getUniqueId());
         if (adminView) {
             renderAdmin();
             return;
@@ -96,11 +95,20 @@ public final class ReportsMenu extends SnuffMenu {
         renderPicker();
     }
 
+    private Player targetOnline() {
+        if (target == null) {
+            return null;
+        }
+        Player online = Bukkit.getPlayer(target.getUniqueId());
+        return online != null && online.isOnline() ? online : null;
+    }
+
     private void renderPicker() {
         if (layout() != null && !layout().buttons().isEmpty()) {
             fillFromLayout();
             return;
         }
+        Player online = targetOnline();
         int slot = 10;
         for (ReportCategory.Definition definition : ReportCategory.all()) {
             if (slot >= 16) {
@@ -114,8 +122,8 @@ public final class ReportsMenu extends SnuffMenu {
             slot++;
         }
         set(49, Material.PAPER, "<white>Submit report",
-                List.of("<gray>Selected: <white>" + label(selectedCategory),
-                        "<gray>Note: <white>" + note),
+                List.of("<gray>Target: <white>" + (online == null ? target.getName() : online.getName()),
+                        "<gray>Selected: <white>" + label(selectedCategory)),
                 ACTION_SUBMIT);
         set(45, Material.ARROW, "<white>Back", List.of(), ACTION_BACK);
     }
@@ -344,6 +352,8 @@ public final class ReportsMenu extends SnuffMenu {
     }
 
     private void refresh(Player player) {
+        getInventory().clear();
+        renderPicker();
         player.updateInventory();
     }
 }

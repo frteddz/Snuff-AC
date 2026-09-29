@@ -548,6 +548,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new SnuffPlayerListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new PunishmentEnforcement(this), this);
     }
 
     private void registerCommands() {
@@ -564,6 +565,9 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.cacheTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshWorldCaches, 1L, 1L);
         this.visual = new VisualConcealment(this, core.config());
         this.sound = new SoundConcealment(this, core.config());
+        this.permitManager = new PermitManager(
+                getDataFolder().toPath().resolve(core.config().bypassFile()));
+        this.permitManager.load();
         this.reports = new dev.snuffac.core.report.ReportStore(
                 getDataFolder().toPath().resolve("reports.tsv"));
         this.reports.retentionDays(core.config().reportRetentionDays());
@@ -876,6 +880,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         Location location = player.getLocation();
         Vec3d position = toVec(location);
         data.movement().position(position);
+        data.worldName(location.getWorld() == null ? "" : location.getWorld().getName());
 
         BlockPos center = BlockPos.of(position);
         Map<Long, PlayerWorldCache.CachedBlock> blocks = new java.util.HashMap<>();
@@ -911,14 +916,25 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     private static double observedReach(Player player) {
         try {
-            var attribute = player.getAttribute(org.bukkit.attribute.Attribute.ATTACK_DAMAGE);
+            var attribute = player.getAttribute(
+                    org.bukkit.attribute.Attribute.ENTITY_INTERACTION_RANGE);
             if (attribute == null) {
-                return 3.0;
+                return 0.0;
             }
             return attribute.getValue();
         } catch (RuntimeException ignored) {
+            return 0.0;
+        }
+    }
+
+    private static double expectedReach(Player player, String weaponName) {
+        if (weaponName != null && weaponName.contains("SPEAR")) {
+            return 5.0;
+        }
+        if (weaponName != null && (weaponName.contains("TRIDENT") || weaponName.contains("MACE"))) {
             return 3.0;
         }
+        return 3.0;
     }
 
     private static double observedDamage(Player player) {
@@ -972,7 +988,12 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             data.equipment().weaponType(name);
             data.equipment().weaponAttributeActive(spearLike);
             data.equipment().observedAttackReach(observedReach(player));
+            data.equipment().attackReach(expectedReach(player, name));
             data.equipment().attackDamage(observedDamage(player));
+            if (spearLike && data.equipment().observedAttackReach() <= 0.0) {
+                data.debugLine("weapon reach not observable for " + name
+                        + ", attribute swap check cannot apply to this item");
+            }
         } catch (RuntimeException ignored) {
         }
     }
@@ -1125,7 +1146,9 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                 && ClientCompat.isLegacyProtocol(data.protocolVersion());
         boolean belowVoidFloor = core.config().exemptVoidWorlds()
                 && state.position().y() < core.config().voidWorldFloor();
+        boolean permitted = permitManager != null && permitManager.bypassed(player.getUniqueId());
         boolean exempt = mode == GameMode.SPECTATOR
+                || permitted
                 || player.hasPermission(core.config().bypassPermission())
                 || location.getWorld() == null
                 || belowVoidFloor
@@ -1138,6 +1161,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         if (bedrock || legacy) {
             data.debugLine("exempt: " + (bedrock ? "bedrock client" : "legacy protocol")
                     + " (protocol " + data.protocolVersion() + ")");
+        } else if (permitted) {
+            data.debugLine("exempt: staff granted bypass for this player");
         }
     }
 
@@ -1373,6 +1398,12 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         menu.forViewer(player);
         menu.build();
         menu.open(player);
+    }
+
+    private dev.snuffac.paper.PermitManager permitManager;
+
+    public dev.snuffac.paper.PermitManager permitManager() {
+        return permitManager;
     }
 
     public dev.snuffac.paper.gui.GuiBridgeImpl guiBridge() {

@@ -102,6 +102,7 @@ public final class ViolationHandler {
         player.addHistory(record);
         player.incrementViolationCounter();
 
+        var position = player.position();
         ViolationInfo info = new ViolationInfo(
                 player.id(),
                 player.name(),
@@ -115,7 +116,11 @@ public final class ViolationHandler {
                 player.network().ping(),
                 server.tps(),
                 now,
-                platform);
+                platform,
+                player.worldName(),
+                position.x(),
+                position.y(),
+                position.z());
 
         if (shouldAlert && player.alertsEnabled() && !alerts.onCooldown(player.id().toString(), now)) {
             alerts.alert(info, evidence);

@@ -346,6 +346,20 @@ public final class PlayerData {
         this.dirty = false;
     }
 
+    private String worldName = "";
+
+    public String worldName() {
+        return worldName;
+    }
+
+    public void worldName(String value) {
+        this.worldName = value == null ? "" : value;
+    }
+
+    public void resetSessionState() {
+        violationsThisSecond = 0;
+    }
+
     public void incrementViolationCounter() {
         violationsThisSecond++;
     }

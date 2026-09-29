@@ -16,7 +16,7 @@ import java.util.Set;
 
 public final class ReachCheck implements Check {
 
-    public static final int WEAPON_STREAK = 8;
+    public static final int WEAPON_STREAK = 4;
 
     private static final double MIN_EXCESS = 0.02;
 
@@ -78,16 +78,20 @@ public final class ReachCheck implements Check {
         String basis;
 
         var equipment = player.equipment();
-        if (equipment.weaponAttributeActive() && equipment.observedAttackReach() > 0.0) {
+        if (equipment.weaponAttributeActive() && equipment.reachObservable()) {
             state.weaponFlags++;
             if (state.weaponFlags >= WEAPON_STREAK) {
                 Map<String, Object> weapon = context.newEvidence();
                 weapon.put("weapon", equipment.weaponType());
                 weapon.put("observedReach", round(equipment.observedAttackReach()));
                 weapon.put("expectedReach", round(equipment.attackReach()));
+                weapon.put("delta", round(equipment.reachDelta()));
+                weapon.put("sprinting", movement.sprinting());
+                weapon.put("inVehicle", inVehicle);
                 weapon.put("streak", state.weaponFlags);
                 context.flag("attack reach attribute of " + round(equipment.observedAttackReach())
-                        + " does not match the held weapon " + equipment.weaponType(), weapon, 6.0);
+                        + " does not match the held weapon " + equipment.weaponType()
+                        + ", expected " + round(equipment.attackReach()), weapon, 6.0);
                 state.weaponFlags = 0;
             }
         } else {

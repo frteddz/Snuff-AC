@@ -89,7 +89,14 @@ anti-xray:
   # overworld, so it is off by default.
   hide-containers: false
 
+bypass:
+  # Staff granted anticheat bypasses, written here so they survive a restart.
+  # Managed with /snuff bypass <player> [on|off], not by hand.
+  file: bypass.tsv
+
 reports:
+  # Retention for the report log AND for the last known position recorded
+  # with each flag. Both are personal data, so both expire together.
   # Player submitted reports from /snuff report <player>. Retention is in days
   # and defaults to 30, because a report log is personal data about named
   # players and should not accumulate forever.

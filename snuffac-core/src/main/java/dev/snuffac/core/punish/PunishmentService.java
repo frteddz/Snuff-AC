@@ -147,6 +147,25 @@ public final class PunishmentService implements AutoCloseable {
         return live;
     }
 
+    public int clearAll(UUID targetId) {
+        List<Punishment> stored = byTarget.get(targetId);
+        if (stored == null) {
+            return 0;
+        }
+        long now = System.currentTimeMillis();
+        int removed;
+        List<Punishment> kept;
+        synchronized (stored) {
+            removed = (int) stored.stream().filter(record -> record.live(now)).count();
+            kept = stored.stream().filter(record -> !record.live(now)).toList();
+        }
+        if (removed == 0) {
+            return 0;
+        }
+        byTarget.put(targetId, new java.util.ArrayList<>(kept));
+        return removed;
+    }
+
     public List<Punishment> history(UUID targetId) {
         List<Punishment> stored = byTarget.get(targetId);
         if (stored == null || stored.isEmpty()) {

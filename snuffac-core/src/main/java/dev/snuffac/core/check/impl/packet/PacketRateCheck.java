@@ -12,10 +12,12 @@ import java.util.Set;
 public final class PacketRateCheck implements Check {
 
     public static final int MIN_SAMPLE_MILLIS = 4000;
-    public static final double FAST_RATIO = 1.18;
-    public static final double SLOW_RATIO = 0.80;
+    public static final double FAST_RATIO = 1.30;
+    public static final double SLOW_RATIO = 0.55;
     public static final double MAX_PING_MILLIS = 320.0;
     public static final double MIN_TPS = 19.5;
+    public static final int REQUIRED_CONSECUTIVE = 5;
+    public static final double MIN_POSITION_MOVEMENT = 0.0001;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -61,18 +63,45 @@ public final class PacketRateCheck implements Check {
             state.packets = 1;
             return;
         }
+        var state1 = context.player().movement();
+        if (state1.ticksSinceTeleport() <= 1) {
+            state.discard();
+            return;
+        }
+        if (state.lastX != 0.0 || state.lastZ != 0.0) {
+            double dx = state1.position().x() - state.lastX;
+            double dz = state1.position().z() - state.lastZ;
+            if (dx * dx + dz * dz > MIN_POSITION_MOVEMENT * MIN_POSITION_MOVEMENT) {
+                state.moved = true;
+            }
+        }
+        state.lastX = state1.position().x();
+        state.lastZ = state1.position().z();
+
         long elapsed = packet.arrivalNanos() - state.windowStart;
         if (elapsed < MIN_SAMPLE_MILLIS * 1_000_000L) {
             state.packets++;
             return;
         }
+        boolean moved = state.moved;
+        int packets = state.packets;
         double seconds = elapsed / 1_000_000_000.0;
-        double rate = state.packets / seconds;
-        state.packets = 1;
+        state.discard();
         state.windowStart = packet.arrivalNanos();
+
+        if (!moved || packets <= 0) {
+            state.consecutive = 0;
+            return;
+        }
+        if (context.ping() > MAX_PING_MILLIS || context.tps() < MIN_TPS) {
+            state.consecutive = 0;
+            return;
+        }
+
+        double rate = packets / seconds;
         state.samples++;
 
-        if (state.samples < 2 || context.ping() > MAX_PING_MILLIS || context.tps() < MIN_TPS) {
+        if (state.samples < 4) {
             return;
         }
 
@@ -84,7 +113,7 @@ public final class PacketRateCheck implements Check {
             return;
         }
         state.consecutive++;
-        if (state.consecutive < 3) {
+        if (state.consecutive < REQUIRED_CONSECUTIVE) {
             return;
         }
 
@@ -93,6 +122,8 @@ public final class PacketRateCheck implements Check {
         evidence.put("expected", expected);
         evidence.put("seconds", Math.round(seconds * 100.0) / 100.0);
         evidence.put("consecutive", state.consecutive);
+        evidence.put("windowsRequired", REQUIRED_CONSECUTIVE);
+        evidence.put("movedInWindow", true);
         evidence.put("ping", Math.round(context.ping() * 10.0) / 10.0);
         context.flag((fast ? "elevated" : "reduced") + " movement packet rate", evidence, 7.0);
         state.consecutive = 0;
@@ -104,5 +135,13 @@ public final class PacketRateCheck implements Check {
         private int packets;
         private int samples;
         private int consecutive;
+        private boolean moved;
+        private double lastX;
+        private double lastZ;
+
+        private void discard() {
+            packets = 0;
+            moved = false;
+        }
     }
 }

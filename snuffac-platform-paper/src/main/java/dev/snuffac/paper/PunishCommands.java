@@ -276,15 +276,53 @@ final class PunishCommands {
         if (online == null) {
             return;
         }
+        if (!active) {
+            return;
+        }
         switch (kind) {
             case BAN, TEMPBAN, IPBAN, TEMPIPBAN -> {
-                if (active) {
-                    online.kick(net.kyori.adventure.text.Component.text(
-                            "You are banned. Reason: see /snuff punishments"));
+                var record = latest(target.getUniqueId(), kind);
+                String screen = record == null
+                        ? PunishmentEnforcement.kickScreen("", "")
+                        : PunishmentEnforcement.screen(record);
+                online.kick(net.kyori.adventure.text.Component.text(""));
+                online.kick(deserialize(screen));
+            }
+            case TIMEOUT -> online.kick(deserialize(
+                    PunishmentEnforcement.kickScreen("", "")));
+            case MUTE, TEMPMUTE -> {
+                var record = latest(target.getUniqueId(), kind);
+                if (record == null) {
+                    return;
                 }
+                StaffMessages.send(online, PunishmentEnforcement.muteScreen(
+                        record.reason(), record.expiresMillis()).replace("\n", " "));
             }
             default -> {
             }
+        }
+    }
+
+    private PunishmentService.Punishment latest(java.util.UUID id, PunishmentService.Kind kind) {
+        var active = plugin.punishments().active(id);
+        PunishmentService.Punishment newest = null;
+        for (var record : active) {
+            if (record.kind() != kind) {
+                continue;
+            }
+            if (newest == null || record.createdMillis() > newest.createdMillis()) {
+                newest = record;
+            }
+        }
+        return newest;
+    }
+
+    private static net.kyori.adventure.text.Component deserialize(String miniMessage) {
+        try {
+            return net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+                    .deserialize(miniMessage);
+        } catch (RuntimeException exception) {
+            return net.kyori.adventure.text.Component.text(miniMessage);
         }
     }
 

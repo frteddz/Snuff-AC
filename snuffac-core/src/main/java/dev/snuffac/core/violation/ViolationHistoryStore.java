@@ -40,6 +40,29 @@ public final class ViolationHistoryStore implements AutoCloseable {
         this.platform = platform;
     }
 
+    public int clear(UUID playerId) {
+        if (playerId == null) {
+            return 0;
+        }
+        Deque<ViolationInfo> history = cache.remove(playerId);
+        int removed = history == null ? 0 : history.size();
+        if (directory != null) {
+            try {
+                java.nio.file.Files.deleteIfExists(directory.resolve(playerId + EXTENSION));
+            } catch (java.io.IOException ignored) {
+            }
+        }
+        return removed;
+    }
+
+    public int clearAll() {
+        int removed = 0;
+        for (UUID id : java.util.List.copyOf(cache.keySet())) {
+            removed += clear(id);
+        }
+        return removed;
+    }
+
     public void record(ViolationInfo info) {
         if (info == null) {
             return;
@@ -177,7 +200,11 @@ public final class ViolationHistoryStore implements AutoCloseable {
                     Double.parseDouble(parts[7]),
                     Double.parseDouble(parts[8]),
                     Long.parseLong(parts[0]),
-                    platform);
+                    platform,
+                    parts.length > 12 ? parts[11] : "",
+                    parts.length > 13 ? Double.parseDouble(parts[12]) : 0.0,
+                    parts.length > 14 ? Double.parseDouble(parts[13]) : 0.0,
+                    parts.length > 15 ? Double.parseDouble(parts[14]) : 0.0);
         } catch (IllegalArgumentException malformed) {
             return null;
         }

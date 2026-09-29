@@ -97,8 +97,17 @@ public final class EquipmentState {
         this.attackSpeed = value;
     }
 
+    public boolean reachObservable() {
+        return observedAttackReach > 0.0;
+    }
+
+    public double reachDelta() {
+        return observedAttackReach - attackReach;
+    }
+
     public boolean reachInconsistent() {
-        return observedAttackReach > 0.0 && observedAttackReach < attackReach - 0.05;
+        return observedAttackReach > 0.0
+                && Math.abs(observedAttackReach - attackReach) > 0.05;
     }
 
     public void reset() {
