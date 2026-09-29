@@ -13,7 +13,7 @@ It is an independent implementation. It was developed by studying the architectu
 existing anticheats (documented in full in [`credits.md`](credits.md)) and writing
 Snuff AC from scratch. No source code was copied from any other project.
 
-**Status: development release, `1.0.7-dev`.** It is tested on Paper 1.21.11. It is not
+**Status: development release, `1.0.8-dev`.** It is tested on Paper 1.21.11. It is not
 yet recommended for production use on a public server. See
 [Known limitations](#known-limitations).
 
@@ -172,9 +172,24 @@ everything is lying to its users.
   looked through a wall. There is no packet, field or timing signature.
 - Fullbright and other purely local rendering changes. Nothing leaves the client.
 
-Snuff AC reduces what the server volunteers through ore obfuscation, and detects some of
-the consequences, but detection is not possible and no placeholder check was added to
-pretend otherwise.
+These cannot be *detected*. They can be *prevented*, and as of `1.0.8-dev` Snuff AC does
+that by withholding data the client is not entitled to rather than trying to catch it
+afterwards:
+
+- Ores are replaced with a decoy block in the chunk data the server sends, so a client
+  has no ore data to reveal. Blocks are revealed as soon as the player breaks something
+  adjacent.
+- Players and mobs with no legal line of sight are hidden from the client entirely, so
+  Player ESP and tracers have nothing to draw. Anything within 16 blocks is always
+  revealed, and anything further is revealed a few blocks early once a raycast confirms
+  the view is about to open, so nothing pops in.
+- Sounds that carry a position are nudged when the emitter is behind cover, so sound
+  radar cannot be used to find players.
+
+All three are controlled by the `anti-xray` and `visual` sections of `config.yml`. Full
+bright is still impossible to touch, because it never leaves the client.
+
+No placeholder check was added to pretend otherwise.
 
 **Not yet modelled**
 
@@ -197,6 +212,18 @@ pretend otherwise.
 The three items listed as broken in `1.0.5-dev` are resolved: menu items can no longer
 be taken and the buttons work, the warning ladder can be enabled and persists across a
 restart, and spear attribute swapping is detected.
+
+**Fixed in `1.0.8-dev`**
+
+- Detection was muted. The shipped `buffer-threshold` of 20 to 30, a per tick
+  `buffer-decay` of 0.5 to 0.6, and an `alert-threshold` of 4 to 5 meant ordinary cheating
+  never alerted. Hard checks now report on a single clear detection.
+- Prevention was off. `setback-threshold` was `0.0` on all 31 checks, so no check could
+  stop anything even after flagging.
+- Anti-xray never ran, because it used a config class that modern Paper no longer has. Ore
+  data was being sent to every client in the clear.
+- The `snuffac.admin` permission node was rejected by Paper on every load due to a
+  malformed child.
 
 ## Configuration
 
@@ -268,12 +295,12 @@ reverses) are staff only. No check and no report can reach them.
 
 ## Checks
 
-31 checks, all enabled by default.
+32 checks, all enabled by default.
 
 **Movement**: `fly`, `speed`, `nofall`, `airmovement`, `groundspoof`, `groundflag`,
 `pitchlock`, `drift`, `step`, `highjump`, `longjump`, `impossiblemovement`, `velocity`
 
-**Combat**: `reach`, `autoclicker`, `aim`, `killaura`, `critical`,
+**Combat**: `reach`, `attackangle`, `autoclicker`, `aim`, `killaura`, `critical`,
 `rotationsnapback`, `impossibleattack`, `invalidattackstate`
 
 **World**: `fastbreak`, `fastplace`, `scaffold`, `miningbeyondview`, `nuker`
@@ -296,7 +323,7 @@ a particular input.
 
 ## Testing
 
-Snuff AC has **201 passing unit tests** covering:
+Snuff AC has **258 passing unit tests** covering:
 
 - Kinematics against the documented vanilla speeds, terminal velocity, jump behaviour,
   friction on ice, and speed and slowness effects
@@ -323,7 +350,7 @@ snuffac/
 ├── snuffac-core/                platform neutral detection engine
 │   ├── alert/                   alert formatting and delivery
 │   ├── check/                   check API, registry, dispatcher
-│   │   └── impl/                the 31 checks, by category
+│   │   └── impl/                the 32 checks, by category
 │   ├── combat/                  entity snapshots, hitbox and reach resolution
 │   ├── confidence/              weighted cross check confidence model
 │   ├── config/                  configuration model and loader SPI
@@ -362,7 +389,7 @@ More detail is in [`docs/architecture.md`](docs/architecture.md).
 Produces:
 
 ```
-snuffac-1.21.x+paper/purpur/velocity-v1.0.7-dev.jar
+snuffac-1.21.x+paper/purpur/velocity-v1.0.8-dev.jar
 ```
 
 The packet library is shaded and relocated to `dev.snuffac.libs.packetevents`, so

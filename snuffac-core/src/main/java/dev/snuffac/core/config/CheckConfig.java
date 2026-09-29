@@ -57,7 +57,7 @@ public final class CheckConfig {
 
     public static CheckConfig defaults(CheckCategory category) {
         return new CheckConfig(
-                category, true, 20.0, 0.5, 100.0, 1.0, 12.0, 4.0,
+                category, true, 1.0, 0.1, 100.0, 1.0, 1.0, 1.0,
                 ACTION_ALERT, "", 12.0, 1000, "");
     }
 

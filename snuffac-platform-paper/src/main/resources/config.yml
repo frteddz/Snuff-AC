@@ -86,6 +86,30 @@ anti-xray:
   # overworld, so it is off by default.
   hide-containers: false
 
+visual:
+  # Client side rendering cheats cannot be detected, only neutralised. The
+  # server stops telling the client about things the player is not allowed to
+  # legally see, so there is nothing left for X-Ray, Block ESP, Storage ESP,
+  # Player ESP or tracers to reveal. Requires anti-xray.mode to be on.
+  # Entity hiding sends an EntityDestroy packet for players and mobs with no
+  # legal line of sight, and resends them a few blocks before the view opens
+  # so nothing pops in.
+  entity-hiding: true
+  # Reveal anything within this radius regardless of line of sight, so close
+  # range fights never break.
+  reveal-radius: 16.0
+  # Beyond the reveal radius, reveal early inside this distance when a raycast
+  # confirms the view is about to open.
+  reveal-padding: 24.0
+  # How often the line of sight pass runs, in ticks. 4 is 5 times a second.
+  interval-ticks: 4
+  # Nudges the origin of sounds that play behind walls so sound radar and
+  # sound ESP cannot be used to find players.
+  sound-fuzzing: true
+  sound-jitter: 1.5
+
+tuning:
+  profile: strict
 tolerance:
   decay-per-tick: 0.35
   maximum: 0.45

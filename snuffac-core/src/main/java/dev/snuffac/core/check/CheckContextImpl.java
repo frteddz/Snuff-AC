@@ -95,6 +95,40 @@ final class CheckContextImpl implements CheckContext {
                 merge(evidence, extraEvidence), checkConfig.effectiveBufferThreshold(), true);
     }
 
+    private boolean preventionAllowed;
+
+    public void preventionAllowed(boolean value) {
+        this.preventionAllowed = value;
+    }
+
+    @Override
+    public void preventAttack(String reason) {
+        if (preventionAllowed) {
+            player.prevention().cancelAttack(check.key(), reason);
+        }
+    }
+
+    @Override
+    public void preventPlacement(String reason) {
+        if (preventionAllowed) {
+            player.prevention().cancelPlacement(check.key(), reason);
+        }
+    }
+
+    @Override
+    public void preventInteraction(String reason) {
+        if (preventionAllowed) {
+            player.prevention().cancelInteraction(check.key(), reason);
+        }
+    }
+
+    @Override
+    public void requestSetback(String reason) {
+        if (preventionAllowed) {
+            player.prevention().requestSetback(check.key(), reason);
+        }
+    }
+
     private double defaultBufferAmount() {
         return checkConfig.effectiveBufferThreshold() * 0.5;
     }

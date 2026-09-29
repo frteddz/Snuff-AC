@@ -37,6 +37,21 @@ class LegacyColourJoinTest {
     }
 
     @Test
+    void thePrefixDoesNotBleedColourIntoTheBody() {
+        String rendered = joined("Muted Steve for 1h 10s.");
+        int reset = rendered.indexOf("<reset>");
+        assertTrue(reset >= 0, "the prefix must be closed with a reset: " + rendered);
+        String tail = rendered.substring(reset);
+        assertTrue(tail.contains("Muted Steve for 1h 10s."), "body was lost: " + rendered);
+        assertFalse(tail.substring(0, tail.indexOf("Muted")).contains("<bold>"),
+                "bold must not leak past the prefix: " + rendered);
+        assertFalse(tail.substring(0, tail.indexOf("Muted")).contains("<italic>"),
+                "italic must not leak past the prefix: " + rendered);
+        assertFalse(tail.substring(0, tail.indexOf("Muted")).contains("<color:"),
+                "a colour tag must not leak past the prefix: " + rendered);
+    }
+
+    @Test
     void theBodyIsConvertedToo() {
         String rendered = joined("&#FF0000error&#66FF00okay");
         assertTrue(rendered.contains("<color:#FF0000>"), "red stop missing: " + rendered);

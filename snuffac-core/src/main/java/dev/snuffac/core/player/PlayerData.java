@@ -39,7 +39,6 @@ public final class PlayerData {
     private boolean verboseAlerts = false;
     private int warningsView;
     private boolean setbackEnabled = true;
-    private boolean packetModificationEnabled = true;
     private boolean aliveLastTick = true;
     private boolean joined;
     private boolean dirty;
@@ -242,12 +241,11 @@ public final class PlayerData {
         this.setbackEnabled = value;
     }
 
-    public boolean packetModificationEnabled() {
-        return packetModificationEnabled;
-    }
+    private final dev.snuffac.core.enforcement.PreventionSignal prevention =
+            new dev.snuffac.core.enforcement.PreventionSignal();
 
-    public void packetModificationEnabled(boolean value) {
-        this.packetModificationEnabled = value;
+    public dev.snuffac.core.enforcement.PreventionSignal prevention() {
+        return prevention;
     }
 
     public boolean joined() {

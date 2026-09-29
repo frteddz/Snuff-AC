@@ -2,192 +2,202 @@ checks:
   movement:
     fly:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Sustained unsupported flight detected from the server block view.
     speed:
       enabled: true
-      buffer-threshold: 24.0
-      buffer-decay: 0.6
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 16.0
-      alert-threshold: 5.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Prediction based horizontal speed with input enumeration and forgiveness.
     nofall:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Fall damage reset by claiming ground contact while still airborne.
     airmovement:
       enabled: true
-      buffer-threshold: 22.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 14.0
-      alert-threshold: 5.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Airborne movement compared against predicted kinematics.
     groundspoof:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Ground claimed with no supporting block under the player.
     step:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Vertical gain above the player step height.
     highjump:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Launch velocity above the maximum allowed by effects.
     longjump:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Airborne distance beyond a full sprint jump.
     impossiblemovement:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.0
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 5.0
+      setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
       description: Movement packets with impossible coordinates, deltas or rotations.
     groundflag:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 14.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Ground claimed while the server sees no supporting block.
     pitchlock:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 10.0
-      alert-threshold: 4.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Pitch pinned to an exact cheat module constant.
     drift:
       enabled: true
-      buffer-threshold: 24.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 5.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Sustained constant per tick offset between prediction and client.
     velocity:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Server knockback discarded by the client.
 
   combat:
     reach:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Eye to hitbox distance with ping and vehicle aware tolerance.
     autoclicker:
       enabled: true
-      buffer-threshold: 26.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 14.0
-      alert-threshold: 5.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Attack cadence and machine perfect click timing.
     aim:
       enabled: true
-      buffer-threshold: 24.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 14.0
-      alert-threshold: 5.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Rotation sequences quantised to a constant step.
     killaura:
       enabled: true
-      buffer-threshold: 24.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 14.0
-      alert-threshold: 5.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Multi target attacks and repeated pre attack aim snaps.
+
+    attackangle:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
+      action: ALERT
+      description: Look vector ray cast against the true hitbox, blocks hits the crosshair was never on.
     impossibleattack:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Attack rate beyond the client limit.
     critical:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Forced criticals from extra movement packets before an attack.
     rotationsnapback:
       enabled: true
-      buffer-threshold: 22.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
-      setback-threshold: 12.0
-      alert-threshold: 4.0
+      setback-threshold: 0.0
+      alert-threshold: 2.0
       action: ALERT
       description: Aim rotation and reverse snap back bracketing an attack.
     invalidattackstate:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.0
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 8.0
+      setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
       description: Attacks with impossible cursor coordinates or world distance.
@@ -195,93 +205,93 @@ checks:
   world:
     fastbreak:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 0.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Blocks broken faster than the held tool allows.
     fastplace:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 0.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Block placement rate above the client limit.
     scaffold:
       enabled: true
-      buffer-threshold: 24.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
       setback-threshold: 0.0
-      alert-threshold: 5.0
+      alert-threshold: 2.0
       action: ALERT
       description: Air scaffold tower placement pattern.
     miningbeyondview:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 0.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Valuable ore targeted outside the region ever sent to the client.
     nuker:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.15
       violation-increment: 1.0
       setback-threshold: 0.0
-      alert-threshold: 4.0
+      alert-threshold: 2.0
       action: ALERT
       description: Abnormal number of distinct blocks started per second.
 
   packet:
     badpackets:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.0
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 6.0
+      setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
       description: Structurally invalid packets.
     packetspam:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 8.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Packet flood beyond legitimate play.
     extrapackets:
       enabled: true
-      buffer-threshold: 16.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 10.0
-      alert-threshold: 3.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: More than one position packet per server tick.
     packetrate:
       enabled: true
-      buffer-threshold: 22.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 10.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Sustained deviation of movement packet rate from server tick rate.
     timer:
       enabled: true
-      buffer-threshold: 20.0
-      buffer-decay: 0.5
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
       violation-increment: 1.0
-      setback-threshold: 10.0
-      alert-threshold: 4.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
       action: ALERT
       description: Client movement rate against server ticks.

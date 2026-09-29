@@ -58,6 +58,30 @@ public final class MechanicsListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onAttackDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player attacker)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof org.bukkit.entity.LivingEntity victim)) {
+            return;
+        }
+        var data = plugin.dataOf(attacker.getUniqueId());
+        if (data == null || data.exempt() || !plugin.preventionOn()) {
+            return;
+        }
+        var verdict = data.prevention().take();
+        if (verdict.cancelAttack()) {
+            event.setCancelled(true);
+            data.prevention().recordAttackBlock();
+            data.debugLine("cancelled illegal attack damage from "
+                    + verdict.checkKey() + ": " + verdict.reason());
+            if (verdict.requestSetback()) {
+                plugin.performSetback(data, verdict.checkKey() + ": " + verdict.reason());
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof Player victim)) {

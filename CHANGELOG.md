@@ -5,6 +5,117 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.0.8-dev] - 2026-09-30
+
+Strictness release. Detection was effectively inert because the shipped thresholds were
+leftover test tuning, and prevention was off entirely. Both are fixed, attacks are now
+cancelled rather than only reported, and rendering cheats are neutralised by withholding
+data the client is not entitled to.
+
+### Fixed
+
+**Detection was muted by the shipped thresholds**
+
+- Every one of the 31 checks shipped with a `buffer-threshold` of 20 to 30 while checks
+  only add 5 to 10 buffer per flag, a `buffer-decay` of 0.5 to 0.6 applied every tick, and
+  an `alert-threshold` of 4 to 5 on top. Reaching a single alert needed roughly 3 to 6
+  consecutive flags to cross the buffer and then 4 to 5 more crossings to reach the alert
+  threshold, with decay eating the buffer between bursts. In practice tens of consecutive
+  cheat actions were needed, and burst cheating never alerted at all.
+- Hard checks now ship with a buffer threshold of 1.0, a decay of 0.1 and an alert
+  threshold of 1.0, so one clear detection reports. Statistical checks use an alert
+  threshold of 2.0.
+- The hardcoded fallback in `CheckConfig.defaults` carried the same muted values and is now
+  strict as well, so a check with no shipped config still reports.
+- `setback-threshold` was 0.0 on all 31 checks, which made `setbacksEnabled()` false
+  everywhere, so no check could prevent anything even after flagging. Prevention thresholds
+  are now 1.0 for hard checks.
+
+**Anti-xray never ran on modern Paper**
+
+- Obfuscation was applied through the removed `com.destroystokyo.paper` config classes, so
+  on Paper 1.21 the server logged a `ClassNotFoundException` at every startup and shipped
+  raw ore data to every client. X-Ray and Block ESP had full data to work with.
+- It now resolves the current Paper `AntiXrayConfiguration` through `getUnsafe` and applies
+  `OBFUSCATE` with proper `BlockData` block lists.
+- When no world can be configured the plugin now says so plainly, naming X-Ray and storage
+  ESP as still unblocked, rather than logging a reflection stack trace.
+
+**The permission tree was invalid**
+
+- `plugin.yml` had a stray `snuffac.sounds` key with no value inside the `snuffac.admin`
+  children block, plus a malformed `snuffac.bypass` and a duplicated `snuffac.menu`. Paper
+  rejected the whole `snuffac.admin` node on every load, so the intended inheritance never
+  applied. The tree now parses cleanly with eighteen nodes and twelve valid children.
+
+**Prevention routing did nothing**
+
+- `CANCEL_ATTACK` called `packetModificationEnabled(false)`, a flag that was written but
+  never read anywhere, so enforcement silently accomplished nothing. Attacks, placements
+  and interactions now route to a real prevention signal.
+
+### Added
+
+**Prevention that actually prevents**
+
+- A prevention signal per player that checks request through `preventAttack`,
+  `preventPlacement`, `preventInteraction` and `requestSetback`. The packet gate runs at
+  `LOWEST` priority so a cancelled attack never reaches the server.
+- Attack packets are now dispatched synchronously on arrival rather than queued, because a
+  decision made a tick later cannot cancel the packet that has already landed.
+- `EntityDamageByEntityEvent` cancellation as a second line of defence, so an illegal hit
+  is stopped even if the packet was already in flight.
+- Speed, Fly and HighJump now request a setback to the last legal position instead of only
+  reporting.
+
+**Hitbox verification**
+
+- `HitboxVerifier` casts the attacker's actual look vector against the true vanilla
+  hitbox, 0.6 by 1.8 with a 1.5 sneaking height, using a slab method against the box
+  rather than a distance check.
+- `AttackAngleCheck` rejects hits that landed only on an expanded hitbox, tracking a streak
+  so a single odd frame is not punished, and cancels the attack. This catches the
+  Hitboxes cheat that Reach alone cannot see.
+- Reach now cancels the attack instead of only flagging, and reports the ray result,
+  angle, and reject reason as evidence.
+
+**Aim analysis**
+
+- `GcdAnalysis` learns the player's own mouse constant from a rolling window of pitch and
+  yaw deltas, then flags rotation deltas that are not a multiple of it. Human mouse input
+  always lands on the grid; synthetic aim usually does not.
+- KillAura now detects rapid target switching between entities far apart in angle, and
+  cancels the attack.
+
+**Visual cheats are neutralised, not just logged**
+
+- Entity hiding. Players and mobs with no legal line of sight are hidden from the client
+  entirely, so Player ESP and tracers have nothing to reveal. The pass runs every 4 ticks,
+  reveals anything within 16 blocks so close fights never break, and reveals early inside
+  24 blocks once a raycast confirms the view is about to open, so nothing pops in.
+- Sound fuzzing. Sounds carrying a position, footsteps, eating, drinking, bow draws, attacks
+  and armour, are nudged when the emitter is behind cover, so sound radar and sound ESP
+  cannot be used to find players.
+- `tuning.profile` in `config.yml` with `strict` as the default. Strict scales movement
+  tolerance to 0.5 and reach tolerance to 0.6, so the margins narrow without editing
+  thirty one check blocks by hand.
+- The plugin logs its effective profile and counts on startup, and warns when any check is
+  tuned so loosely that ordinary cheating will not alert.
+
+### Changed
+
+- The prefix now closes with a reset, so the gradient colour and the bold and italic
+  decorations stop at the bracket instead of bleeding into the message text.
+- Added `tuning.profile` and a `visual` section to `config.yml`.
+
+### Known
+
+- Rendering cheats cannot be detected, only prevented, because the client decides what to
+  draw. Anti-xray needs the server to obfuscate, entity hiding needs a line of sight pass,
+  and both depend on `anti-xray.mode` being on.
+- Folia is still unsupported.
+- The warning ladder is still the only automatic action and is still off by default.
+
 ## [1.0.0-dev] - 2026-09-29
 
 First development release. Built from an empty repository, tested on Paper 1.21.11.

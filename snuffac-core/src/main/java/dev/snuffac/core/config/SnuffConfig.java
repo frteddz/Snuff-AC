@@ -38,6 +38,12 @@ public final class SnuffConfig {
     private java.util.List<String> mutedAllowedCommands = new java.util.ArrayList<>();
     private boolean staffSounds = true;
     private boolean antiXrayHideContainers;
+    private boolean visualEntityHiding = true;
+    private boolean visualSoundFuzzing = true;
+    private double visualRevealRadius = 16.0;
+    private double visualRevealPadding = 24.0;
+    private double visualSoundJitter = 1.5;
+    private int visualIntervalTicks = 4;
     private dev.snuffac.core.world.ObfuscationPolicy antiXrayMode =
             dev.snuffac.core.world.ObfuscationPolicy.HIDDEN_ORES;
     private boolean exemptBedrock = true;
@@ -51,6 +57,7 @@ public final class SnuffConfig {
     private double toleranceCarryOverCap = 1.0;
     private double toleranceCarryOverRetention = 0.4;
     private double baseTolerance = 0.001;
+    private String tuningProfile = "strict";
     private double pingToleranceFloor = 0.001;
     private double pingTolerancePerMilli = 0.00002;
     private double maxPingTolerance = 0.06;
@@ -137,6 +144,13 @@ public final class SnuffConfig {
         toleranceCarryOverCap = source.getDouble("tolerance.carry-over-cap", toleranceCarryOverCap);
         toleranceCarryOverRetention = source.getDouble("tolerance.carry-over-retention", toleranceCarryOverRetention);
         baseTolerance = source.getDouble("tolerance.base", baseTolerance);
+        tuningProfile = source.getString("tuning.profile", tuningProfile);
+        visualEntityHiding = source.getBoolean("visual.entity-hiding", visualEntityHiding);
+        visualSoundFuzzing = source.getBoolean("visual.sound-fuzzing", visualSoundFuzzing);
+        visualRevealRadius = source.getDouble("visual.reveal-radius", visualRevealRadius);
+        visualRevealPadding = source.getDouble("visual.reveal-padding", visualRevealPadding);
+        visualSoundJitter = source.getDouble("visual.sound-jitter", visualSoundJitter);
+        visualIntervalTicks = Math.max(1, source.getInt("visual.interval-ticks", visualIntervalTicks));
         pingToleranceFloor = source.getDouble("tolerance.ping-floor", pingToleranceFloor);
         pingTolerancePerMilli = source.getDouble("tolerance.ping-per-ms", pingTolerancePerMilli);
         maxPingTolerance = source.getDouble("tolerance.ping-maximum", maxPingTolerance);
@@ -399,6 +413,56 @@ public final class SnuffConfig {
         return baseTolerance;
     }
 
+    public boolean visualEntityHiding() {
+        return visualEntityHiding;
+    }
+
+    public boolean visualSoundFuzzing() {
+        return visualSoundFuzzing;
+    }
+
+    public double visualRevealRadius() {
+        return visualRevealRadius;
+    }
+
+    public double visualRevealPadding() {
+        return visualRevealPadding;
+    }
+
+    public double visualSoundJitter() {
+        return visualSoundJitter;
+    }
+
+    public int visualIntervalTicks() {
+        return visualIntervalTicks;
+    }
+
+    public String tuningProfile() {
+        return tuningProfile;
+    }
+
+    public double profileToleranceScale() {
+        String value = tuningProfile == null ? "" : tuningProfile.trim().toLowerCase(java.util.Locale.ROOT);
+        if (value.equals("lenient")) {
+            return 2.0;
+        }
+        if (value.equals("balanced")) {
+            return 1.0;
+        }
+        return 0.5;
+    }
+
+    public double profileReachScale() {
+        String value = tuningProfile == null ? "" : tuningProfile.trim().toLowerCase(java.util.Locale.ROOT);
+        if (value.equals("lenient")) {
+            return 1.6;
+        }
+        if (value.equals("balanced")) {
+            return 1.0;
+        }
+        return 0.6;
+    }
+
     public double safeTps() {
         return safeTps;
     }
@@ -418,13 +482,14 @@ public final class SnuffConfig {
         }
         tpsPart = Math.min(tpsPart, maxTpsTolerance);
 
-        return baseTolerance + (pingPart + tpsPart) * Math.max(toleranceScale, 0.0);
+        return (baseTolerance + (pingPart + tpsPart) * Math.max(toleranceScale, 0.0))
+                * profileToleranceScale();
     }
 
     public double reachToleranceFor(double pingMillis, boolean inVehicle) {
         double base = inVehicle ? reachSparrowTolerance : reachTolerance;
         double latencyBonus = MathUtil.clamp(pingMillis * reachLatencyMultiplier, 0.0, reachMaxLatencyBonus);
-        return base + latencyBonus;
+        return (base + latencyBonus) * profileReachScale();
     }
 
     public double reachMaximum() {

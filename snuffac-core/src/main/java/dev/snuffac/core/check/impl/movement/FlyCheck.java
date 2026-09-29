@@ -106,7 +106,8 @@ public final class FlyCheck extends AbstractMovementCheck {
                 evidence.put("deltaY", round(deltaY));
                 evidence.put("velocityY", round(movementState.velocity().y()));
                 evidence.put("rises", state.rises);
-                context.flag("rising while airborne for " + airTicks + " ticks", evidence, 8.0);
+                context.requestSetback("rising while airborne for " + airTicks + " ticks");
+            context.flag("rising while airborne for " + airTicks + " ticks", evidence, 8.0);
                 state.rises = 0;
             }
             return;
@@ -119,6 +120,7 @@ public final class FlyCheck extends AbstractMovementCheck {
             evidence.put("hoverTicks", state.sameLevelTicks);
             evidence.put("velocityY", round(movementState.velocity().y()));
             evidence.put("fallDistance", round(movementState.fallDistance()));
+            context.requestSetback("hovering without support");
             context.flag("hovering without support for " + state.sameLevelTicks + " ticks", evidence, 6.0);
             state.sameLevelTicks = 0;
         }
@@ -160,6 +162,7 @@ public final class FlyCheck extends AbstractMovementCheck {
         evidence.put("hoverTicks", state.sameLevelTicks);
         evidence.put("velocityY", round(movementState.velocity().y()));
         evidence.put("positionChanged", false);
+        context.requestSetback("hovering without support");
         context.flag("hovering without support for " + state.sameLevelTicks + " packets", evidence, 6.0);
         state.sameLevelTicks = 0;
     }

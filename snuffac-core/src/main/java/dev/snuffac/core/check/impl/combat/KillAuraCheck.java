@@ -18,6 +18,8 @@ public final class KillAuraCheck implements Check {
     private static final int MIN_TARGETS = 4;
     private static final double MIN_SNAP_YAW = 12.0;
     private static final int REQUIRED_SNAPS = 6;
+    public static final double MIN_SWITCH_ANGLE = 40.0;
+    public static final int SWITCH_LIMIT = 3;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -65,6 +67,33 @@ public final class KillAuraCheck implements Check {
 
         long now = System.currentTimeMillis();
         state.recent.removeIf(entry -> now - entry.timestamp > WINDOW_MILLIS);
+        if (!state.recent.isEmpty() && state.recent.peekLast().targetId() != attack.targetId()) {
+            long gap = now - state.recent.peekLast().timestamp;
+            double separation = state.lastTargetAngle;
+            if (gap <= 400L && separation >= MIN_SWITCH_ANGLE) {
+                state.switches++;
+                if (state.switches >= SWITCH_LIMIT) {
+                    Map<String, Object> switchEvidence = context.newEvidence();
+                    switchEvidence.put("switches", state.switches);
+                    switchEvidence.put("separationDegrees", round(separation));
+                    switchEvidence.put("gapMillis", gap);
+                    switchEvidence.put("distinctTargets",
+                            state.recent.stream().map(TargetEntry::targetId).distinct().count());
+                    context.preventAttack("target switch of " + round(separation) + " degrees in "
+                            + gap + "ms");
+                    context.flag("switched between targets " + round(separation)
+                            + " degrees apart within " + gap + "ms", switchEvidence, 7.0);
+                    state.switches = 0;
+                    state.recent.clear();
+                    return;
+                }
+            } else {
+                state.switches = 0;
+            }
+            state.lastTargetAngle = separation;
+        } else if (state.recent.isEmpty()) {
+            state.lastTargetAngle = 0.0;
+        }
         state.recent.add(new TargetEntry(attack.targetId(), now));
 
         long distinct = state.recent.stream().map(TargetEntry::targetId).distinct().count();
@@ -140,6 +169,7 @@ public final class KillAuraCheck implements Check {
             return;
         }
         if (offAngle > MAX_OFF_ANGLE && target != null) {
+            context.preventAttack("attack " + round(offAngle) + " degrees off target");
             context.flag("attacked a target " + round(offAngle)
                     + " degrees away from facing direction", timing, 6.0);
         }
@@ -172,6 +202,8 @@ public final class KillAuraCheck implements Check {
 
     static final class AuraState {
 
+        private int switches;
+        private double lastTargetAngle;
         private final java.util.ArrayDeque<TargetEntry> recent = new java.util.ArrayDeque<>();
         private double lastAttackYaw;
         private int snaps;

@@ -12,6 +12,7 @@ import dev.snuffac.core.check.impl.combat.ImpossibleAttackCheck;
 import dev.snuffac.core.check.impl.combat.InvalidAttackStateCheck;
 import dev.snuffac.core.check.impl.combat.KillAuraCheck;
 import dev.snuffac.core.check.impl.combat.ReachCheck;
+import dev.snuffac.core.check.impl.combat.AttackAngleCheck;
 import dev.snuffac.core.check.impl.movement.AirMovementCheck;
 import dev.snuffac.core.check.impl.movement.FlyCheck;
 import dev.snuffac.core.check.impl.movement.GroundSpoofCheck;
@@ -117,6 +118,7 @@ public final class SnuffCore {
         registry.register(new DriftCheck());
 
         registry.register(new ReachCheck());
+        registry.register(new AttackAngleCheck());
         registry.register(new AutoClickerCheck());
         registry.register(new AimCheck());
         registry.register(new KillAuraCheck());
@@ -165,6 +167,7 @@ public final class SnuffCore {
         this.violations.enforcementChannel(this::routeEnforcement);
         this.violations.addListener(this::forwardToApi);
         this.dispatcher = new CheckDispatcher(registry, config, server, violations, logger);
+        this.dispatcher.enforcement(enforcement);
         startCheckThread();
     }
 
@@ -258,8 +261,25 @@ public final class SnuffCore {
     }
 
     public void enqueue(UUID playerId, SnuffPacket packet) {
-        if (running) {
-            inbound.offer(new PacketTask(playerId, packet));
+        if (!running) {
+            return;
+        }
+        if (packet instanceof dev.snuffac.core.packet.AttackPacket) {
+            dispatchNow(playerId, packet);
+            return;
+        }
+        inbound.offer(new PacketTask(playerId, packet));
+    }
+
+    public void dispatchNow(UUID playerId, SnuffPacket packet) {
+        PlayerData player = players.get(playerId);
+        if (player == null || !player.alive()) {
+            return;
+        }
+        try {
+            dispatcher.dispatchPacket(player, packet);
+        } catch (RuntimeException exception) {
+            logger.warn("packet processing failed for " + player.name() + ": " + exception);
         }
     }
 

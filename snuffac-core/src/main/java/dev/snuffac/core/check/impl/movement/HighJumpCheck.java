@@ -89,6 +89,7 @@ public final class HighJumpCheck extends AbstractMovementCheck {
         evidence.put("jumpBoost", movement.jumpBoostLevel());
         evidence.put("sprinting", movement.sprinting());
         evidence.put("airTicks", movement.ticksSinceGround());
+        context.requestSetback("jump apex above the legal launch velocity");
         context.flag("launch velocity " + round(observed) + " above maximum " + round(maximum), evidence, 10.0);
         state.excessTicks = 0;
     }

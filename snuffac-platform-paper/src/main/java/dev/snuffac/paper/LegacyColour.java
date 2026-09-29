@@ -6,9 +6,9 @@ import java.util.List;
 public final class LegacyColour {
 
     public static final String PREFIX =
-            "&#EE6832&l&o[&#F18154&l&oS&#F49A76&l&oN&#F7B499&l&oU&#F9CDBB&l&oF&#FCE6DD&l&oF&#FFFFFF&l&o] ";
+            "&#EE6832&l&o[&#F18154&l&oS&#F49A76&l&oN&#F7B499&l&oU&#F9CDBB&l&oF&#FCE6DD&l&oF&#FFFFFF&l&o]";
 
-    private static final String PREFIX_READY = toMiniMessage(PREFIX);
+    private static final String PREFIX_READY = toMiniMessage(PREFIX) + "<reset> ";
 
     private LegacyColour() {
     }

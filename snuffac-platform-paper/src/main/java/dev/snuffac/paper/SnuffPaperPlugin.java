@@ -2,6 +2,7 @@ package dev.snuffac.paper;
 
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import dev.snuffac.core.config.CheckConfig;
+import dev.snuffac.core.check.CheckRegistry;
 import java.util.function.Consumer;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.settings.PacketEventsSettings;
@@ -338,6 +339,9 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     private PacketEventsAPI<?> packetEvents;
     private BukkitTask tickTask;
     private BukkitTask cacheTask;
+    private BukkitTask visualTask;
+    private VisualConcealment visual;
+    private SoundConcealment sound;
     private SnuffPlatform platform = SnuffPlatform.PAPER;
     private ConfigSource configSource;
     private YamlConfigSource checkSource;
@@ -372,6 +376,39 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         SnuffAc.Holder.set(api);
         getLogger().info("Snuff AC " + api.version() + " enabled on " + platform.name()
                 + " with " + core.checkKeys().size() + " checks.");
+        logEffectiveTuning();
+    }
+
+    private void logEffectiveTuning() {
+        CheckRegistry registry = core.registry();
+        int enabled = 0;
+        int setbackChecks = 0;
+        int muted = 0;
+        for (String key : core.checkKeys()) {
+            CheckConfig check = registry.config(key);
+            if (check == null) {
+                continue;
+            }
+            if (!check.enabled()) {
+                continue;
+            }
+            enabled++;
+            if (check.setbacksEnabled()) {
+                setbackChecks++;
+            }
+            if (check.effectiveBufferThreshold() > 4.0 || check.alertThreshold() > 3.0) {
+                muted++;
+            }
+        }
+        getLogger().info("Tuning profile: " + core.config().tuningProfile()
+                + " | checks enabled: " + enabled
+                + " | with prevention: " + setbackChecks
+                + " | alerting: " + (enabled - muted));
+        if (muted > 0) {
+            getLogger().warning(muted + " check(s) are tuned so loosely that ordinary cheating will "
+                    + "not alert. Raise strictness in config.yml tuning.profile or lower "
+                    + "buffer-threshold and alert-threshold in checks.yml.");
+        }
     }
 
     @Override
@@ -383,6 +420,12 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
         if (cacheTask != null) {
             cacheTask.cancel();
+        }
+        if (visualTask != null) {
+            visualTask.cancel();
+        }
+        if (visual != null) {
+            visual.forgetAll();
         }
         if (packetEvents != null) {
             try {
@@ -418,7 +461,76 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.packetEvents.getEventManager().registerListener(
                 new SnuffPacketListener(
                         new DefaultPacketTranslator(this::movementStateOf),
-                        this::onUserPacket));
+                        this::onUserPacket,
+                        this::shouldBlockPacket,
+                        this::rewriteOutbound));
+    }
+
+    private void rewriteOutbound(User user, com.github.retrooper.packetevents.event.PacketSendEvent event) {
+        if (sound == null || !sound.enabled()) {
+            return;
+        }
+        if (event.getPacketType() != com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Server.SOUND_EFFECT
+                && event.getPacketType() != com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Server.NAMED_SOUND_EFFECT) {
+            return;
+        }
+        try {
+            sound.rewrite(user, new com.github.retrooper.packetevents.wrapper.play.server
+                    .WrapperPlayServerSoundEffect(event));
+        } catch (RuntimeException | LinkageError ignored) {
+        }
+    }
+
+    private boolean shouldBlockPacket(User user, SnuffPacket packet) {
+        PlayerData data = core.playerByName(user.getName());
+        if (data == null || data.exempt() || !core.config().preventionEnabled()) {
+            return false;
+        }
+        boolean isAttack = packet instanceof dev.snuffac.core.packet.AttackPacket;
+        boolean isPlace = packet instanceof dev.snuffac.core.packet.BlockPlacePacket;
+        boolean isBreak = packet instanceof dev.snuffac.core.packet.BlockBreakPacket;
+
+        if (isAttack) {
+            data.prevention().clear();
+            core.dispatchNow(data.id(), packet);
+        }
+
+        var signal = data.prevention();
+        if (!isAttack && !isPlace && !isBreak) {
+            consumeSetbackOnly(signal, data);
+            return false;
+        }
+        var verdict = signal.take();
+        boolean blocked = false;
+        if (verdict.cancelAttack() && isAttack) {
+            signal.recordAttackBlock();
+            blocked = true;
+        } else if (verdict.cancelPlacement() && isPlace) {
+            signal.recordPlacementBlock();
+            blocked = true;
+        } else if (verdict.cancelInteraction() && (isPlace || isBreak)) {
+            signal.recordInteractionBlock();
+            blocked = true;
+        }
+        if (verdict.requestSetback() && data.setbackEnabled()) {
+            signal.recordSetback();
+            scheduleSetback(data, verdict.checkKey() + ": " + verdict.reason());
+        }
+        if (blocked) {
+            data.debugLine("blocked " + packet.type() + " prevented by "
+                    + verdict.checkKey() + ": " + verdict.reason());
+        }
+        return blocked;
+    }
+
+    private void consumeSetbackOnly(
+            dev.snuffac.core.enforcement.PreventionSignal signal, PlayerData data) {
+        var verdict = signal.peek();
+        if (verdict.requestSetback() && data.setbackEnabled()) {
+            signal.clear();
+            signal.recordSetback();
+            scheduleSetback(data, verdict.checkKey() + ": " + verdict.reason());
+        }
     }
 
     private void onUserPacket(User user, SnuffPacket packet) {
@@ -450,6 +562,10 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     private void startTasks() {
         this.tickTask = Bukkit.getScheduler().runTaskTimer(this, core::tick, 1L, 1L);
         this.cacheTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshWorldCaches, 1L, 1L);
+        this.visual = new VisualConcealment(this, core.config());
+        this.sound = new SoundConcealment(this, core.config());
+        long interval = Math.max(1L, core.config().visualIntervalTicks());
+        this.visualTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshVisibility, interval, interval);
         this.punishments = new dev.snuffac.core.punish.PunishmentService(
                 new java.io.File(getDataFolder(), "punishments").toPath(), null);
         this.punishments.load();
@@ -592,30 +708,82 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
         int bandStart = core.config().antiXrayBandStart();
         int bandEnd = core.config().antiXrayBandEnd();
-        try {
-            Class<?> worldSettings = Class.forName(
-                    "com.destroystokyo.paper.PaperWorldConfig");
-            Class<?> antiXray = Class.forName(
-                    "com.destroystokyo.paper.antixray.PaperAntiXrayConfig");
-            for (org.bukkit.World world : Bukkit.getWorlds()) {
-                Object config = worldSettings.getMethod("getInstance", org.bukkit.World.class)
-                        .invoke(null, world);
-                Object antiXrayConfig = antiXray.getMethod("getInstance",
-                        worldSettings).invoke(null, config);
-                antiXray.getMethod("setEngineMode", String.class)
-                        .invoke(antiXrayConfig, engineModeFor(policy));
-                antiXray.getMethod("setHiddenBlocks",
-                        java.util.List.class).invoke(antiXrayConfig, hiddenBlocksFor(policy));
-                antiXray.getMethod("setReplaceBlocks",
-                        java.util.List.class).invoke(antiXrayConfig, hiddenBlocksFor(policy));
-                antiXray.getMethod("setHeight", int.class)
-                        .invoke(antiXrayConfig, Math.max(0, Math.min(320, bandEnd - bandStart)));
+        int height = Math.max(0, Math.min(320, bandEnd - bandStart));
+        int applied = 0;
+        String failure = null;
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            try {
+                if (applyModernAntiXray(world, policy, height)) {
+                    applied++;
+                }
+            } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
+                if (failure == null) {
+                    failure = String.valueOf(exception);
+                }
             }
-            getLogger().info("anti-xray obfuscation active: " + policy);
-        } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
-            getLogger().warning("anti-xray obfuscation unavailable on this server build: "
-                    + exception);
         }
+        if (applied > 0) {
+            getLogger().info("anti-xray obfuscation active: " + policy + " on " + applied
+                    + " world(s) via the Paper AntiXrayConfiguration API.");
+        } else {
+            getLogger().warning("anti-xray obfuscation unavailable on this server build. "
+                    + "Ore and container data is still being sent to clients, so x-ray and "
+                    + "storage ESP are NOT being prevented. Cause: " + failure);
+        }
+    }
+
+    private boolean applyModernAntiXray(
+            org.bukkit.World world,
+            dev.snuffac.core.world.ObfuscationPolicy policy,
+            int height) throws ReflectiveOperationException {
+        Object unsafe = world.getClass().getMethod("getUnsafe").invoke(world);
+        Object worldConfig = unsafe.getClass().getMethod("getWorldConfiguration").invoke(unsafe);
+        Object antiXrayConfig = worldConfig.getClass()
+                .getMethod("getAntiXrayConfiguration")
+                .invoke(worldConfig);
+
+        Class<?> engineMode = Class.forName("io.papermc.paper.world.antixray.AntiXrayEngineMode");
+        Object mode = engineMode.getMethod("valueOf", String.class)
+                .invoke(null, policy == dev.snuffac.core.world.ObfuscationPolicy.OFF
+                        ? "NONE" : "OBFUSCATE");
+
+        antiXrayConfig.getClass().getMethod("setEngineMode", engineMode)
+                .invoke(antiXrayConfig, mode);
+        antiXrayConfig.getClass().getMethod("setHeight", int.class)
+                .invoke(antiXrayConfig, height);
+        applyBlockList(antiXrayConfig, "setHiddenBlocks", policy);
+        applyBlockList(antiXrayConfig, "setReplaceBlocks", policy);
+        return true;
+    }
+
+    private void applyBlockList(
+            Object antiXrayConfig,
+            String setter,
+            dev.snuffac.core.world.ObfuscationPolicy policy) throws ReflectiveOperationException {
+        java.util.List<String> names = hiddenBlocksFor(policy);
+        java.lang.reflect.Method method = null;
+        for (java.lang.reflect.Method candidate : antiXrayConfig.getClass().getMethods()) {
+            if (candidate.getName().equals(setter) && candidate.getParameterCount() == 1) {
+                method = candidate;
+                break;
+            }
+        }
+        if (method == null) {
+            throw new NoSuchMethodException(setter + " is absent from "
+                    + antiXrayConfig.getClass().getName());
+        }
+        java.util.List<org.bukkit.block.data.BlockData> blocks = new java.util.ArrayList<>(names.size());
+        for (String name : names) {
+            org.bukkit.Material material = org.bukkit.Material.matchMaterial(name);
+            if (material == null || !material.isBlock()) {
+                continue;
+            }
+            try {
+                blocks.add(material.createBlockData());
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        method.invoke(antiXrayConfig, blocks);
     }
 
     private static String engineModeFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
@@ -641,6 +809,19 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
                     "ORE_GOLD", "ORE_DEEPSLATE_GOLD", "DEEPSLATE_GOLD_ORE",
                     "ORE_REDSTONE", "ORE_DEEPSLATE_REDSTONE", "DEEPSLATE_REDSTONE_ORE");
         };
+    }
+
+    private void refreshVisibility() {
+        if (visual == null || !visual.concealsEntities()) {
+            return;
+        }
+        for (Player viewer : Bukkit.getOnlinePlayers()) {
+            try {
+                visual.concealPass(viewer);
+            } catch (RuntimeException | LinkageError exception) {
+                getLogger().fine("visibility pass failed for " + viewer.getName() + ": " + exception);
+            }
+        }
     }
 
     private void refreshWorldCaches() {
@@ -1030,8 +1211,12 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         switch (request.type()) {
             case SETBACK_POSITION, TELEPORT_SYNC -> Bukkit.getScheduler()
                     .runTask(this, () -> performSetback(data, request.reason()));
-            case CANCEL_ATTACK, CANCEL_BLOCK_PLACE, CANCEL_BLOCK_BREAK, CANCEL_INTERACTION ->
-                    data.packetModificationEnabled(false);
+            case CANCEL_ATTACK ->
+                    data.prevention().cancelAttack(request.checkKey(), request.reason());
+            case CANCEL_BLOCK_PLACE ->
+                    data.prevention().cancelPlacement(request.checkKey(), request.reason());
+            case CANCEL_INTERACTION ->
+                    data.prevention().cancelInteraction(request.checkKey(), request.reason());
             default -> {
             }
         }
@@ -1124,6 +1309,22 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         if (core.config().debug()) {
             debug("[" + data.name() + "] " + line);
         }
+    }
+
+    public Player playerOf(com.github.retrooper.packetevents.protocol.player.User user) {
+        if (user == null) {
+            return null;
+        }
+        Player direct = Bukkit.getPlayer(user.getUUID());
+        if (direct != null) {
+            return direct;
+        }
+        Player byName = Bukkit.getPlayerExact(user.getName());
+        return byName;
+    }
+
+    public boolean preventionOn() {
+        return core.config().preventionEnabled();
     }
 
     public PlayerData dataOf(UUID id) {

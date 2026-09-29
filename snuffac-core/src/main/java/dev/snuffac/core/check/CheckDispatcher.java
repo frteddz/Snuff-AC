@@ -17,6 +17,11 @@ public final class CheckDispatcher {
     private final ServerHealth server;
     private final ViolationHandler violations;
     private final SnuffLogger logger;
+    private volatile dev.snuffac.core.enforcement.EnforcementService enforcement;
+
+    public void enforcement(dev.snuffac.core.enforcement.EnforcementService value) {
+        this.enforcement = value;
+    }
 
     public CheckDispatcher(
             CheckRegistry registry,
@@ -48,6 +53,10 @@ public final class CheckDispatcher {
         if (!shouldProcess(player)) {
             return;
         }
+        var service = this.enforcement;
+        boolean prevention = config.preventionEnabled()
+                && service != null
+                && service.preventionEnabled();
         updateSharedState(player, packet);
         List<Check> targets = registry.dispatchFor(packet.type());
         for (int i = 0; i < targets.size(); i++) {
@@ -60,6 +69,7 @@ public final class CheckDispatcher {
             if (context == null) {
                 continue;
             }
+            context.preventionAllowed(prevention);
             try {
                 check.onPacket(context, packet);
             } catch (RuntimeException exception) {

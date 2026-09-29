@@ -29,7 +29,8 @@ class LegacyColourTest {
         String converted = LegacyColour.toMiniMessage(prefix);
         assertTrue(converted.startsWith("<color:#EE6832><bold><italic>["),
                 "got: " + converted);
-        assertTrue(converted.endsWith("<color:#FFFFFF><bold><italic>] "));
+        assertTrue(converted.endsWith("<color:#FFFFFF><bold><italic>]"),
+                "got: " + converted);
         assertFalse(converted.contains("&"), "no legacy ampersand code may survive");
         assertEquals(7, countOccurrences(converted, "<color:#"), "the prefix has seven gradient stops");
     }

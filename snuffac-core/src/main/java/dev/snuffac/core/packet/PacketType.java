@@ -19,6 +19,7 @@ public enum PacketType {
     SERVER_KEEP_ALIVE,
     SERVER_RESPAWN,
     CHUNK,
+    SOUND,
     SERVER_ABILITIES,
     BUNDLE,
     OTHER

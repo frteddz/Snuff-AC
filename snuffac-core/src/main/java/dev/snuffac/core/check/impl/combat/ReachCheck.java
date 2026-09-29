@@ -7,6 +7,7 @@ import dev.snuffac.core.check.CheckContext;
 import dev.snuffac.core.packet.AttackPacket;
 import dev.snuffac.core.packet.PacketType;
 import dev.snuffac.core.packet.SnuffPacket;
+import dev.snuffac.core.combat.HitboxVerifier;
 import dev.snuffac.core.combat.ReachResolver;
 import dev.snuffac.core.combat.EntitySnapshot;
 import dev.snuffac.core.physics.MovementConstants;
@@ -154,8 +155,34 @@ public final class ReachCheck implements Check {
         evidence.put("lineOfSightBlocked", state.lineOfSightBlocked);
         evidence.put("sneaking", movement.sneaking());
 
+        boolean prevented = false;
+        if (target != null && environment.known(attack.targetId())) {
+            var verified = HitboxVerifier.verify(
+                    player.position(),
+                    movement.sneaking(),
+                    attack.yaw(),
+                    attack.pitch(),
+                    target,
+                    environment.creative(),
+                    inVehicle,
+                    tolerance,
+                    !state.lineOfSightBlocked);
+            evidence.put("rayHitsHitbox", verified.rayHits());
+            evidence.put("angleDegrees", round(verified.angleDegrees()));
+            evidence.put("rejectReason", verified.reason());
+            if (verified.shouldReject()) {
+                context.preventAttack("reach: " + verified.reason());
+                context.requestSetback("reach: " + verified.reason());
+                prevented = true;
+            }
+        } else {
+            context.preventAttack("reach of " + round(reach) + " over " + round(maximum));
+            prevented = true;
+        }
+
         context.flag("reach of " + round(reach) + " exceeds " + round(maximum), evidence,
                 Math.min(excess * 14.0, 12.0));
+        evidence.put("prevented", prevented);
         state.excessTicks = 0;
     }
 

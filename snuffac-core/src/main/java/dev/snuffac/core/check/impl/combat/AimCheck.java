@@ -65,6 +65,9 @@ public final class AimCheck implements Check {
             return;
         }
 
+        state.pitchWindow.offer(deltaPitch);
+        state.yawWindow.offer(deltaYaw);
+
         double divisor = greatestCommonDivisor(deltaYaw, deltaPitch);
         if (divisor <= 0.0) {
             state.lastYaw = movement.yaw();
@@ -85,18 +88,40 @@ public final class AimCheck implements Check {
         state.lastYaw = movement.yaw();
         state.lastPitch = movement.pitch();
 
-        if (state.constantSteps < REQUIRED_SMOOTH) {
-            return;
+        if (state.constantSteps >= REQUIRED_SMOOTH) {
+            Map<String, Object> smooth = context.newEvidence();
+            smooth.put("divisor", round(divisor));
+            smooth.put("deltaYaw", round(deltaYaw));
+            smooth.put("deltaPitch", round(deltaPitch));
+            smooth.put("constantSteps", state.constantSteps);
+            context.flag("constant rotation step of " + round(divisor) + " over "
+                    + state.constantSteps + " rotations", smooth, 5.0);
+            state.constantSteps = 0;
         }
 
-        Map<String, Object> evidence = context.newEvidence();
-        evidence.put("divisor", round(divisor));
-        evidence.put("deltaYaw", round(deltaYaw));
-        evidence.put("deltaPitch", round(deltaPitch));
-        evidence.put("constantSteps", state.constantSteps);
-        context.flag("constant rotation step of " + round(divisor) + " over "
-                + state.constantSteps + " rotations", evidence, 5.0);
-        state.constantSteps = 0;
+        double constant = state.pitchWindow.constant();
+        if (constant > 0.0 && state.pitchWindow.size() >= 30
+                && !GcdAnalysis.isMultipleOf(deltaPitch, constant)
+                && deltaPitch > GcdAnalysis.MIN_DELTA * 4.0) {
+            state.breaks++;
+            if (state.breaks >= 3) {
+                Map<String, Object> evidence = context.newEvidence();
+                evidence.put("sensitivityConstant", round(constant));
+                evidence.put("deltaPitch", round(deltaPitch));
+                evidence.put("deltaYaw", round(deltaYaw));
+                evidence.put("expectedMultiple", round(deltaPitch / constant));
+                evidence.put("breaks", state.breaks);
+                evidence.put("samples", state.pitchWindow.size());
+                evidence.put("mouseConstant", GcdAnalysis.DEFAULT_CONSTANT);
+                context.flag("pitch delta of " + round(deltaPitch)
+                        + " is not a multiple of the mouse constant " + round(constant), evidence, 6.0);
+                state.breaks = 0;
+                state.pitchWindow.clear();
+                state.yawWindow.clear();
+            }
+        } else if (GcdAnalysis.isMultipleOf(deltaPitch, constant)) {
+            state.breaks = 0;
+        }
     }
 
     static double greatestCommonDivisor(double yaw, double pitch) {
@@ -118,5 +143,8 @@ public final class AimCheck implements Check {
         private float lastPitch;
         private double lastDivisor;
         private int constantSteps;
+        private int breaks;
+        private final GcdAnalysis.Window pitchWindow = new GcdAnalysis.Window();
+        private final GcdAnalysis.Window yawWindow = new GcdAnalysis.Window();
     }
 }

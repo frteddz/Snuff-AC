@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSoundEffect;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -23,6 +24,7 @@ import dev.snuffac.core.packet.KeepAlivePacket;
 import dev.snuffac.core.packet.MovementPacket;
 import dev.snuffac.core.packet.PlayerLoadedPacket;
 import dev.snuffac.core.packet.ServerKeepAlivePacket;
+import dev.snuffac.core.packet.SoundPacket;
 import dev.snuffac.core.packet.ServerTeleportPacket;
 import dev.snuffac.core.packet.ServerVelocityPacket;
 import dev.snuffac.core.packet.SnuffPacket;
@@ -129,6 +131,20 @@ public final class DefaultPacketTranslator implements PacketTranslator {
         }
         if (type == PacketType.Play.Server.KEEP_ALIVE) {
             return new ServerKeepAlivePacket(arrivalNanos, new WrapperPlayServerKeepAlive(event).getId());
+        }
+        if (type == PacketType.Play.Server.SOUND_EFFECT
+                || type == PacketType.Play.Server.NAMED_SOUND_EFFECT) {
+            var wrapper = new WrapperPlayServerSoundEffect(event);
+            var position = wrapper.getPosition();
+            if (position == null) {
+                return null;
+            }
+            return new SoundPacket(
+                    arrivalNanos,
+                    new Vec3d(position.getX(), position.getY(), position.getZ()),
+                    wrapper.getSound() == null ? "" : wrapper.getSound().getName().toString(),
+                    wrapper.getVolume(),
+                    wrapper.getPitch());
         }
         return null;
     }

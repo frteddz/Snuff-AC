@@ -115,6 +115,7 @@ public final class SpeedCheck extends AbstractMovementCheck {
         evidence.put("excessTicks", state.excessTicks);
 
         double weight = Math.min(excess * 12.0, 12.0);
+        context.requestSetback("speed excess of " + round(excess) + " blocks");
         context.flag("speed excess of " + round(excess) + " blocks", evidence, weight);
 
         if (residualLength > LENIENCY_CARRY_THRESHOLD) {

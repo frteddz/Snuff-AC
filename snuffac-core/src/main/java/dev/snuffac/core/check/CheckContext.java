@@ -27,6 +27,14 @@ public interface CheckContext {
 
     void flagImmediately(String detail, Map<String, Object> evidence);
 
+    void preventAttack(String reason);
+
+    void preventPlacement(String reason);
+
+    void preventInteraction(String reason);
+
+    void requestSetback(String reason);
+
     void debug(String message);
 
     void debug(String key, Object value);
