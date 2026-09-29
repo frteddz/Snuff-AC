@@ -182,3 +182,66 @@ main section.scroll-reveal.in-view > * { opacity: 1; transform: none; }
 .shader-list a:hover{color:var(--orange)}
 
 .shaders-section::before { background-image: linear-gradient(90deg, rgba(10,10,9,.96), rgba(10,10,9,.88)), url('/images/modrinth-shaders-credits.png'); }
+
+.changelog-list {
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.changelog-entry {
+  background: var(--bg);
+  padding: 2.2rem 1.8rem;
+}
+
+.changelog-entry header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.4rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.changelog-entry h3 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.changelog-stamp {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.changelog-entry ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.3rem;
+}
+
+.changelog-entry li b {
+  display: block;
+  color: var(--ink);
+  font-size: 0.98rem;
+  margin-bottom: 0.35rem;
+}
+
+.changelog-entry li p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  max-width: 74ch;
+}
+
+.changelog-next {
+  margin: 0;
+  color: var(--muted);
+}
