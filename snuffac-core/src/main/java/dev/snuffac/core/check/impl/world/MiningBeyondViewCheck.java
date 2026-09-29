@@ -65,17 +65,19 @@ public final class MiningBeyondViewCheck implements Check {
                         + Math.pow(position.y() + 0.5 - playerPosition.y(), 2)
                         + Math.pow(position.z() + 0.5 - playerPosition.z(), 2)));
 
-        int chunkDistance = Math.max(
-                Math.abs(position.x() >> 4), Math.abs(position.z() >> 4));
-        int playerChunkDistance = Math.max(
-                Math.abs(MathUtilFloor(playerPosition.x()) >> 4),
-                Math.abs(MathUtilFloor(playerPosition.z()) >> 4));
-        int relativeChunkDistance = Math.abs(chunkDistance - playerChunkDistance);
+        int relativeChunkDistance = Math.max(
+                Math.abs((position.x() >> 4) - (MathUtilFloor(playerPosition.x()) >> 4)),
+                Math.abs((position.z() >> 4) - (MathUtilFloor(playerPosition.z()) >> 4)));
         boolean withinRadius = relativeChunkDistance <= environment.sentChunkRadius();
 
         var cache = player.worldCache();
-        String material = cache.materialAt(position);
-        int tier = cache.oreTierAt(position);
+        player.mining().requestMaterial(position.pack());
+        String probed = player.mining().materialAt(position.pack());
+        String material = probed != null ? probed : cache.materialAt(position);
+        int tier = dev.snuffac.core.world.OreClassifier.oreTier(material);
+        if (probed == null && material == null) {
+            return;
+        }
         var evidence = context.newEvidence();
         long previousMillis = state.lastTargetMillis;
         long now = System.currentTimeMillis();

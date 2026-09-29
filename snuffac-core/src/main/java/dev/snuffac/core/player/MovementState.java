@@ -16,6 +16,12 @@ public final class MovementState {
     private Vec3d clientVelocity = Vec3d.ZERO;
     private Vec3d predictedVelocity = Vec3d.ZERO;
     private Vec3d lastOffset = Vec3d.ZERO;
+    private Vec3d observedOffset = Vec3d.ZERO;
+    private Vec3d observedPosition;
+    private int ticksSincePlace = 9999;
+    private int ticksSinceBreak = 9999;
+    private long movementTick = Long.MIN_VALUE;
+    private int movementPacketsThisTick;
 
     private float yaw;
     private float pitch;
@@ -151,6 +157,61 @@ public final class MovementState {
 
     public void lastOffset(Vec3d value) {
         this.lastOffset = value;
+    }
+
+    public Vec3d observedOffset() {
+        return observedOffset;
+    }
+
+    public int movementPacketsThisTick() {
+        return movementPacketsThisTick;
+    }
+
+    public void observeMovementPacket(long tickCounter) {
+        if (tickCounter != movementTick) {
+            movementTick = tickCounter;
+            movementPacketsThisTick = 0;
+        }
+        movementPacketsThisTick++;
+    }
+
+    public void observePositionDelta(dev.snuffac.core.packet.MovementPacket packet) {
+        if (!packet.positionChanged()) {
+            return;
+        }
+        Vec3d reported = packet.position();
+        if (reported == null) {
+            return;
+        }
+        if (observedPosition != null && !teleportedThisTick) {
+            observedOffset = reported.subtract(observedPosition);
+        }
+        observedPosition = reported;
+    }
+
+    public int ticksSincePlace() {
+        return ticksSincePlace;
+    }
+
+    public int ticksSinceBreak() {
+        return ticksSinceBreak;
+    }
+
+    public void markPlaced() {
+        ticksSincePlace = 0;
+    }
+
+    public void markBroke() {
+        ticksSinceBreak = 0;
+    }
+
+    public void tickPlaceCounters() {
+        if (ticksSincePlace < 10000) {
+            ticksSincePlace++;
+        }
+        if (ticksSinceBreak < 10000) {
+            ticksSinceBreak++;
+        }
     }
 
     public float yaw() {
@@ -332,6 +393,7 @@ public final class MovementState {
     }
 
     public void tickCounters() {
+        tickPlaceCounters();
         ticksSinceGround = onGround ? 0 : ticksSinceGround + 1;
         ticksSinceLiquid = inWaterOrLava() ? 0 : ticksSinceLiquid + 1;
         ticksSinceClimbable = onClimbable ? 0 : ticksSinceClimbable + 1;

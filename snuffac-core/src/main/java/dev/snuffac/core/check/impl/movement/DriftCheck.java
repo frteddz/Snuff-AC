@@ -67,7 +67,11 @@ public final class DriftCheck implements Check {
             return;
         }
 
-        Vec3d offset = movementState.lastOffset();
+        if (!movementState.onGround()) {
+            state.reset();
+            return;
+        }
+        Vec3d offset = movementState.observedOffset();
         if (offset.length() < 1.0E-6) {
             state.samples = 0;
             return;

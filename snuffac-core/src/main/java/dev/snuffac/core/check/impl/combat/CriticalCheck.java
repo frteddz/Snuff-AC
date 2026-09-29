@@ -12,6 +12,7 @@ import java.util.Set;
 
 public final class CriticalCheck implements Check {
 
+    public static final int EXTRA_PACKET_ALLOWANCE = 1;
     public static final long WINDOW_NANOS = 1_200_000_000L;
     public static final double LEGIT_Y_DELTA = 0.0035;
     public static final double LEGIT_DISTANCE = 1.35;
@@ -56,7 +57,9 @@ public final class CriticalCheck implements Check {
         }
 
         if (packet instanceof MovementPacket movement && movement.positionChanged()) {
-            record(context, state, movement.arrivalNanos());
+            if (context.player().movement().movementPacketsThisTick() > EXTRA_PACKET_ALLOWANCE) {
+                record(context, state, movement.arrivalNanos());
+            }
             return;
         }
         if (!(packet instanceof AttackPacket attack)) {

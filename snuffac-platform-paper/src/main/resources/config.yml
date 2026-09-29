@@ -8,6 +8,9 @@ general:
   console-alert-format-verbose: ''
   alert-cooldown-ms: 1500
   log-to-file: true
+  history-retention-days: 90
+  history-per-player: 200
+  alert-on-rejoin-with-history: true
   log-directory: 'logs'
   permissions:
     debug: 'snuffac.debug'
@@ -42,8 +45,11 @@ compatibility:
   void-world-floor: -60
 
 anti-xray:
-  # Server side obfuscation of valuable ores. The client never receives the real
-  # state of hidden ores, so an xray client has nothing to reveal.
+  # Replaces valuable ores with a decoy state in the chunks the server sends,
+  # so a client has no ore data to reveal. This drives the server's own chunk
+  # obfuscation engine at startup and only takes effect on restart.
+  # X-Ray, block ESP and storage ESP can never be DETECTED, only prevented this
+  # way. The player must still be sent the block, just not its real identity.
   # OFF, HIDDEN_ORES, HIDDEN_ORES_AND_DEEPSLATE
   mode: 'HIDDEN_ORES'
   band-start: -16

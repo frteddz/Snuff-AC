@@ -19,6 +19,8 @@ public final class Messages {
         TEMPLATES.put("reloaded", "<green>Configuration reloaded.</green>");
         TEMPLATES.put("toggled", "<gray><check></gray> is now <state>.");
         TEMPLATES.put("debug-toggled", "<gray>Debug for</gray> <white><player></white> <gray>is now <state></gray>.");
+        TEMPLATES.put("alerts-verbose-toggled", "<gray>Verbose alerts are now <white><state></white>.");
+        TEMPLATES.put("gui-needs-player", "<red>That needs a player. Open it in game instead.");
         TEMPLATES.put("alerts-toggled", "<gray>Alerts for</gray> <white><player></white> <gray>are now <state></gray>.");
         TEMPLATES.put("no-violations", "<gray><player></gray> has no recorded violations.");
         TEMPLATES.put("setback", "<gray>Setback applied to</gray> <white><player></white>.");

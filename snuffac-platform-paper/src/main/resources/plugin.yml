@@ -1,5 +1,5 @@
 name: SnuffAC
-version: '${version}'
+version: 1.0.2-dev
 main: dev.snuffac.paper.SnuffPaperPlugin
 api-version: '1.21'
 author: Snuff
@@ -25,7 +25,11 @@ permissions:
     children:
       snuffac.debug: true
       snuffac.alerts: true
+      snuffac.menu: true
       snuffac.bypass: false
+  snuffac.menu:
+    description: Open the Snuff AC menus
+    default: op
   snuffac.debug:
     description: Receive violation alerts and use debug output
     default: op

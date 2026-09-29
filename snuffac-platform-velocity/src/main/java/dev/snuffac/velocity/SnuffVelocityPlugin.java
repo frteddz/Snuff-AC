@@ -11,6 +11,7 @@ import com.velocitypowered.api.event.player.ServerPostConnectEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
+import net.kyori.adventure.text.Component;
 import com.velocitypowered.api.proxy.ProxyServer;
 import dev.snuffac.api.SnuffPlatform;
 import dev.snuffac.core.SnuffCore;
@@ -31,7 +32,7 @@ import org.slf4j.Logger;
 @Plugin(
         id = "snuffac",
         name = "SnuffAC",
-        version = "1.0.0-dev",
+        version = "1.0.2-dev",
         description = "Snuff AC, an independent movement and combat anticheat.",
         authors = {"Snuff"})
 public final class SnuffVelocityPlugin {
@@ -90,7 +91,7 @@ public final class SnuffVelocityPlugin {
         }
         this.core = new SnuffCore(SnuffPlatform.VELOCITY, new VelocityLogger(logger));
         this.core.boot(
-                new VelocityMessenger(),
+                new VelocityMessenger(proxy),
                 new VelocityPermissions(),
                 ConfigSource.ofMap(Map.of()),
                 dataDirectory.resolve("logs"));
@@ -232,6 +233,14 @@ public final class SnuffVelocityPlugin {
 
     private static final class VelocityMessenger implements dev.snuffac.core.platform.SnuffMessenger {
 
+        private final ProxyServer proxy;
+        private final org.slf4j.Logger log;
+
+        VelocityMessenger(ProxyServer proxy) {
+            this.proxy = proxy;
+            this.log = org.slf4j.LoggerFactory.getLogger("snuffac");
+        }
+
         @Override
         public void sendMessage(Object handle, String message) {
             if (handle instanceof Player player) {
@@ -241,10 +250,21 @@ public final class SnuffVelocityPlugin {
 
         @Override
         public void broadcast(String message, String permission) {
+            Component component = net.kyori.adventure.text.Component.text(message);
+            proxy.getAllPlayers().forEach(player -> {
+                try {
+                    if (permission == null || permission.isEmpty() || player.hasPermission(permission)) {
+                        player.sendMessage(component);
+                    }
+                } catch (RuntimeException exception) {
+                    log.warn("alert delivery failed: " + exception);
+                }
+            });
         }
 
         @Override
         public void sendConsole(String message) {
+            log.info(message);
         }
     }
 

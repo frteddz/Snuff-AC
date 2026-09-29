@@ -44,6 +44,7 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         switch (sub) {
+            case "menu", "gui" -> menu(sender);
             case "info" -> info(sender);
             case "version" -> send(sender, "version", Map.ofEntries(
                     Map.entry("version", plugin.api().version()),
@@ -87,6 +88,18 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
                 Map.entry("violations", format(totalVl)),
                 Map.entry("tps", format(core.server().tps())),
                 Map.entry("minTps", format(core.server().minTps()))));
+    }
+
+    private void menu(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            send(sender, "gui-needs-player");
+            return;
+        }
+        if (!plugin.canUseMenu(player)) {
+            send(sender, "no-permission");
+            return;
+        }
+        plugin.openMainMenu(player);
     }
 
     private void checks(CommandSender sender) {

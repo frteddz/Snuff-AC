@@ -25,11 +25,10 @@ public final class ViolationHandler {
     private final SnuffPlatform platform;
 
     private final List<Consumer<ViolationInfo>> listeners = new CopyOnWriteArrayList<>();
-    private final Map<UUID, List<ViolationInfo>> recentByPlayer = new java.util.concurrent.ConcurrentHashMap<>();
-    private final int recentLimit = 256;
+    private volatile ViolationHistoryStore historyStore;
+    private volatile EnforcementChannel enforcementChannel;
 
     private volatile SetbackHandler setbackHandler;
-    private volatile CommandExecutor commandExecutor;
 
     public ViolationHandler(
             SnuffConfig config,
@@ -46,10 +45,6 @@ public final class ViolationHandler {
 
     public void setbackHandler(SetbackHandler handler) {
         this.setbackHandler = handler;
-    }
-
-    public void commandExecutor(CommandExecutor executor) {
-        this.commandExecutor = executor;
     }
 
     public void addListener(Consumer<ViolationInfo> listener) {
@@ -144,9 +139,15 @@ public final class ViolationHandler {
             state.level().set(Math.max(0.0, state.level().value() - checkConfig.setbackThreshold()));
         }
 
-        CommandExecutor executor = commandExecutor;
-        if (executor != null && state.commandReady(now, checkKey)) {
-            executor.execute(player, checkConfig, record, detail);
+        EnforcementChannel channel = enforcementChannel;
+        if (channel != null) {
+            try {
+                channel.onViolation(player, checkConfig, checkKey, detail, bufferAtFlag, level);
+            } catch (RuntimeException exception) {
+                if (logger != null) {
+                    logger.warn("enforcement routing failed for " + player.name() + ": " + exception);
+                }
+            }
         }
 
         if (logger != null && checkConfig.logsEnabled()) {
@@ -154,9 +155,25 @@ public final class ViolationHandler {
         }
     }
 
+    public void enforcementChannel(EnforcementChannel channel) {
+        this.enforcementChannel = channel;
+    }
+
+    public void historyStore(ViolationHistoryStore store) {
+        this.historyStore = store;
+    }
+
+    public ViolationHistoryStore historyStore() {
+        return historyStore;
+    }
+
     public List<ViolationInfo> recent(UUID playerId, int limit) {
-        List<ViolationInfo> stored = recentByPlayer.get(playerId);
-        if (stored == null || stored.isEmpty()) {
+        ViolationHistoryStore store = historyStore;
+        if (store == null) {
+            return List.of();
+        }
+        List<ViolationInfo> stored = store.history(playerId);
+        if (stored.isEmpty()) {
             return List.of();
         }
         int size = Math.min(limit, stored.size());
@@ -164,18 +181,17 @@ public final class ViolationHandler {
     }
 
     public void remember(ViolationInfo info) {
-        recentByPlayer.compute(info.playerId(), (id, list) -> {
-            List<ViolationInfo> target = list == null ? new ArrayList<>() : list;
-            target.add(info);
-            while (target.size() > recentLimit) {
-                target.remove(0);
-            }
-            return target;
-        });
+        ViolationHistoryStore store = historyStore;
+        if (store != null) {
+            store.record(info);
+        }
     }
 
     public void forget(UUID playerId) {
-        recentByPlayer.remove(playerId);
+        ViolationHistoryStore store = historyStore;
+        if (store != null) {
+            store.flush(playerId);
+        }
     }
 
     public interface SetbackHandler {
@@ -183,8 +199,9 @@ public final class ViolationHandler {
         void onSetback(PlayerData player, CheckState state, ViolationRecord record, String detail);
     }
 
-    public interface CommandExecutor {
+    public interface EnforcementChannel {
 
-        void execute(PlayerData player, CheckConfig checkConfig, ViolationRecord record, String detail);
+        void onViolation(PlayerData player, CheckConfig checkConfig, String checkKey,
+                String detail, double buffer, double level);
     }
 }

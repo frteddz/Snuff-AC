@@ -48,6 +48,7 @@ public final class CheckDispatcher {
         if (!shouldProcess(player)) {
             return;
         }
+        updateSharedState(player, packet);
         List<Check> targets = registry.dispatchFor(packet.type());
         for (int i = 0; i < targets.size(); i++) {
             Check check = targets.get(i);
@@ -66,6 +67,18 @@ public final class CheckDispatcher {
             } finally {
                 context.clearEvidence();
             }
+        }
+    }
+
+    private void updateSharedState(PlayerData player, SnuffPacket packet) {
+        var movement = player.movement();
+        if (packet instanceof dev.snuffac.core.packet.MovementPacket move) {
+            movement.observeMovementPacket(player.network().tickCounter());
+            movement.observePositionDelta(move);
+        } else if (packet instanceof dev.snuffac.core.packet.BlockPlacePacket) {
+            movement.markPlaced();
+        } else if (packet instanceof dev.snuffac.core.packet.BlockBreakPacket) {
+            movement.markBroke();
         }
     }
 

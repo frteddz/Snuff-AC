@@ -13,9 +13,9 @@ public final class PitchLockCheck implements Check {
 
     public static final double DOWN_PITCH = 90.0;
     public static final double ELYTRA_PITCH = 40.0;
-    public static final double TOLERANCE = 0.01;
-    public static final int MIN_HELD_TICKS = 6;
-    public static final int REQUIRED = 4;
+    public static final int MIN_HELD_TICKS = 20;
+    public static final int REQUIRED = 3;
+    public static final int RELEVANT_TICKS = 12;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -39,7 +39,7 @@ public final class PitchLockCheck implements Check {
 
     @Override
     public String description() {
-        return "Detects pitch pinned to an exact constant, which cheat modules use to defeat server heuristics while placing or gliding.";
+        return "Detects pitch held bit constant while placing, mining, gliding or airborne, which cheat modules do to defeat server heuristics.";
     }
 
     @Override
@@ -63,25 +63,25 @@ public final class PitchLockCheck implements Check {
         }
 
         float pitch = Math.abs(movement.pitch());
-        boolean down = Math.abs(pitch - DOWN_PITCH) <= TOLERANCE;
-        boolean elytra = Math.abs(pitch - ELYTRA_PITCH) <= TOLERANCE;
+        boolean interesting = pitchIsLocked(pitch)
+                || relevantContext(movementState);
 
-        if (!down && !elytra) {
+        if (!interesting) {
+            state.reset();
+            return;
+        }
+        if (!relevantContext(movementState)) {
             state.reset();
             return;
         }
 
-        if (down && movementState.flying() && movementState.onGround()) {
-            state.reset();
-            return;
-        }
-        if (elytra && !movementState.gliding() && movementState.ticksSinceGlide() > 20) {
-            state.reset();
+        if (state.lastPitch != pitch) {
+            state.lastPitch = pitch;
+            state.held = 1;
             return;
         }
 
         state.held++;
-        state.lastPitch = pitch;
         if (state.held < MIN_HELD_TICKS) {
             return;
         }
@@ -92,26 +92,39 @@ public final class PitchLockCheck implements Check {
 
         Map<String, Object> evidence = context.newEvidence();
         evidence.put("pinnedPitch", state.lastPitch);
-        evidence.put("mode", down ? "straight down" : "fixed elytra angle");
         evidence.put("heldTicks", state.held);
         evidence.put("violations", state.violations);
-        context.flag("pitch pinned to exactly " + state.lastPitch + " degrees", evidence, 7.0);
+        evidence.put("sincePlace", movementState.ticksSincePlace());
+        evidence.put("sinceBreak", movementState.ticksSinceBreak());
+        evidence.put("ticksSinceGround", movementState.ticksSinceGround());
+        evidence.put("gliding", movementState.gliding());
+        context.flag("pitch held at exactly " + state.lastPitch
+                + " degrees while placing, mining, gliding or airborne", evidence, 7.0);
         state.reset();
     }
 
-    @Override
-    public void onTick(CheckContext context) {
-        var state = (PitchState) state(context.player());
-        if (state != null && state.held > 0) {
-            state.held--;
+    private static boolean pitchIsLocked(float pitch) {
+        return Math.abs(pitch - DOWN_PITCH) <= 0.0001 || Math.abs(pitch - ELYTRA_PITCH) <= 0.0001;
+    }
+
+    private static boolean relevantContext(dev.snuffac.core.player.MovementState movement) {
+        if (movement.ticksSincePlace() <= RELEVANT_TICKS) {
+            return true;
         }
+        if (movement.ticksSinceBreak() <= RELEVANT_TICKS) {
+            return true;
+        }
+        if (movement.gliding() || movement.ticksSinceGlide() <= 4) {
+            return true;
+        }
+        return !movement.onGround() && movement.ticksSinceGround() > 2;
     }
 
     static final class PitchState {
 
         private int held;
         private int violations;
-        private double lastPitch;
+        private float lastPitch;
 
         private void reset() {
             held = 0;

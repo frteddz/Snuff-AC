@@ -1,7 +1,6 @@
 package dev.snuffac.core.violation;
 
 import dev.snuffac.core.config.CheckConfig;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class CheckState {
@@ -11,7 +10,6 @@ public final class CheckState {
 
     private final ViolationBuffer buffer;
     private final ViolationLevel level;
-    private final Map<String, Long> lastCommandExecution = new LinkedHashMap<>();
 
     private long violations;
     private long lastFlagMillis;
@@ -80,20 +78,6 @@ public final class CheckState {
         lastViolation = null;
     }
 
-    public boolean commandReady(long now, String identifier) {
-        if (!config.commandsEnabled()) {
-            return false;
-        }
-        if (level.value() < config.commandThreshold()) {
-            return false;
-        }
-        Long last = lastCommandExecution.get(identifier);
-        if (last != null && now - last < config.commandCooldownMillis()) {
-            return false;
-        }
-        lastCommandExecution.put(identifier, now);
-        return true;
-    }
 
     public double setbackProgress() {
         double threshold = config.setbackThreshold();

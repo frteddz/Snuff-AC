@@ -97,6 +97,11 @@ public final class PlayerWorldCache {
         return dev.snuffac.core.world.OreClassifier.isContainer(materialAt(position));
     }
 
+    public boolean blocksMovement(BlockPos position) {
+        CachedBlock block = blockAt(position);
+        return block != null && !block.kind().passable();
+    }
+
     public boolean isPassable(BlockPos position) {
         return kindAt(position).passable();
     }

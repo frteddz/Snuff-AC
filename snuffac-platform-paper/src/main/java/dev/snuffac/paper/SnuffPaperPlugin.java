@@ -7,6 +7,7 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.settings.PacketEventsSettings;
 import dev.snuffac.api.SnuffAc;
 import dev.snuffac.api.SnuffPlatform;
+import dev.snuffac.core.util.BlockPos;
 import dev.snuffac.api.Vec3d;
 import com.github.retrooper.packetevents.PacketEvents;
 import dev.snuffac.core.SnuffCore;
@@ -57,6 +58,41 @@ import org.bukkit.scheduler.BukkitTask;
 
 public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
+    private static int messengerFailures;
+
+    public boolean canUseMenu(Player player) {
+        return player != null && player.hasPermission("snuffac.menu") && core != null;
+    }
+
+    public void openMainMenu(Player player) {
+        var bridge = new dev.snuffac.paper.gui.GuiBridgeImpl(this);
+        var menu = new dev.snuffac.paper.gui.MainMenu(this, bridge, alertsEnabledFor(player));
+        menu.build();
+        menu.open(player);
+    }
+
+    public SnuffCore core() {
+        return core;
+    }
+
+    public java.util.Set<UUID> knownPlayerIds() {
+        return core.knownPlayerIds();
+    }
+
+    private boolean alertsEnabledFor(Player player) {
+        dev.snuffac.core.player.PlayerData data = core.player(player.getUniqueId());
+        return data == null || data.alertsEnabled();
+    }
+
+    static void reportMessengerFailure(RuntimeException exception) {
+        messengerFailures++;
+        if (messengerFailures <= 10) {
+            Bukkit.getLogger().warning("alert delivery failed: " + exception);
+        } else if (messengerFailures == 11) {
+            Bukkit.getLogger().warning("further alert delivery failures will not be logged");
+        }
+    }
+
     private static final int WORLD_CACHE_RADIUS = 3;
     private static final int WORLD_CACHE_HEIGHT = 3;
     private static final long LOG_RETENTION_DAYS = 30L;
@@ -85,7 +121,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
         this.core = new SnuffCore(platform, this);
         this.core.boot(
-                new BukkitPlatformAdapters.Messenger(),
+                new BukkitPlatformAdapters.Messenger(this),
                 new BukkitPlatformAdapters.Permissions(),
                 configSource,
                 logDirectory());
@@ -107,6 +143,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     @Override
     public void onDisable() {
+        dev.snuffac.paper.gui.SnuffMenu.closeAll();
         if (tickTask != null) {
             tickTask.cancel();
         }
@@ -179,6 +216,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     private void startTasks() {
         this.tickTask = Bukkit.getScheduler().runTaskTimer(this, core::tick, 1L, 1L);
         this.cacheTask = Bukkit.getScheduler().runTaskTimer(this, this::refreshWorldCaches, 1L, 1L);
+        applyAntiXray();
+        getServer().getPluginManager().registerEvents(new dev.snuffac.paper.gui.MenuListener(this), this);
     }
 
     void registerPlayer(Player player) {
@@ -188,6 +227,20 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         data.entityId(player.getEntityId());
         data.protocolVersion(protocolOf(player));
         data.alive(true);
+        core.loadHistory(id, player.getName());
+        int priorFlags = core.historyStore() == null ? 0 : core.historyStore().total(id);
+        if (priorFlags > 0 && core.config().alertOnRejoinWithHistory()) {
+            String name = player.getName();
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                for (Player staff : Bukkit.getOnlinePlayers()) {
+                    if (staff.hasPermission(core.config().alertPermission())) {
+                        staff.sendMessage(net.kyori.adventure.text.Component.text(
+                                "[Snuff] " + name + " rejoined with " + priorFlags
+                                        + " recorded flag(s) from previous sessions"));
+                    }
+                }
+            }, 40L);
+        }
         User user = userOf(player);
         if (user != null) {
             packetUserToPlayer.put(user.getUUID(), id);
@@ -265,6 +318,86 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         return data == null ? null : data.movement();
     }
 
+    private void resolveMiningProbes(PlayerData data, Player player) {
+        var analyser = data.mining();
+        var probes = analyser.drainProbes(16);
+        if (probes.isEmpty()) {
+            return;
+        }
+        java.util.List<String> materials = new java.util.ArrayList<>(probes.size());
+        for (long packed : probes) {
+            BlockPos pos = BlockPos.unpack(packed);
+            String material = null;
+            try {
+                if (player.getWorld().isChunkLoaded(pos.x() >> 4, pos.z() >> 4)) {
+                    material = player.getWorld().getBlockAt(pos.x(), pos.y(), pos.z()).getType().name();
+                }
+            } catch (RuntimeException ignored) {
+                material = null;
+            }
+            materials.add(material);
+        }
+        analyser.publishProbeBatch(probes, materials);
+    }
+
+    private void applyAntiXray() {
+        var policy = core.config().antiXrayMode();
+        if (policy == null || policy == dev.snuffac.core.world.ObfuscationPolicy.OFF) {
+            return;
+        }
+        int bandStart = core.config().antiXrayBandStart();
+        int bandEnd = core.config().antiXrayBandEnd();
+        try {
+            Class<?> worldSettings = Class.forName(
+                    "com.destroystokyo.paper.PaperWorldConfig");
+            Class<?> antiXray = Class.forName(
+                    "com.destroystokyo.paper.antixray.PaperAntiXrayConfig");
+            for (org.bukkit.World world : Bukkit.getWorlds()) {
+                Object config = worldSettings.getMethod("getInstance", org.bukkit.World.class)
+                        .invoke(null, world);
+                Object antiXrayConfig = antiXray.getMethod("getInstance",
+                        worldSettings).invoke(null, config);
+                antiXray.getMethod("setEngineMode", String.class)
+                        .invoke(antiXrayConfig, engineModeFor(policy));
+                antiXray.getMethod("setHiddenBlocks",
+                        java.util.List.class).invoke(antiXrayConfig, hiddenBlocksFor(policy));
+                antiXray.getMethod("setReplaceBlocks",
+                        java.util.List.class).invoke(antiXrayConfig, hiddenBlocksFor(policy));
+                antiXray.getMethod("setHeight", int.class)
+                        .invoke(antiXrayConfig, Math.max(0, Math.min(320, bandEnd - bandStart)));
+            }
+            getLogger().info("anti-xray obfuscation active: " + policy);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError exception) {
+            getLogger().warning("anti-xray obfuscation unavailable on this server build: "
+                    + exception);
+        }
+    }
+
+    private static String engineModeFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
+        return switch (policy) {
+            case HIDDEN_ORES, HIDDEN_ORES_AND_DEEPSLATE -> "ALL_ORES";
+            case OFF -> "NONE";
+        };
+    }
+
+    private static java.util.List<String> hiddenBlocksFor(dev.snuffac.core.world.ObfuscationPolicy policy) {
+        return switch (policy) {
+            case HIDDEN_ORES_AND_DEEPSLATE -> java.util.List.of(
+                    "ORE_COAL", "ORE_DEEPSLATE_COAL", "ORE_IRON", "ORE_DEEPSLATE_IRON",
+                    "ORE_COPPER", "ORE_DEEPSLATE_COPPER", "ORE_GOLD", "ORE_DEEPSLATE_GOLD",
+                    "ORE_REDSTONE", "ORE_DEEPSLATE_REDSTONE", "ORE_DIAMOND", "ORE_DEEPSLATE_DIAMOND",
+                    "ORE_LAPIS", "ORE_DEEPSLATE_LAPIS", "ORE_EMERALD", "ORE_DEEPSLATE_EMERALD",
+                    "DEEPSLATE_DIAMOND_ORE", "DEEPSLATE_EMERALD_ORE", "DEEPSLATE_REDSTONE_ORE",
+                    "DEEPSLATE_LAPIS_ORE", "DEEPSLATE_GOLD_ORE", "DEEPSLATE_IRON_ORE",
+                    "DEEPSLATE_COPPER_ORE", "DEEPSLATE_COAL_ORE");
+            default -> java.util.List.of(
+                    "ORE_DIAMOND", "ORE_DEEPSLATE_DIAMOND", "DEEPSLATE_DIAMOND_ORE",
+                    "ORE_EMERALD", "ORE_DEEPSLATE_EMERALD", "DEEPSLATE_EMERALD_ORE",
+                    "ORE_GOLD", "ORE_DEEPSLATE_GOLD", "DEEPSLATE_GOLD_ORE",
+                    "ORE_REDSTONE", "ORE_DEEPSLATE_REDSTONE", "DEEPSLATE_REDSTONE_ORE");
+        };
+    }
+
     private void refreshWorldCaches() {
         for (PlayerData data : new ArrayList<>(core.players())) {
             Object handle = data.platformPlayer();
@@ -276,6 +409,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     private void refreshPlayer(PlayerData data, Player player) {
+        resolveMiningProbes(data, player);
         Location location = player.getLocation();
         Vec3d position = toVec(location);
         data.movement().position(position);
@@ -622,7 +756,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         data.debugEnabled(value);
     }
 
-    SnuffCore core() {
+    SnuffCore coreInternal() {
         return core;
     }
 
@@ -674,7 +808,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
     }
 
-    PlayerData dataOf(UUID id) {
+    public PlayerData dataOf(UUID id) {
         return core.player(id);
     }
 

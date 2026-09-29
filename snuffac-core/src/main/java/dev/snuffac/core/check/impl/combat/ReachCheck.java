@@ -74,12 +74,20 @@ public final class ReachCheck implements Check {
         double reach;
         String basis;
 
+        boolean losBlocked = false;
         if (target != null && environment.known(attack.targetId())) {
+            var cache = player.worldCache();
+            Vec3d eye = ReachResolver.eyePosition(player.position(), movement.sneaking());
+            Vec3d targetPoint = target.hitbox()
+                    .expanded(ReachResolver.verticalPadding())
+                    .closestPoint(eye);
+            losBlocked = ReachResolver.segmentBlocked(eye, targetPoint, cache::blocksMovement);
+            state.lineOfSightBlocked = losBlocked;
             ReachResolver.ReachResult resolved = ReachResolver.resolve(
                     player.position(),
                     movement.sneaking(),
                     target,
-                    creativeMode(movement),
+                    environment.creative(),
                     inVehicle,
                     state.lineOfSightBlocked);
             reach = resolved.distance();
@@ -130,10 +138,6 @@ public final class ReachCheck implements Check {
         context.flag("reach of " + round(reach) + " exceeds " + round(maximum), evidence,
                 Math.min(excess * 14.0, 12.0));
         state.excessTicks = 0;
-    }
-
-    private static boolean creativeMode(dev.snuffac.core.player.MovementState movement) {
-        return false;
     }
 
     static Vec3d eyePosition(Vec3d position, float pitch) {

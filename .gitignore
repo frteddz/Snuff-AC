@@ -16,3 +16,7 @@ icon.png
 !docs/header.gif
 web/node_modules
 web/dist
+
+# private working documents, never committed
+V1.0.3-PLANS.txt
+V1.0.2-ROADMAP.private.txt

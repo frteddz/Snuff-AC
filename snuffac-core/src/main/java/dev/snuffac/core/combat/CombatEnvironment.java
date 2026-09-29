@@ -11,20 +11,26 @@ public final class CombatEnvironment {
     private final Map<Integer, EntitySnapshot> entities;
     private final int loadedRadius;
     private final int sentChunkRadius;
+    private final boolean creative;
+    private final boolean spectator;
 
     private CombatEnvironment(
             long timestampMillis,
             Map<Integer, EntitySnapshot> entities,
             int loadedRadius,
-            int sentChunkRadius) {
+            int sentChunkRadius,
+            boolean creative,
+            boolean spectator) {
         this.timestampMillis = timestampMillis;
         this.entities = entities;
         this.loadedRadius = loadedRadius;
         this.sentChunkRadius = sentChunkRadius;
+        this.creative = creative;
+        this.spectator = spectator;
     }
 
     public static CombatEnvironment empty() {
-        return new CombatEnvironment(0L, Map.of(), 0, 0);
+        return new CombatEnvironment(0L, Map.of(), 0, 0, false, false);
     }
 
     public static CombatEnvironment of(
@@ -33,7 +39,31 @@ public final class CombatEnvironment {
             int loadedRadius,
             int sentChunkRadius) {
         return new CombatEnvironment(
-                timestampMillis, Collections.unmodifiableMap(entities), loadedRadius, sentChunkRadius);
+                timestampMillis, Collections.unmodifiableMap(entities), loadedRadius, sentChunkRadius, false, false);
+    }
+
+    public static CombatEnvironment of(
+            long timestampMillis,
+            Map<Integer, EntitySnapshot> entities,
+            int loadedRadius,
+            int sentChunkRadius,
+            boolean creative,
+            boolean spectator) {
+        return new CombatEnvironment(
+                timestampMillis,
+                Collections.unmodifiableMap(entities),
+                loadedRadius,
+                sentChunkRadius,
+                creative,
+                spectator);
+    }
+
+    public boolean creative() {
+        return creative;
+    }
+
+    public boolean spectator() {
+        return spectator;
     }
 
     public long timestampMillis() {

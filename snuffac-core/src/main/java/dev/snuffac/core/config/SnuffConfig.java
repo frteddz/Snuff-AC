@@ -14,6 +14,9 @@ public final class SnuffConfig {
     private int alertCooldownMillis = 1500;
     private boolean logToFile = true;
     private String logDirectory = "plugins/SnuffAC/logs";
+    private int historyRetentionDays = 90;
+    private int historyPerPlayer = 200;
+    private boolean alertOnRejoinWithHistory = true;
     private String debugPermission = "snuffac.debug";
     private String bypassPermission = "snuffac.bypass";
     private String adminPermission = "snuffac.admin";
@@ -27,6 +30,8 @@ public final class SnuffConfig {
     private int antiXrayBandStart = -16;
     private int antiXrayBandEnd = 320;
     private boolean antiXrayHideContainers;
+    private dev.snuffac.core.world.ObfuscationPolicy antiXrayMode =
+            dev.snuffac.core.world.ObfuscationPolicy.HIDDEN_ORES;
     private boolean exemptBedrock = true;
     private boolean exemptLegacyProtocol = true;
     private boolean allowUnknownProtocols = true;
@@ -71,6 +76,9 @@ public final class SnuffConfig {
         alertCooldownMillis = source.getInt("general.alert-cooldown-ms", alertCooldownMillis);
         logToFile = source.getBoolean("general.log-to-file", logToFile);
         logDirectory = source.getString("general.log-directory", logDirectory);
+        historyRetentionDays = source.getInt("general.history-retention-days", historyRetentionDays);
+        historyPerPlayer = source.getInt("general.history-per-player", historyPerPlayer);
+        alertOnRejoinWithHistory = source.getBoolean("general.alert-on-rejoin-with-history", alertOnRejoinWithHistory);
         debugPermission = source.getString("general.permissions.debug", debugPermission);
         bypassPermission = source.getString("general.permissions.bypass", bypassPermission);
         adminPermission = source.getString("general.permissions.admin", adminPermission);
@@ -84,6 +92,15 @@ public final class SnuffConfig {
         antiXrayBandStart = source.getInt("anti-xray.band-start", antiXrayBandStart);
         antiXrayBandEnd = source.getInt("anti-xray.band-end", antiXrayBandEnd);
         antiXrayHideContainers = source.getBoolean("anti-xray.hide-containers", antiXrayHideContainers);
+        String mode = source.getString("anti-xray.mode", antiXrayMode.name());
+        if ("NONE".equalsIgnoreCase(mode.trim())) {
+            mode = "OFF";
+        }
+        try {
+            antiXrayMode = dev.snuffac.core.world.ObfuscationPolicy.valueOf(mode.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException invalid) {
+            antiXrayMode = dev.snuffac.core.world.ObfuscationPolicy.OFF;
+        }
         exemptBedrock = source.getBoolean("compatibility.exempt-bedrock", exemptBedrock);
         exemptLegacyProtocol = source.getBoolean("compatibility.exempt-legacy-protocol", exemptLegacyProtocol);
         allowUnknownProtocols = source.getBoolean("compatibility.allow-unknown-protocols", allowUnknownProtocols);
@@ -158,6 +175,18 @@ public final class SnuffConfig {
         return alertCooldownMillis;
     }
 
+    public boolean alertOnRejoinWithHistory() {
+        return alertOnRejoinWithHistory;
+    }
+
+    public int historyRetentionDays() {
+        return historyRetentionDays;
+    }
+
+    public int historyPerPlayer() {
+        return historyPerPlayer;
+    }
+
     public boolean logToFile() {
         return logToFile;
     }
@@ -196,6 +225,10 @@ public final class SnuffConfig {
 
     public double minConfidenceForPrevention() {
         return minConfidenceForPrevention;
+    }
+
+    public dev.snuffac.core.world.ObfuscationPolicy antiXrayMode() {
+        return antiXrayMode;
     }
 
     public int antiXrayBandStart() {

@@ -12,9 +12,53 @@ public final class MiningAnalyser {
 
     private final Deque<MiningEvidence> history = new ArrayDeque<>();
     private final int oreTierThreshold;
+    private final java.util.concurrent.ConcurrentLinkedQueue<Long> pendingProbes =
+            new java.util.concurrent.ConcurrentLinkedQueue<>();
+    private final java.util.concurrent.ConcurrentHashMap<Long, String> resolvedMaterials =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentLinkedQueue<Integer> probeResults =
+            new java.util.concurrent.ConcurrentLinkedQueue<>();
 
     public MiningAnalyser(int oreTierThreshold) {
         this.oreTierThreshold = Math.max(0, oreTierThreshold);
+    }
+
+    public void requestMaterial(long packedPosition) {
+        if (pendingProbes.size() < 64) {
+            pendingProbes.add(packedPosition);
+        }
+    }
+
+    public java.util.List<Long> drainProbes(int limit) {
+        java.util.List<Long> probes = new java.util.ArrayList<>(limit);
+        for (int i = 0; i < limit; i++) {
+            Long packed = pendingProbes.poll();
+            if (packed == null) {
+                break;
+            }
+            probes.add(packed);
+        }
+        return probes;
+    }
+
+    public void publishMaterial(long packedPosition, String material) {
+        if (material != null) {
+            resolvedMaterials.put(packedPosition, material);
+        }
+    }
+
+    public void publishProbeBatch(java.util.List<Long> probes, java.util.List<String> materials) {
+        int count = Math.min(probes.size(), materials.size());
+        for (int i = 0; i < count; i++) {
+            String material = materials.get(i);
+            if (material != null) {
+                resolvedMaterials.put(probes.get(i), material);
+            }
+        }
+    }
+
+    public String materialAt(long packedPosition) {
+        return resolvedMaterials.get(packedPosition);
     }
 
     public void record(MiningEvidence evidence) {
@@ -75,6 +119,8 @@ public final class MiningAnalyser {
     }
 
     public void clear() {
+        pendingProbes.clear();
+        resolvedMaterials.clear();
         history.clear();
     }
 

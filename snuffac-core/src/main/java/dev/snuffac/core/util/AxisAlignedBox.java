@@ -60,6 +60,17 @@ public final class AxisAlignedBox {
                 && maxZ >= other.minZ && minZ <= other.maxZ;
     }
 
+    public Vec3d closestPoint(Vec3d point) {
+        return new Vec3d(
+                clamp(point.x(), minX(), maxX()),
+                clamp(point.y(), minY(), maxY()),
+                clamp(point.z(), minZ(), maxZ()));
+    }
+
+    private static double clamp(double value, double low, double high) {
+        return Math.max(low, Math.min(high, value));
+    }
+
     public Vec3d center() {
         return new Vec3d((minX + maxX) * 0.5, (minY + maxY) * 0.5, (minZ + maxZ) * 0.5);
     }

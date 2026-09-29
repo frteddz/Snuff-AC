@@ -52,7 +52,10 @@ import dev.snuffac.core.player.PlayerData;
 import dev.snuffac.core.server.ServerHealth;
 import dev.snuffac.core.tolerance.ToleranceModel;
 import dev.snuffac.core.violation.CheckState;
+import dev.snuffac.api.Vec3d;
+import dev.snuffac.core.config.CheckConfig;
 import dev.snuffac.core.violation.ViolationHandler;
+import dev.snuffac.core.violation.ViolationHistoryStore;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,6 +86,9 @@ public final class SnuffCore {
     private volatile ViolationHandler violations;
     private volatile AlertService alerts;
     private volatile FileViolationLogger fileLogger;
+    private volatile ViolationHistoryStore historyStore;
+    private volatile boolean setbackEnabled;
+    private volatile java.util.concurrent.ExecutorService historyWriter;
     private volatile boolean running;
     private volatile long tickCounter;
 
@@ -143,7 +149,17 @@ public final class SnuffCore {
         this.registry.loadConfigurations(source);
         this.fileLogger = config.logToFile() ? new FileViolationLogger(logDirectory, 30) : null;
         this.alerts = new AlertService(config, messenger, permissions, logger, fileLogger);
+        this.historyWriter = java.util.concurrent.Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "SnuffAC-History");
+            thread.setDaemon(true);
+            return thread;
+        });
+        this.historyStore = new ViolationHistoryStore(
+                logDirectory.resolve("history"), config.historyRetentionDays(), config.historyPerPlayer(), historyWriter, platform);
+        this.setbackEnabled = true;
         this.violations = new ViolationHandler(config, server, alerts, logger, platform);
+        this.violations.historyStore(historyStore);
+        this.violations.enforcementChannel(this::routeEnforcement);
         this.violations.addListener(this::forwardToApi);
         this.dispatcher = new CheckDispatcher(registry, config, server, violations, logger);
         startCheckThread();
@@ -204,6 +220,36 @@ public final class SnuffCore {
         return processed;
     }
 
+    private void routeEnforcement(PlayerData player, CheckConfig checkConfig, String checkKey,
+            String detail, double buffer, double level) {
+        Vec3d target = player.movement().lastPosition();
+        double confidence = player.confidence().current();
+        boolean wantsSetback = checkConfig.setbacksEnabled()
+                && setbackEnabled
+                && level >= checkConfig.setbackThreshold();
+        if (wantsSetback) {
+            applyEnforcement(EnforcementRequest.setback(
+                    player.id(), checkKey, detail, target, confidence));
+            return;
+        }
+        applyEnforcement(EnforcementRequest.flagOnly(player.id(), checkKey, detail));
+    }
+
+    public java.util.Set<UUID> knownPlayerIds() {
+        return java.util.Collections.unmodifiableSet(players.keySet());
+    }
+
+    public ViolationHistoryStore historyStore() {
+        return historyStore;
+    }
+
+    public void loadHistory(UUID playerId, String playerName) {
+        ViolationHistoryStore store = historyStore;
+        if (store != null) {
+            store.load(playerId, playerName);
+        }
+    }
+
     public void enqueue(UUID playerId, SnuffPacket packet) {
         if (running) {
             inbound.offer(new PacketTask(playerId, packet));
@@ -219,6 +265,7 @@ public final class SnuffCore {
             }
             try {
                 player.movement().tolerance().advanceTick(current);
+                player.network().tickCounter(current);
                 player.tickCounters(System.currentTimeMillis());
                 CheckDispatcher active = dispatcher;
                 if (active != null) {
@@ -372,6 +419,12 @@ public final class SnuffCore {
         running = false;
         if (checkThread != null) {
             checkThread.interrupt();
+        }
+        if (historyStore != null) {
+            historyStore.close();
+        }
+        if (historyWriter != null) {
+            historyWriter.shutdown();
         }
         if (fileLogger != null) {
             fileLogger.close();
