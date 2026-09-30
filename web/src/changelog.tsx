@@ -8,6 +8,11 @@ import { ArrowUpRight, Menu, X } from 'lucide-react'
 import { releases } from './releases'
 import './styles.css'
 
+// github pages serves the site from a subpath, and vite only rewrites urls it
+// can see in html and css, so anything built at runtime needs the base here
+const base = import.meta.env.BASE_URL
+const asset = (path: string) => `${base}${path.replace(/^\//, '')}`
+
 const repo = 'https://github.com/frteddz/Snuff-AC'
 const credits = `${repo}/blob/main/credits.md`
 
@@ -137,11 +142,11 @@ function Changelog() {
       <nav className="nav shell" aria-label="Main navigation">
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
-          <a href="/index.html" onClick={closeMenu}>Home</a>
-          <a href="/index.html#method" onClick={closeMenu}>Method</a>
-          <a href="/index.html#checks" onClick={closeMenu}>Checks</a>
-          <a href="/index.html#architecture" onClick={closeMenu}>Architecture</a>
-          <a className="nav-github" href={repo} target="_blank" rel="noreferrer" onClick={closeMenu}><img className="social-icon" src="/social/github_icon.png" alt="" /> GitHub <ArrowUpRight size={14} /></a>
+          <a href={`${base}index.html`} onClick={closeMenu}>Home</a>
+          <a href={`${base}index.html#method`} onClick={closeMenu}>Method</a>
+          <a href={`${base}index.html#checks`} onClick={closeMenu}>Checks</a>
+          <a href={`${base}index.html#architecture`} onClick={closeMenu}>Architecture</a>
+          <a className="nav-github" href={repo} target="_blank" rel="noreferrer" onClick={closeMenu}><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> GitHub <ArrowUpRight size={14} /></a>
         </div>
       </nav>
     </header>
@@ -176,7 +181,7 @@ function Changelog() {
       </div>
     </main>
 
-    <footer className="footer shell"><div><a href="/index.html">Home</a><a href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src="/social/github_icon.png" alt="" /> GitHub</a><a href={credits} target="_blank" rel="noreferrer">Credits</a><a href={`${repo}/blob/main/LICENSE`} target="_blank" rel="noreferrer">GPL-3.0</a></div></footer>
+    <footer className="footer shell"><div><a href={`${base}index.html`}>Home</a><a href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> GitHub</a><a href={credits} target="_blank" rel="noreferrer">Credits</a><a href={`${repo}/blob/main/LICENSE`} target="_blank" rel="noreferrer">GPL-3.0</a></div></footer>
   </div>
 }
 

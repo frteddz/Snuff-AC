@@ -6,6 +6,11 @@ import { releases } from './releases'
 const latest = releases[releases.length - 1]
 import './styles.css'
 
+// github pages serves the site from a subpath, and vite only rewrites urls it
+// can see in html and css, so anything built at runtime needs the base here
+const base = import.meta.env.BASE_URL
+const asset = (path: string) => `${base}${path.replace(/^\//, '')}`
+
 const repo = 'https://github.com/frteddz/Snuff-AC'
 const docs = `${repo}/blob/main/docs/architecture.md`
 const credits = `${repo}/blob/main/credits.md`
@@ -51,11 +56,11 @@ const checks: Check[] = [
 const tolerance = ['Knockback', 'Pistons', 'Slime', 'Ice', 'Item use', 'Vehicles', 'Teleports', 'Latency', 'Low TPS']
 
 function PixelIcon({ name, alt = '' }: { name: string; alt?: string }) {
-  return <img className="pixel-icon" src={`/assets/${name}.svg`} alt={alt} aria-hidden={!alt} />
+  return <img className="pixel-icon" src={asset(`assets/${name}.svg`)} alt={alt} aria-hidden={!alt} />
 }
 
 function Logo() {
-  return <a className="logo" href="#top" aria-label="Snuff AC home"><img src="/fav-icon.png" alt="" /><span>snuff <b>ac</b></span></a>
+  return <a className="logo" href="#top" aria-label="Snuff AC home"><img src={asset('fav-icon.png')} alt="" /><span>snuff <b>ac</b></span></a>
 }
 
 function SectionLabel({ index, children }: { index: string; children: string }) {
@@ -70,7 +75,14 @@ function App() {
   const visibleChecks = useMemo(() => activeCategory === 'All' ? checks : checks.filter((check) => check.category === activeCategory), [activeCategory])
 
   useEffect(() => {
-    if (heroVideo.current) heroVideo.current.playbackRate = 1
+    if (heroVideo.current) {
+      // the video is marked preload="none" so it costs nothing until here,
+      // and it is skipped entirely for anyone who asked for less motion
+      heroVideo.current.playbackRate = 1
+      if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+        heroVideo.current.load()
+      }
+    }
     window.scrollTo(0, 0)
     const sections = Array.from(document.querySelectorAll('main section'))
     sections.forEach((section) => section.classList.add('scroll-reveal'))
@@ -88,24 +100,41 @@ function App() {
       <nav className="nav shell" aria-label="Main navigation">
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
-          <a href="/changelog.html" onClick={closeMenu}>Changelog</a>
-          <a href="#method" onClick={closeMenu}>Method</a>
-          <a href="#architecture" onClick={closeMenu}>Architecture</a>
-          <a href="#checks" onClick={closeMenu}>Checks</a>
-          <a href="#research" onClick={closeMenu}>Research</a>
-          <a className="nav-github" href={repo} target="_blank" rel="noreferrer" onClick={closeMenu}><img className="social-icon" src="/social/github_icon.png" alt="" /> GitHub <ArrowUpRight size={14} /></a>
+          <a href={`${base}changelog.html`} onClick={closeMenu}>Changelog</a>
+          <a href={`${base}index.html#method`} onClick={closeMenu}>Method</a>
+          <a href={`${base}index.html#architecture`} onClick={closeMenu}>Architecture</a>
+          <a href={`${base}index.html#checks`} onClick={closeMenu}>Checks</a>
+          <a href={`${base}index.html#research`} onClick={closeMenu}>Research</a>
+          <a className="nav-github" href={repo} target="_blank" rel="noreferrer" onClick={closeMenu}><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> GitHub <ArrowUpRight size={14} /></a>
         </div>
       </nav>
     </header>
 
     <main>
       <section className="hero">
-        <video ref={heroVideo} className="hero-background" src="/hero-background.mp4" autoPlay muted loop playsInline aria-hidden="true" />
+        <img className="hero-wordmark" src={asset('snuff.png')} alt="" aria-hidden="true" />
+        <video
+          ref={heroVideo}
+          className="hero-background"
+          src={asset('hero-background.mp4')}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          poster={asset('og-image.png')}
+          aria-hidden="true"
+        />
         <div className="shell">
         <div className="hero-copy">
-          <h1><img className="hero-wordmark" src="/snuff.png" alt="Snuff" /><br /><em>Evidence-based detection.</em></h1>
-          <p className="hero-lede">An open-source Minecraft Java Edition anticheat built around prediction, evidence, and server-side authority.</p>
-          <div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src="/social/github_icon.png" alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src="/social/kofi_icon.png" alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Read the architecture</a></div>
+          <h1>Snuff AC, an open-source anticheat for Minecraft servers</h1>
+          <p className="hero-lede">
+            Snuff AC is a free, open-source anticheat for Minecraft Java Edition. It runs 32
+            movement, combat, world and packet checks on Paper and Purpur, and it works by
+            predicting the movement and measuring the deviation rather than reacting to a
+            single anomaly.
+          </p>
+          <div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Read the architecture</a></div>
         </div>
         <div className="hero-visual" aria-hidden="true" />
         </div>
@@ -154,16 +183,16 @@ function App() {
 ['Entity concealment, tracers and sound fuzzing','Written but not visually verified. These need a screen and an ear, not a test assertion.'],
 ['Anti-Xray on other server forks','Driven through private Paper fields, so it is confirmed on Paper 1.21.11 build 132 and unknown elsewhere.']].map(([title, copy]) => <div className="limit-row" key={title}><span>NOT DETECTABLE</span><b>{title}</b><p>{copy}</p></div>)}</div></section>
 
-      <section className="section shell whatsnew-section"><SectionLabel index="13">Latest release</SectionLabel><div className="section-heading"><h2>What changed in<br /><em>{latest.version}.</em></h2><p>{latest.items[0]?.copy ?? ''}</p></div><div className="whatsnew-list">{latest.items.map((item) => <div className="whatsnew-row" key={item.title}><b>{item.title}</b><p>{item.copy}</p></div>)}</div><div className="whatsnew-foot"><a className="button button-primary" href="/changelog.html">All {releases.length} releases <ArrowUpRight size={15} /></a></div></section>
+      <section className="section shell whatsnew-section"><SectionLabel index="13">Latest release</SectionLabel><div className="section-heading"><h2>What changed in<br /><em>{latest.version}.</em></h2><p>{latest.items[0]?.copy ?? ''}</p></div><div className="whatsnew-list">{latest.items.map((item) => <div className="whatsnew-row" key={item.title}><b>{item.title}</b><p>{item.copy}</p></div>)}</div><div className="whatsnew-foot"><a className="button button-primary" href={`${base}changelog.html`}>All {releases.length} releases <ArrowUpRight size={15} /></a></div></section>
 
 
       <section className="section shell roadmap"><div className="roadmap-head"><div><SectionLabel index="14">Development status</SectionLabel><h2>Useful now.<br /><em>Honest about what’s next.</em></h2></div><div className="release-stamp"><span>DEVELOPMENT RELEASE</span><b>{releases[releases.length - 1].version}</b><small>not recommended for production public servers</small></div></div><div className="roadmap-list">{['Case notes and second opinions', 'Acknowledged velocity and transaction tracking', 'Collision and skipped tick prediction', 'Database backends and staff audit log', 'Folia compatibility decision'].map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, '0')}</span><p>{item}</p><small>{index === 4 ? 'future enforcement' : 'planned work'}</small></div>)}</div><div className="roadmap-note"><CircleAlert size={17} /><p>The warning ladder is the one automatic action, and it is off until an owner turns it on after tuning. Every other punishment in this release is a staff decision.</p></div></section>
 
-      <section className="cta-section"><div className="shell cta"><div className="cta-mark"><img src="/fav-icon.png" alt="" /></div><h2>Build your server<br /><em>on evidence.</em></h2><p>Open source means you can inspect how it works.</p><div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src="/social/github_icon.png" alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src="/social/kofi_icon.png" alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Documentation</a></div></div></section>
+      <section className="cta-section"><div className="shell cta"><div className="cta-mark"><img src={asset('fav-icon.png')} alt="" /></div><h2>Build your server<br /><em>on evidence.</em></h2><p>Open source means you can inspect how it works.</p><div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Documentation</a></div></div></section>
     </main>
     <section className="section shell shaders-section"><SectionLabel index="15">Shaders</SectionLabel><div className="section-heading"><h2>Every frame on<br /><em>this page.</em></h2><p>All background imagery is rendered Minecraft footage using community shader packs, credited below. Snuff AC itself is not a resource pack and does not ship any of these.</p></div><div className="shader-list">{[['Bliss Shaders', 'https://modrinth.com/shader/bliss-shader'], ['Arc', 'https://modrinth.com/shader/arc-shader'], ['Solas Shader', 'https://modrinth.com/shader/solas-shader'], ['Noble Shaders', 'https://modrinth.com/shader/noble'], ['Super Duper Vanilla', 'https://modrinth.com/shader/super-duper-vanilla']].map(([name, href]) => <a key={name} href={href} target="_blank" rel="noreferrer"><b>{name}</b><ArrowUpRight size={14} /></a>)}</div></section>
 
-    <footer className="footer shell"><div><a href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src="/social/github_icon.png" alt="" /> GitHub</a><a href={credits} target="_blank" rel="noreferrer">Credits</a><a href="/changelog.html">Changelog</a><a href={`${repo}/blob/main/LICENSE`} target="_blank" rel="noreferrer">GPL-3.0</a></div></footer>
+    <footer className="footer shell"><div><a href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> GitHub</a><a href={credits} target="_blank" rel="noreferrer">Credits</a><a href={`${base}changelog.html`}>Changelog</a><a href={`${repo}/blob/main/LICENSE`} target="_blank" rel="noreferrer">GPL-3.0</a></div></footer>
   </div>
 }
 

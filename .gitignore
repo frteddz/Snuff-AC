@@ -33,3 +33,6 @@ devtools/bot/last-*.txt
 devtools/bot/*.json
 devtools/bot/suite.txt
 devtools/bot/run-*.log
+
+# prerender scratch bundles
+web/node_modules/

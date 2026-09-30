@@ -3,14 +3,160 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Snuff AC | Open-Source Minecraft Anticheat for Paper 1.21.11</title>
+    <meta
+      name="description"
+      content="Snuff AC is a free open-source anticheat for Minecraft Java Edition servers. 32 movement, combat, world and packet checks on Paper and Purpur, evidence based detection, and an honest list of what it cannot do."
+    />
+    <link rel="canonical" href="https://snuff.ac/" />
+    <meta name="author" content="frteddz" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#0a0a09" />
-    <meta name="description" content="Snuff AC is an independent, open-source Minecraft Java Edition anticheat built around prediction, evidence, and server-side authority." />
-    <meta property="og:title" content="Snuff AC | Evidence-based Minecraft anticheat" />
-    <meta property="og:description" content="Predict the movement. Measure the deviation. Accumulate the evidence." />
+
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://github.com/frteddz/Snuff-AC" />
+    <meta property="og:site_name" content="Snuff AC" />
+    <meta property="og:locale" content="en" />
+    <meta property="og:title" content="Snuff AC | Open-Source Minecraft Anticheat" />
+    <meta
+      property="og:description"
+      content="A free open-source anticheat for Minecraft Java Edition. 32 checks, evidence based detection, and an honest list of what it cannot do."
+    />
+    <meta property="og:url" content="https://snuff.ac/" />
+    <meta property="og:image" content="https://snuff.ac/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Snuff AC, an open source Minecraft anticheat" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Snuff AC | Open-Source Minecraft Anticheat" />
+    <meta
+      name="twitter:description"
+      content="A free open-source anticheat for Minecraft Java Edition. 32 checks, evidence based detection, and an honest list of what it cannot do."
+    />
+    <meta name="twitter:image" content="https://snuff.ac/og-image.png" />
+
     <link rel="icon" type="image/png" href="/fav-icon.png" />
-    <title>Snuff AC</title>
+    <link rel="apple-touch-icon" href="/fav-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    <link rel="alternate" type="application/rdf+xml" href="/feed.xml" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://snuff.ac/#website",
+            "url": "https://snuff.ac/",
+            "name": "Snuff AC",
+            "alternateName": "Snuff",
+            "inLanguage": "en",
+            "description": "Snuff AC is a free open-source anticheat for Minecraft Java Edition servers, built around movement prediction, accumulating evidence, and server-side authority.",
+            "publisher": { "@id": "https://snuff.ac/#project" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://snuff.ac/#project",
+            "name": "Snuff AC",
+            "alternateName": "Snuff anticheat",
+            "description": "An independent, open-source anticheat for Minecraft Java Edition servers. It groups 32 focused checks across movement, combat, world interaction and packet behaviour, records evidence rather than reacting to a single anomaly, and states plainly which cheats it cannot detect.",
+            "url": "https://snuff.ac/",
+            "applicationCategory": "SecurityApplication",
+            "applicationSubCategory": "Minecraft server anti-cheat",
+            "operatingSystem": "Java 21, Linux, Windows",
+            "softwareVersion": "1.1.5",
+            "programmingLanguage": "Java",
+            "runtimePlatform": "Java 21",
+            "license": "https://www.gnu.org/licenses/gpl-3.0",
+            "downloadUrl": "https://github.com/frteddz/Snuff-AC/releases",
+            "installUrl": "https://github.com/frteddz/Snuff-AC/releases",
+            "softwareHelp": "https://github.com/frteddz/Snuff-AC/blob/main/README.md",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
+            "featureList": [
+              "32 anti-cheat checks covering movement, combat, world interaction and packet behaviour",
+              "Movement prediction with 36 discretised input candidates",
+              "Evidence buffers with proportional confidence instead of instant punishment",
+              "Setback, attack cancellation and placement prevention",
+              "Anti-X-Ray ore obfuscation through the server engine",
+              "Player reports with categories and a staff handling view",
+              "Owner editable GUI files and configuration",
+              "Paper and Purpur support, with limited Velocity support"
+            ],
+            "keywords": "minecraft anticheat, anticheat plugin, paper anticheat, purpur anticheat, open source anticheat, free minecraft anticheat, snuff ac, snuff, movement anticheat, hack detection, server anti-cheat, java edition anticheat",
+            "audience": {
+              "@type": "Audience",
+              "audienceType": "Minecraft server owners and administrators"
+            },
+            "maintainer": { "@type": "Person", "name": "frteddz", "url": "https://github.com/frteddz" },
+            "codeRepository": "https://github.com/frteddz/Snuff-AC",
+            "sameAs": ["https://github.com/frteddz/Snuff-AC", "https://modrinth.com/plugin/snuff-ac"]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://snuff.ac/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is Snuff AC free?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Snuff AC is free and open source under the GPL-3.0 licence, and there is no premium tier or paid feature."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What Minecraft server software does Snuff AC support?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Paper 1.21.11 and Purpur are fully supported and tested. Velocity 3.4.0 is supported for packet and network timing checks only, because a proxy has no world or player position data."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How many checks does Snuff AC run?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "32 checks across movement, combat, world interaction and packet behaviour. All are enabled by default, and every one can be tuned or disabled from checks.yml."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Snuff AC ban players automatically?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Every punishment is a staff decision. The only automatic action is an optional warning ladder that is disabled by default and can be set to warn without ever banning."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can Snuff AC detect X-Ray or ESP cheats?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No, because those are render time changes on the client and nothing about them reaches the server. Snuff AC prevents them instead, by rewriting valuable ores into decoy blocks in the chunk data the server actually sends, and by hiding entities with no legal line of sight."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Will Snuff AC flag legitimate players?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "The project treats false positives as the worst kind of bug and names its tolerance sources explicitly: external pushes, pistons, slime, ice, item use slowdown, vehicles, teleports, latency and low server tick rate. Every check has an applicability gate so it skips itself when its assumptions do not hold."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

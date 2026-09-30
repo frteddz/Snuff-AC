@@ -1,0 +1,12 @@
+{
+  "name": "Snuff AC",
+  "short_name": "Snuff AC",
+  "description": "An independent, open-source anticheat for Minecraft Java Edition servers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a09",
+  "theme_color": "#0a0a09",
+  "icons": [
+    { "src": "/fav-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
