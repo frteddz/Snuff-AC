@@ -6,6 +6,8 @@ on:
     paths:
       - 'web/**'
       - 'sync-site-changelog.py'
+      - 'check-description.py'
+      - 'description-modrinth-curseforge.md'
       - 'CHANGELOG.md'
       - 'gradle.properties'
       - '.github/workflows/pages.yml'
@@ -32,8 +34,10 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: generate release data
-        run: python3 sync-site-changelog.py
+      - name: check the release data and the description agree
+        run: |
+          python3 sync-site-changelog.py
+          python3 check-description.py
 
       - name: install
         working-directory: web

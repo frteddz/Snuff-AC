@@ -1,142 +1,219 @@
 # Snuff AC
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/majdsafi)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC?tab=readme-ov-file)
-[![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](https://github.com/frteddz/Snuff-AC?tab=GPL-3.0-1-ov-file)
-[![Stars](https://img.shields.io/badge/GitHub-Stars-yellow?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/stargazers)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/A1A3259HI2)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
-[![Issues](https://img.shields.io/badge/GitHub-Report_Bug-2da44e?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/issues)
+[![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Modern, lightweight Minecraft anti-cheat designed for high performance and low server overhead.
+Free, open-source anticheat for Minecraft Java Edition servers. 32 checks across
+movement, combat, world interaction and packet behaviour, on Paper and Purpur,
+licensed GPL-3.0 with no premium tier.
 
-## What is Snuff AC?
+Current release: **1.1.5-dev**. Requires **Java 21**.
 
-Snuff AC is a server-side anti-cheat built from the ground up to prevent packet-level exploits, modern cheat clients, and combat cheats without ruining server performance.
+> Every release on this page is a pre-release. Nothing here is recommended for a
+> production public server yet, and the full release history is on
+> [the changelog page](https://frteddz.github.io/Snuff-AC/changelog.html).
 
-Instead of running heavy checks on the main tick thread like older solutions, Snuff AC handles packet tracking asynchronously. This keeps your server running at 20 TPS even when handling high player counts and heavy combat.
+## What Snuff AC is
 
-Whether you run a competitive PvP server, a Survival network, or an Anarchy instance, Snuff AC stops cheaters without causing TPS drops or rubberbanding legitimate players.
+A server-side anticheat built around one idea: a single anomaly is not evidence.
+Each check measures a deviation, the deviation is added to a per-player buffer,
+the buffer decays while the player is clean, and only accumulated confidence
+crosses a threshold. No single check punishes on its own, and the responses are
+separate stages, so flagging, alerting, logging, setbacks and configured actions
+never fire together by accident.
 
-## Why Snuff AC?
+Packet handling is asynchronous. A dedicated thread drains the queue and runs
+detection, the main thread only refreshes immutable world data and applies
+setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-Most public anti-cheats struggle with two main problems: lag and false positives. Snuff AC focuses on solving both.
+## The 32 checks
 
-* **Asynchronous Check Loop:** Calculations run off the main server thread so heavy physics simulations never lag the main loop.
-* **Packet Level Tracking:** Listens to raw network packets instead of relying solely on Bukkit events, catching closet cheaters and reach abuses that normal plugins miss.
-* **Lag Compensation:** Handles high-latency players, tick desyncs, and ping spikes gracefully to minimize false flags.
-* **Prevention, not just reports:** Illegal attacks and block placements are cancelled before the server acts on them, rather than logged after the fact.
-* **Evidence before punishment:** Violation levels, per-check buffers, and confidence accumulation. A single check never punishes on its own.
-* **Fully Configurable:** Modular checks allow you to tweak thresholds, alert formats, ping limits, and punishment actions in `config.yml`.
-* **Staff Tools:** Real-time notifications, player logs, player reports, and interactive menus for moderators.
+All 32 are enabled by default. Five are **structural** (a packet that should be
+impossible) and 27 are **derived** (evidence accumulated from observation).
 
-## Supported Checks
+### Movement (13)
 
-### Combat
-* **KillAura:** Angle verification, heuristics, multi-target switching, mouse constant analysis
-* **Reach:** Eye-to-hitbox measurement with ping aware tolerance, and the attack is cancelled when it is out of range
-* **AttackAngle:** The look vector is cast against the true vanilla hitbox, catching expanded hitbox cheats
-* **AutoClicker:** Frequency analysis, consistency checks, CPS spikes
-* **Velocity:** Horizontal and vertical modification checks
-* **Criticals & AimAssist:** Aim lock dynamics and packet timing
+* **Fly** — unsupported flight from the server's own block view
+* **Speed** — prediction based, with 36 discretised input candidates and the best fit kept
+* **NoFall** — fall damage suppressed by claiming ground contact while airborne
+* **AirMovement** — airborne acceleration against the predicted state
+* **GroundSpoof** *(structural)* — claimed ground with no supporting block
+* **GroundFlag** — sustained ground contact contradicting the server block view, the signature of air walk and no-fall spoofing
+* **Step** — vertical gain beyond the modelled step height
+* **HighJump** — launch velocity beyond what the jump strength attribute permits
+* **LongJump** — horizontal distance inconsistent with current momentum
+* **ImpossibleMovement** *(structural)* — sequences the predictor cannot reconcile
+* **Drift** — sustained per-tick offset between prediction and reported position
+* **PitchLock** — pitch pinned to an exact constant, used by placement and glide modules
+* **Velocity** — response to server-applied knockback, with damped displacement predicted
 
-### Movement
-* **Fly:** Motion, hover, and creative fly checks
-* **Speed:** Ground, air, and friction logic
-* **HighJump / LongJump / Step:** Vertical gain beyond what the jump allows
-* **NoFall:** Fall damage reset by claiming ground contact while airborne
-* **GroundSpoof / GroundFlag:** Claiming ground with no supporting block
+### Combat (9)
 
-### World
-* **FastPlace / FastBreak:** Interaction frequency checks
-* **Scaffold:** Pitch and yaw placement dynamics
-* **Nuker:** Raw dig packet rate rather than distinct block counting
-* **MiningBeyondView:** Digging a block further away than the view reaches
+* **Reach** — eye-to-hitbox measurement with ping-aware tolerance; the attack is cancelled when out of range
+* **AttackAngle** — the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
+* **AutoClicker** — attack timing patterns, frequency analysis and consistency
+* **Aim** — rotation behaviour around attacks
+* **KillAura** — target sequencing, rapid multi-target switching, and target switching between attacks
+* **ImpossibleAttack** *(structural)* — attack sequences that do not fit observable state
+* **Critical** — forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack
+* **RotationSnapBack** — a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce
+* **InvalidAttackState** *(structural)* — attacks that are invalid for the current player state
 
-### Packets
-* **BadPackets:** Structurally impossible packets only
-* **PacketSpam / PacketRate:** Flood and timer manipulation, measured only while the player is actually moving
-* **Timer:** Game tick speed alteration
-* **ExtraPackets:** Position packets beyond what the client should send
+### World (5)
 
-## Visual Cheats
+* **FastBreak** — break timing against material and tool context
+* **FastPlace** — placement and interaction rate
+* **Scaffold** — placement behaviour and the movement context around it
+* **Nuker** — raw dig packet rate rather than distinct block counting
+* **MiningBeyondView** — targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
-Render-time cheats cannot be detected, because nothing tells the server that a player looked through a wall. They can be **prevented**, by withholding data the client is not entitled to:
+### Packet (5)
 
-* **X-Ray and ore ESP:** valuable ores are rewritten into decoy blocks in the chunk data that is actually sent to the client. This is enforced through the server engine, verified on Paper 1.21.11 build 132, and applies to overworld, nether, and end
-* **Player ESP and tracers:** players and mobs with no legal line of sight are hidden from the client, and are revealed a few blocks early so nothing pops in
-* **Sound radar:** sounds carrying a position are nudged when the emitter is behind cover
+* **BadPackets** *(structural)* — structurally impossible packets only
+* **PacketSpam** — flood, measured rather than assumed
+* **ExtraPackets** — position packets beyond what a client should send
+* **PacketRate** — movement packet rate, evaluated only while the player is actually moving
+* **Timer** — game tick speed alteration, with a movement gate and a window floor
 
-Fullbright remains impossible to affect, because it never leaves the client.
+## Prevention, not just reporting
 
-## Commands and Permissions
+23 of the 32 checks can act on the packet **before** the server acts on it.
+Detection that only tells you afterwards is a report.
 
-### Commands
-* `/snuff` - Open the staff menu
-* `/snuff version` - Version, platform and check count
-* `/snuff report <player>` - Report a player, pick from seven categories
-* `/snuff reports` - Open the report admin view, claim and resolve
-* `/snuff violations [player]` - Browse flagged players, with their last known location
-* `/snuff tp <player>` - Teleport to a flagged player, or their last known position
-* `/snuff bypass <player> [on|off]` - Grant or revoke the anticheat bypass
-* `/snuff clearflags <player>` - Clear a player's violation history
-* `/snuff clearwarns <player>` - Reset the warning ladder count
-* `/snuff clearpunishments <player>` - Clear every active punishment
-* `/snuff reload` - Reload plugin configurations and check settings
+* Setback to the last accepted position
+* Attack cancellation through the damage event
+* Placement and break cancellation
+* Position resynchronisation when the client drifts from authority
 
-Destructive commands ask for confirmation first, and log who ran them.
+Every action is gated behind accumulated confidence and can be disabled globally
+without suppressing flagging or evidence. Prevention is on by default; the
+optional warning ladder is off and is a staff decision to enable.
 
-### Permissions
+## Visual cheats
 
-Available to every player by default:
+Render-time cheats cannot be detected, because nothing about them reaches the
+server. They can be prevented, by withholding data the client is not entitled to.
 
-* `snuffac.use` - run the command at all
-* `snuffac.version` - view the version
-* `snuffac.report` - file a report
-* `snuffac.report.status` - check your own report status
+* **X-Ray and ore ESP** — valuable ores are rewritten into decoy blocks in the chunk data that is actually sent. Enforced through the server engine, and verified on Paper 1.21.11 build 132 across the overworld, nether and end.
+* **Player ESP and tracers** — players and mobs with no legal line of sight are hidden from the client, and revealed a few blocks early so nothing pops in.
+* **Sound radar** — sounds carrying a position are nudged when the emitter is behind cover.
 
-Staff tier, default op:
+**Not implemented: storage ESP.** Container contents are sent to the client
+exactly as vanilla sends them. Suppressing them means rewriting block entity
+payloads on the wire, which is a considerably larger job than the ore rewrite and
+has not been done. Do not buy this expecting a working storage viewer.
 
-* `snuffac.alerts` - receive staff notifications
-* `snuffac.menu` - open the staff menus
-* `snuffac.debug` - live debug output
-* `snuffac.sounds` - menu and command sounds
-* `snuffac.violations` - browse flagged players
-* `snuffac.teleport` - teleport to a flagged player
-* `snuffac.bypass.give` - grant the bypass to another player
-* `snuffac.clear.flags`, `snuffac.clear.warns`, `snuffac.clear.punishments` - destructive actions
-* `snuffac.escalation.manage` - configure the automatic warning ladder
+**Unverified:** entity concealment, tracers and sound fuzzing are written but have
+not been seen working. Ore obfuscation is verified because chunk data can be
+inspected directly.
 
-Punishments are split per action (`snuffac.punish.ban`, `tempban`, `kick`, `mute`, `warn`, `unban`) with `snuffac.punish.maxduration.*` capping what junior staff may issue.
+**Impossible:** fullbright and other purely local rendering changes. Nothing
+leaves the client, so nothing arrives at the server.
 
-All of these work with LuckPerms and any other permission manager, since they are plain node strings. A node that is not declared in `plugin.yml` cannot be granted, so every node the plugin checks is declared.
+## Commands
+
+Available to players:
+
+* `/snuff report <player>` — report a player, pick a category, add a description
+* `/snuff version` — version, platform and check count
+
+Staff:
+
+* `/snuff menu` — open the staff menu
+* `/snuff reports` — report admin view, with claim and resolve
+* `/snuff violations [player]` — flagged players, with their last known location
+* `/snuff tp <player>` — teleport to a flagged player or their last known position
+* `/snuff bypass <player> [on|off]` — grant or revoke the anticheat bypass
+* `/snuff clearflags <player> confirm` — clear a violation history
+* `/snuff clearwarns <player> confirm` — reset the warning ladder count
+* `/snuff clearpunishments <player> confirm` — clear every active punishment
+* `/snuff punishments [player]` — what someone is currently serving
+* `/snuff settings` — retention, prevention and the warning ladder
+* `/snuff reload` — re-read config, checks, GUI files and report options
+* `/snuff toggle <check>` — enable or disable a check
+* `/snuff checks`, `/snuff info`, `/snuff stats`, `/snuff profile`, `/snuff alerts`, `/snuff debug`, `/snuff sounds`
+
+Punishments: `ban`, `tempban`, `ipban`, `tempipban`, `timeout`, `mute`, `tempmute`,
+`warn`, each with its exact reverse. Durations accept `m`, `h` and `d` in any
+order, so `1h 10s` is valid, and a reason is required on every one.
+
+Destructive commands ask for confirmation, expire after 20 seconds, and log who
+ran them. They work from the console, which has to type `confirm`.
+
+## Permissions
+
+37 declared nodes, so everything the plugin checks can actually be granted.
+
+Default to every player:
+
+* `snuffac.use`, `snuffac.version`, `snuffac.report`, `snuffac.report.status`
+
+Default to op:
+
+* `snuffac.admin`, `snuffac.alerts`, `snuffac.menu`, `snuffac.debug`, `snuffac.sounds`
+* `snuffac.violations`, `snuffac.checks`, `snuffac.teleport`, `snuffac.stats`
+* `snuffac.profile`, `snuffac.setback`, `snuffac.reload`
+* `snuffac.bypass`, `snuffac.bypass.give`, `snuffac.reports.manage`
+* `snuffac.clear.flags`, `snuffac.clear.warns`, `snuffac.clear.punishments`, `snuffac.clear.all`
+* `snuffac.escalation.manage`, `snuffac.exempt.punish`
+
+Punishments are split per action, with `snuffac.punish.maxduration.1h`, `.1d`,
+`.7d` and `.30d` capping what junior staff may issue.
+
+A permission node that is not declared in `plugin.yml` cannot be granted by
+LuckPerms, so every node the code checks is declared.
 
 ## Configuration
 
-* `config.yml` - General behaviour, alerts, tolerance, tuning profile, anti-xray, visual concealment, reports
+* `config.yml` — general behaviour, alerts, prevention, tolerance, tuning profile, anti-xray, visual concealment, reports
+* `checks.yml` — every check, its thresholds, its evidence kind, and its action
+* `GUI/*.yml` — six menu files. Material, name, lore, slot, action, permission, amount and glint are all owner editable
+* `GUI/report-options.yml` — the report categories. Add one and it appears in the picker
 
-> Not implemented yet: the storage ESP described in the user guide. Ore prevention is
-> real and verified. Container suppression is still on the list, so do not buy this
-> expecting a working storage viewer.
-* `checks.yml` - Every check, its thresholds, and whether it may prevent
-* `GUI/*.yml` - One file per menu. Material, name, lore, slot, action, permission, amount and glint are all owner editable
+`tuning.profile` ships **strict**. `balanced` and `lenient` widen the margins if
+you would rather have fewer flags.
 
-`tuning.profile` ships **strict**, so a fresh install reports a clear detection. `balanced` and `lenient` are available if you want to widen the margins.
+**False positives are treated as the worst kind of bug in this project.** The
+tolerance model names every source of forgiveness instead of hiding it in one
+epsilon: external pushes, pistons, slime, ice, item use slowdown, vehicles,
+teleports, latency and low server tick rate. Each contribution decays every tick
+and the total is clamped. Every check has an applicability gate, so a check skips
+itself when its assumptions do not hold instead of producing misleading evidence.
 
-## Links and Support
+Legitimate movement is verified against real client connections, not only
+asserted in unit tests. All eight movement scenarios run clean.
 
-* **Source Code:** [GitHub Repository](https://github.com/frteddz/Snuff-AC?tab=readme-ov-file)
-* **License:** [GPL-3.0 License](https://github.com/frteddz/Snuff-AC?tab=GPL-3.0-1-ov-file)
-* **Releases:** [Download Latest Releases](https://github.com/frteddz/Snuff-AC/releases)
-* **Bug Reports:** Open an issue on [GitHub Issues](https://github.com/frteddz/Snuff-AC/issues) if you spot a false positive or bug.
+## Support
+
+* Paper 1.21.11 and Purpur, tested on Paper build 132
+* Java 21
+* Velocity 3.4.0 is supported for packet and network timing checks only. A proxy
+  has no world data or player position API, so world and combat geometry checks
+  are inactive there.
+* Folia is not supported.
+
+Anti-Xray is driven through private Paper internals, so it is confirmed on
+Paper 1.21.11 build 132 and unknown on other forks. On an unrecognised build it
+logs a failure and leaves protection off rather than throwing.
+
+## Links
+
+* **Website:** https://frteddz.github.io/Snuff-AC/
+* **Changelog:** https://frteddz.github.io/Snuff-AC/changelog.html
+* **Source:** https://github.com/frteddz/Snuff-AC
+* **Releases:** https://github.com/frteddz/Snuff-AC/releases
+* **Bugs:** https://github.com/frteddz/Snuff-AC/issues
 
 ## Donate
 
-Developing and maintaining an anti-cheat takes significant time and testing. If Snuff AC helps protect your server, consider supporting the project on [Ko-fi](https://ko-fi.com/majdsafi) or through the GitHub repository.
+Developing and testing an anticheat takes a lot of time. If Snuff AC protects your
+server, consider supporting it on [Ko-fi](https://ko-fi.com/A1A3259HI2).
 
-[![Donate on Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/majdsafi)
+## Ad space
 
-## Ad Space / Sponsorship
-
-Interested in placing a banner or link for your hosting service, plugin, or server network? Ad space is available on this Modrinth page and inside the repository README.
+Banner or link placement is available on this page and in the repository README.
 
 * **Contact:** `teddzfr@gmail.com`
