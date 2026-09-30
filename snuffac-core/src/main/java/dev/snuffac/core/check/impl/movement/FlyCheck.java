@@ -12,6 +12,7 @@ public final class FlyCheck extends AbstractMovementCheck {
     private static final int HOVER_TICKS = 40;
     private static final int RISE_GRACE_TICKS = 4;
     private static final int RISES_BEFORE_FLAG = 3;
+    public static final double MIN_RISE = 0.06;
     private static final int PARTIAL_SUPPORT_REFILL = 10;
     private static final int BUDGET_CAP = MAX_AIR_TICKS + 60;
     private static final int BUDGETS_BEFORE_FLAG = 2;
@@ -101,7 +102,7 @@ public final class FlyCheck extends AbstractMovementCheck {
             state.sameLevelTicks = 0;
         }
 
-        if (deltaY > 0.0 && airTicks > RISE_GRACE_TICKS) {
+        if (isRising(deltaY, movementState) && airTicks > RISE_GRACE_TICKS) {
             state.rises++;
             if (state.rises >= RISES_BEFORE_FLAG) {
                 Map<String, Object> evidence = context.newEvidence();
@@ -216,6 +217,13 @@ public final class FlyCheck extends AbstractMovementCheck {
         state.budgetFlags++;
         state.budget = PARTIAL_SUPPORT_REFILL * 4;
         return true;
+    }
+
+    public static boolean isRising(double deltaY, dev.snuffac.core.player.MovementState movement) {
+        if (deltaY < MIN_RISE) {
+            return false;
+        }
+        return movement.velocity().y() > 0.0;
     }
 
     private static boolean partialSupport(dev.snuffac.core.player.MovementState movement) {

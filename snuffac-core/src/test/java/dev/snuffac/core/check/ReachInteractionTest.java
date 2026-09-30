@@ -2,6 +2,7 @@ package dev.snuffac.core.check;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.snuffac.api.SnuffPlatform;
 import dev.snuffac.api.Vec3d;
@@ -11,6 +12,7 @@ import dev.snuffac.core.log.RecordingLogger;
 import dev.snuffac.core.packet.BlockPlacePacket;
 import dev.snuffac.core.packet.MovementPacket;
 import dev.snuffac.core.packet.SnuffPacket;
+import dev.snuffac.core.check.impl.movement.FlyCheck;
 import dev.snuffac.core.player.PlayerData;
 import dev.snuffac.core.player.PlayerWorldCache;
 import dev.snuffac.core.util.BlockKind;
@@ -246,6 +248,49 @@ class ReachInteractionTest {
             }
         }
         assertFalse(flagged("fly"), "a ladder is legitimate support and must not be flagged");
+    }
+
+    @Test
+    @DisplayName("fractional upward noise while falling is not climbing")
+    void fractionalRiseIsNotClimbing() {
+        var state = player.movement();
+        state.advanceTo(here, System.nanoTime());
+        state.advanceGround(false);
+        state.velocity(new Vec3d(0.0, -0.0468, 0.0));
+        assertFalse(FlyCheck.isRising(0.003, state),
+                "a few thousandths upward while the velocity is downward is rounding noise");
+    }
+
+    @Test
+    @DisplayName("a real upward move with upward velocity is climbing")
+    void realRiseIsClimbing() {
+        var state = player.movement();
+        state.advanceTo(here, System.nanoTime());
+        state.advanceGround(false);
+        state.velocity(new Vec3d(0.0, 0.42, 0.0));
+        assertTrue(FlyCheck.isRising(0.42, state), "a jump launch is real upward movement");
+    }
+
+    @Test
+    @DisplayName("a big position rise with downward velocity is not climbing")
+    void bigRiseWithDownwardVelocityIsNotClimbing() {
+        var state = player.movement();
+        state.advanceTo(here, System.nanoTime());
+        state.advanceGround(false);
+        state.velocity(new Vec3d(0.0, -0.62, 0.0));
+        assertFalse(FlyCheck.isRising(0.5, state),
+                "the server velocity is falling even if the position moved up that tick");
+    }
+
+    @Test
+    @DisplayName("an upward velocity with no upward position change is not climbing")
+    void upwardVelocityWithoutRiseIsNotClimbing() {
+        var state = player.movement();
+        state.advanceTo(here, System.nanoTime());
+        state.advanceGround(false);
+        state.velocity(new Vec3d(0.0, 0.42, 0.0));
+        assertFalse(FlyCheck.isRising(0.01, state),
+                "the position has to actually rise by a real amount");
     }
 
     private Map<String, Object> lastEvidence(String key) {

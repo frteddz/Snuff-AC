@@ -22,6 +22,9 @@ KOFI = "majdsafi"
 # words in the description that are bolded for emphasis rather than naming a check
 NOT_CHECKS = {"structural", "derived", "strict", "before", "after"}
 
+CHECK_COUNT = 33
+
+
 def main():
     doc = DESC.read_text(encoding="utf-8")
     problems = []
@@ -32,9 +35,9 @@ def main():
     for name in named:
         if name.lower() not in checks:
             problems.append(f"description names a check that does not exist: {name}")
-    if len(checks) != 32:
-        problems.append(f"expected 32 checks in checks.yml, found {len(checks)}")
-    if doc.count("32 checks") == 0:
+    if len(checks) != CHECK_COUNT:
+        problems.append(f"expected {CHECK_COUNT} checks in checks.yml, found {len(checks)}")
+    if f"{CHECK_COUNT} checks" not in doc:
         problems.append("description does not state the check count")
 
     source = COMMAND.read_text(encoding="utf-8")

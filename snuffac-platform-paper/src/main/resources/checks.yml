@@ -122,6 +122,17 @@ checks:
       action: ALERT
       description: Sustained constant per tick offset between prediction and client.
       evidence: DERIVED
+    phase:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Movement path swept against the server block view, rejecting travel through solid
+        blocks and single tick jumps too far to be walked.
+      evidence: DERIVED
     velocity:
       enabled: true
       buffer-threshold: 1.0

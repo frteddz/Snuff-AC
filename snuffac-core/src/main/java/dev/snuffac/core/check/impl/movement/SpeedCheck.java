@@ -12,6 +12,11 @@ public final class SpeedCheck extends AbstractMovementCheck {
 
     private static final double MIN_EXCESS = 0.005;
     private static final double LENIENCY_CARRY_THRESHOLD = 0.05;
+    public static final double CREEP_FLOOR = 0.004;
+    public static final double CREEP_CEILING = 0.06;
+    public static final int CREEP_WINDOW = 100;
+    public static final double CREEP_FILL = 1.0;
+    public static final double CREEP_DECAY = 0.06;
 
     @Override
     public String key() {
@@ -30,7 +35,9 @@ public final class SpeedCheck extends AbstractMovementCheck {
 
     @Override
     public String description() {
-        return "Prediction based speed detection that enumerates client input and forgives known external influences.";
+        return "Prediction based speed detection that enumerates client input and forgives known "
+                + "external influences, plus an accumulator that catches a client that is only "
+                + "slightly fast for a long time.";
     }
 
     @Override
@@ -82,6 +89,10 @@ public final class SpeedCheck extends AbstractMovementCheck {
         state.lastOffset = residual;
         toleranceModel.consumeCarryOver();
 
+        if (accountCreep(context, state, residualLength)) {
+            return;
+        }
+
         if (residualLength < MIN_EXCESS) {
             return;
         }
@@ -124,6 +135,55 @@ public final class SpeedCheck extends AbstractMovementCheck {
         state.excessTicks = 0;
     }
 
+    private boolean accountCreep(CheckContext context, SpeedState state, double residualLength) {
+        if (residualLength < CREEP_FLOOR) {
+            state.creepDecay++;
+            if (state.creepDecay >= CREEP_DECAY_TICKS) {
+                state.creep = Math.max(0.0, state.creep - CREEP_DECAY);
+                state.creepWindow = 0;
+                state.creepDecay = 0;
+            }
+            return false;
+        }
+
+        if (residualLength > CREEP_CEILING) {
+            state.creep = 0.0;
+            state.creepWindow = 0;
+            state.creepDecay = 0;
+            return false;
+        }
+
+        state.creepDecay = 0;
+        state.creepWindow++;
+        if (state.creepWindow > CREEP_WINDOW) {
+            state.creepWindow = CREEP_WINDOW;
+        }
+        state.creep += CREEP_FILL * (residualLength - CREEP_FLOOR) / (CREEP_CEILING - CREEP_FLOOR);
+
+        if (state.creep < CREEP_FILL * 12.0 || state.creepWindow < CREEP_WINDOW / 2) {
+            return false;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "creep");
+        evidence.put("accumulated", round(state.creep));
+        evidence.put("residual", round(residualLength));
+        evidence.put("floor", CREEP_FLOOR);
+        evidence.put("ceiling", CREEP_CEILING);
+        evidence.put("window", state.creepWindow);
+        evidence.put("ping", round(context.ping()));
+        evidence.put("tps", round(context.tps()));
+
+        context.requestSetback("sustained small speed excess of " + round(residualLength) + " blocks");
+        context.flag("sustained small speed excess of " + round(residualLength)
+                + " blocks per tick over " + state.creepWindow + " ticks", evidence, 9.0);
+        state.creep = 0.0;
+        state.creepWindow = 0;
+        return true;
+    }
+
+    private static final int CREEP_DECAY_TICKS = 4;
+
     @Override
     public void onTick(CheckContext context) {
         var state = (SpeedState) state(context.player());
@@ -140,5 +200,8 @@ public final class SpeedCheck extends AbstractMovementCheck {
 
         private int excessTicks;
         private Vec3d lastOffset = Vec3d.ZERO;
+        private double creep;
+        private int creepWindow;
+        private int creepDecay;
     }
 }

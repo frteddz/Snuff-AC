@@ -5,6 +5,73 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.8-dev] - 2026-10-01
+
+Speed and Phase. Speed only ever caught a client that was obviously too
+fast, and there was no check at all for moving through walls.
+
+### Added
+
+**A new check for moving through solid blocks**
+
+- There was no check for Phase, NoClip, VClip or HClip, which is the family
+  of cheats that send a position on the far side of a wall. A new `phase`
+  check sweeps the straight line between the last position and the new one
+  against the server block view and rejects the move if a solid block is in
+  the way. The player is set back, so the cheat gains nothing.
+- The sweep samples every 0.2 blocks, and every 0.05 on a vertical move,
+  because a thin wall in the middle of a long move must not be stepped over.
+  A block the player already overlaps is not treated as a wall, so being
+  pushed into geometry is not reported, and a jump that clears the one block
+  step height stays clean.
+- The same check also catches a single tick move further than 8 blocks, which
+  is more than any input can produce and is what a teleport or clip resolves
+  to.
+- The evidence names the block that was passed through and its material, plus
+  both endpoints, so a report shows the path rather than just the verdict.
+  Water, a vehicle, a ladder, recent knockback and a recent block
+  change all exempt the tick.
+
+**A speed cheat that is only slightly fast is now caught**
+
+- Speed flagged a residual past the tolerance, two ticks running. A client
+  running 5 percent fast never trips a per tick threshold, however long it
+  keeps doing it, which is the point of that cheat.
+- A small overshoot between 0.004 and 0.06 blocks per tick now fills an
+  accumulator, and twelve fills over at least fifty ticks is flagged. The
+  accumulator decays on clean ticks, so ordinary jitter never accumulates,
+  and anything above the creep ceiling resets it, so a large single flag is
+  still handled by the original rule. A setback is requested, since a client
+  that is continuously a little fast is still going too fast.
+
+### Fixed
+
+**Jumping was reported as flight**
+
+- The rising rule counted any tick where the vertical delta was above zero.
+  A real client jumping produces float noise of a few thousandths on some
+  ticks while the server velocity is plainly downward, three of those in a
+  row and the rule fired. A real jump was reported as flying, and the
+  violation level climbed to 2.0 on a legitimate client.
+- Rising now requires a genuine upward move of at least 0.06 blocks and an
+  upward server velocity, so rounding noise while falling cannot reach it.
+  Found by running the jump scenario against a real client: 5 flags in 20
+  seconds, then none.
+
+**The check count was hard coded in two places**
+
+- The description checker asserted exactly 32 checks, and the description had
+  to contain the literal text "32 checks". Adding a check meant editing a
+  Python constant, a Markdown heading, a count in the opening paragraph and a
+  count in the prevention sentence, and forgetting any of them failed the
+  build. The count is now a single named constant in the checker.
+
+### Verified
+
+- 406 tests pass, 13 of them new.
+- Loaded on a real Paper 1.21.11 server, 33 checks, anti-xray active, and a
+  real client walking, jumping and sprinting is clean.
+
 ## [1.1.7-dev] - 2026-10-01
 
 KillAura and HighJump. Both checks had a rule for the case they were named

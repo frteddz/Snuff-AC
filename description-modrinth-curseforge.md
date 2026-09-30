@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 32 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 33 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.1.7-dev**. Requires **Java 21**.
+Current release: **1.1.8-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,15 +29,15 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 32 checks
+## The 33 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
 
-### Movement (13)
+### Movement (14)
 
 * **Fly**: unsupported flight from the server's own block view, plus an air time budget that only legitimate support refills
-* **Speed**: prediction based, with 36 discretised input candidates and the best fit kept
+* **Speed**: prediction based, with 36 discretised input candidates and the best fit kept, plus an accumulator for a client that is only slightly fast for a long time
 * **NoFall**: fall damage suppressed by claiming ground contact while airborne
 * **AirMovement**: airborne acceleration against the predicted state
 * **GroundSpoof** *(structural)*: claimed ground with no supporting block
@@ -47,6 +47,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **LongJump**: horizontal distance inconsistent with current momentum
 * **ImpossibleMovement** *(structural)*: sequences the predictor cannot reconcile
 * **Drift**: sustained per-tick offset between prediction and reported position
+* **Phase**: the path between two positions swept against the server block view, rejecting movement through solid blocks, which is the NoClip, Phase, VClip and HClip family
 * **PitchLock**: pitch pinned to an exact constant, used by placement and glide modules
 * **Velocity**: response to server-applied knockback, with damped displacement predicted
 
@@ -80,7 +81,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 32 checks can act on the packet **before** the server acts on it.
+23 of the 33 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

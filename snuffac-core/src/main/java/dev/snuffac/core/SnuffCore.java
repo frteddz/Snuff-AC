@@ -20,6 +20,7 @@ import dev.snuffac.core.check.impl.movement.HighJumpCheck;
 import dev.snuffac.core.check.impl.movement.ImpossibleMovementCheck;
 import dev.snuffac.core.check.impl.movement.LongJumpCheck;
 import dev.snuffac.core.check.impl.movement.NoFallCheck;
+import dev.snuffac.core.check.impl.movement.PhaseCheck;
 import dev.snuffac.core.check.impl.movement.SpeedCheck;
 import dev.snuffac.core.check.impl.movement.StepCheck;
 import dev.snuffac.core.check.impl.movement.VelocityCheck;
@@ -116,6 +117,7 @@ public final class SnuffCore {
         registry.register(new GroundFlagCheck());
         registry.register(new PitchLockCheck());
         registry.register(new DriftCheck());
+        registry.register(new PhaseCheck());
 
         registry.register(new ReachCheck());
         registry.register(new AttackAngleCheck());
