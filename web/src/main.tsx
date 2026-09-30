@@ -113,7 +113,6 @@ function App() {
 
     <main>
       <section className="hero">
-        <img className="hero-wordmark" src={asset('snuff.png')} alt="" aria-hidden="true" />
         <video
           ref={heroVideo}
           className="hero-background"
@@ -128,6 +127,7 @@ function App() {
         />
         <div className="shell">
         <div className="hero-copy">
+          <img className="hero-wordmark" src={asset('snuff-wordmark.png')} alt="" aria-hidden="true" />
           <h1>Snuff AC, an open-source anticheat for Minecraft servers</h1>
           <p className="hero-lede">
             Snuff AC is a free, open-source anticheat for Minecraft Java Edition. It runs 32
