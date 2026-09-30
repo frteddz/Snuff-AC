@@ -4,6 +4,28 @@ type Release = { version: string; stamp: string; items: ReleaseItem[] }
 
 export const releases: Release[] = [
   {
+    version: '1.1.2-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: 'Three menus ignored their own config file',
+        copy: 'Flags, Warned and Settings hardcoded every button while still writing a YAML file beside them. Editing `settings-gui.yml` changed nothing, which is worse than having no file, because the file looks like it works. All five menus now render from their layout. The Settings defaults described a different menu than the one that exists, listing a tuning profile button that was never rendered. The defaults now describe the real menu, and live values are substituted for placeholders such as `{prevention}` and `{max-warnings}` so a customised label still shows the current state.',
+      },
+      {
+        title: 'Report categories could not be added',
+        copy: 'The list was a switch statement with one case per category, so a category added to a file would render a button and then do nothing. Categories now come from `report-options.yml`, and any category listed there works. `/snuff reload` re-reads the GUI files and the report options, and warns about any button whose slot is outside its inventory.',
+      },
+      {
+        title: 'Every player shared one report note',
+        copy: 'The draft note was a static field, so two players drafting reports at the same time overwrote each other.',
+      },
+      {
+        title: 'A menu could fail to open entirely',
+        copy: 'The item registry lookup can throw while the server is still starting. It was not guarded, so a single bad material could take the whole menu with it.',
+      },
+    ],
+  },
+  {
     version: '1.1.1-dev',
     stamp: '2026-09-30',
     items: [

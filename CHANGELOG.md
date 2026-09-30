@@ -5,6 +5,54 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.2-dev] - 2026-09-30
+
+Configurability release. The GUI files for three menus were written to disk
+and then ignored, and report categories were a switch statement, so the
+documented way to customise either one did nothing.
+
+### Fixed
+
+**Three menus ignored their own config file**
+
+- Flags, Warned and Settings hardcoded every button while still writing a
+  YAML file beside them. Editing `settings-gui.yml` changed nothing, which
+  is worse than having no file, because the file looks like it works. All
+  five menus now render from their layout.
+- The Settings defaults described a different menu than the one that
+  exists, listing a tuning profile button that was never rendered. The
+  defaults now describe the real menu, and live values are substituted for
+  placeholders such as `{prevention}` and `{max-warnings}` so a customised
+  label still shows the current state.
+
+**Report categories could not be added**
+
+- The list was a switch statement with one case per category, so a category
+  added to a file would render a button and then do nothing. Categories now
+  come from `report-options.yml`, and any category listed there works.
+- `/snuff reload` re-reads the GUI files and the report options, and warns
+  about any button whose slot is outside its inventory.
+
+**Every player shared one report note**
+
+- The draft note was a static field, so two players drafting reports at the
+  same time overwrote each other.
+
+**A menu could fail to open entirely**
+
+- The item registry lookup can throw while the server is still starting.
+  It was not guarded, so a single bad material could take the whole menu
+  with it.
+
+### Changed
+
+- The test classpath had no Paper api, so no GUI parsing could be tested at
+  all. That is why a submit button could sit at slot 49 inside a 5 row menu
+  for three releases without anything failing.
+- The local verification harness is now `devtools/` in the repository rather
+  than a scratch directory, so it survives and can be rerun.
+- 355 tests pass.
+
 ## [1.1.1-dev] - 2026-09-30
 
 Verification release. Every fix below was reproduced against a real Paper server with
