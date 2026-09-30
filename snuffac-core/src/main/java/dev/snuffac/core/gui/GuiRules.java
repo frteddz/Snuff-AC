@@ -18,6 +18,10 @@ public final class GuiRules {
             "open_warnings",
             "open_reports",
             "open_reports_admin",
+            "back",
+            "refresh",
+            "page_prev",
+            "page_next",
             "set_log_retention",
             "set_history_retention",
             "toggle_prevention",
@@ -66,11 +70,24 @@ public final class GuiRules {
         return Math.min(amount, MAX_AMOUNT);
     }
 
+    private static final java.util.regex.Pattern REPORT_CATEGORY =
+            java.util.regex.Pattern.compile("report_[a-z0-9_]{1,24}");
+
+    private static final java.util.Set<String> REPORT_RESERVED = Set.of(
+            "report_back", "report_submit", "report_claim", "report_unclaim", "report_resolve");
+
     public static boolean isAllowedAction(String action) {
         if (action == null) {
             return false;
         }
-        return ALLOWED_ACTIONS.contains(action.trim().toLowerCase(Locale.ROOT));
+        String candidate = action.trim().toLowerCase(Locale.ROOT);
+        if (ALLOWED_ACTIONS.contains(candidate)) {
+            return true;
+        }
+        // report categories are listed in a file the owner edits, so the set of
+        // valid ones cannot be known here. The id is still constrained, and the
+        // built in control actions are excluded so a category cannot shadow them.
+        return !REPORT_RESERVED.contains(candidate) && REPORT_CATEGORY.matcher(candidate).matches();
     }
 
     public static String sanitizeAction(String action) {

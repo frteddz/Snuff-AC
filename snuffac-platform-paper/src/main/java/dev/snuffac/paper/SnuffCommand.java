@@ -90,7 +90,7 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
                     Map.entry("platform", plugin.platform().name()),
                     Map.entry("checks", String.valueOf(plugin.core().checkKeys().size()))));
             case "reload" -> {
-                plugin.reloadConfiguration();
+                plugin.reloadEverything();
                 send(sender, "reloaded");
             }
             case "debug" -> debug(sender, args);

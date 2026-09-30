@@ -85,6 +85,8 @@ public final class GuiDefaults {
                 "Right click to raise or lower the warning limit"), "escalation",
                 "snuffac.escalation.manage", 1, false);
         item(yaml, 15, "BARRIER", "Close", List.of(), "close", "snuffac.use", 1, false);
+        item(yaml, 16, "OAK_DOOR", "Back", List.of("<gray>Return to the menu"),
+                "back", "snuffac.admin", 1, false);
         item(yaml, 22, "REDSTONE", "Reload Config",
                 List.of("Re-read config and checks from disk"), "reload", "snuffac.admin", 1, false);
         return yaml;
@@ -96,7 +98,14 @@ public final class GuiDefaults {
         yaml.set("rows", 6);
         yaml.set("filler-material", "LIGHT_BLUE_STAINED_GLASS_PANE");
         yaml.set("filler", true);
-        item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
+        item(yaml, 45, "ARROW", "Previous", List.of("<gray>Page {page} of {pages}"),
+                "page_prev", "snuffac.admin", 1, false);
+        item(yaml, 48, "OAK_DOOR", "Back", List.of("<gray>Return to the menu"),
+                "back", "snuffac.admin", 1, false);
+        item(yaml, 49, "KNOWLEDGE_BOOK", "Refresh", List.of("<gray>Reload the list"),
+                "refresh", "snuffac.admin", 1, false);
+        item(yaml, 53, "ARROW", "Next", List.of("<gray>Page {page} of {pages}"),
+                "page_next", "snuffac.admin", 1, false);
         return yaml;
     }
 
@@ -106,7 +115,9 @@ public final class GuiDefaults {
         yaml.set("rows", 6);
         yaml.set("filler-material", "YELLOW_STAINED_GLASS_PANE");
         yaml.set("filler", true);
-        item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
+        item(yaml, 45, "OAK_DOOR", "Back", List.of("<gray>Return to the menu"),
+                "back", "snuffac.admin", 1, false);
+        item(yaml, 49, "BARRIER", "Close", List.of(), "close", "snuffac.use", 1, false);
         return yaml;
     }
 

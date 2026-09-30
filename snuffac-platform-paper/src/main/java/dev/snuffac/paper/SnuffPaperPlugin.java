@@ -301,12 +301,14 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
 
     public void openWarned(Player player) {
         var menu = new dev.snuffac.paper.gui.WarnedMenu(this);
+        menu.setParent(new dev.snuffac.paper.gui.MainMenu(this, new dev.snuffac.paper.gui.GuiBridgeImpl(this)));
         menu.build();
         menu.open(player);
     }
 
     public void openSettings(Player player) {
         var menu = new dev.snuffac.paper.gui.SettingsMenu(this);
+        menu.setParent(new dev.snuffac.paper.gui.MainMenu(this, new dev.snuffac.paper.gui.GuiBridgeImpl(this)));
         menu.build();
         menu.open(player);
     }

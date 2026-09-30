@@ -105,6 +105,10 @@ public final class SettingsMenu extends SnuffMenu {
                 close(player);
                 return;
             }
+            case "back" -> {
+                openParent(player);
+                return;
+            }
             case ACTION_RELOAD -> plugin.reloadEverything();
             default -> {
                 return;

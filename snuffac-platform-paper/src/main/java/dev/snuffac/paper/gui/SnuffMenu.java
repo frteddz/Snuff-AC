@@ -109,6 +109,9 @@ public abstract class SnuffMenu implements InventoryHolder {
             close(player);
             return;
         }
+        // the parent was handed to us by whoever opened us, and may never have
+        // been built, which showed staff an empty window
+        target.build();
         REGISTRY.register(player.getUniqueId(), target, target.getInventory());
         target.open(player);
     }

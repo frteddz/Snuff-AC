@@ -117,6 +117,28 @@ class GuiLayoutContractTest {
     }
 
     @Test
+    void aCategoryAddedToTheOptionsFileIsNotDropped() {
+        // report_afk does not exist in any built in list, because it came from
+        // report-options.yml, and the allowlist used to blank it
+        assertTrue(dev.snuffac.core.gui.GuiRules.isAllowedAction("report_afk"),
+                "a category an owner added to report-options.yml was sanitised to an empty "
+                + "action, so the button rendered but did nothing when clicked");
+        assertTrue(dev.snuffac.core.gui.GuiRules.isAllowedAction("report_cheating"));
+    }
+
+    @Test
+    void aCategoryCannotShadowTheBuiltInControlActions() {
+        for (String reserved : new String[] {"report_back", "report_submit", "report_claim",
+                "report_unclaim", "report_resolve"}) {
+            assertTrue(dev.snuffac.core.gui.GuiRules.isAllowedAction(reserved),
+                    reserved + " is a real control action and must stay allowed");
+            assertTrue(!dev.snuffac.core.gui.GuiRules.isAllowedAction(reserved + "x!")
+                    && !dev.snuffac.core.gui.GuiRules.isAllowedAction("report_../etc"),
+                    "the category id must be a plain id and cannot be used to inject anything");
+        }
+    }
+
+    @Test
     void aMissingFileFallsBackToAnEmptyLayout() {
         GuiLayout.Layout layout = GuiLayout.parse("nothing-here", source(base(3)));
         assertTrue(layout.buttons().isEmpty());

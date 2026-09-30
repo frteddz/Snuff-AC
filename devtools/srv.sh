@@ -76,7 +76,7 @@ start() {
 }
 
 stop() {
-  if [ -S "$DIR/console.in" ]; then
+  if [ -p "$DIR/console.in" ]; then
     printf 'stop\n' > "$DIR/console.in" 2>/dev/null
   fi
   for _ in $(seq 1 40); do
@@ -92,7 +92,7 @@ stop() {
 }
 
 cmd() {
-  if [ ! -S "$DIR/console.in" ]; then
+  if [ ! -p "$DIR/console.in" ]; then
     echo "server is not running" >&2
     exit 1
   fi
