@@ -18,6 +18,8 @@ ENTRY = re.compile(r"^## \[(\d+\.\d+\.\d+(?:-dev)?)\] - (\S+)\s*$")
 SUBHEAD = re.compile(r"^### (.+)\s*$")
 BOLD = re.compile(r"^\*\*(.+?)\*\*")
 BULLET = re.compile(r"^- (.+)$")
+KEEP_SECTIONS = re.compile(
+    r"fixed|added|changed|verified|improved|verification|corrected|limitations")
 
 
 def wrap(text):
@@ -74,7 +76,7 @@ def main():
             flush_item()
             section = sub.group(1).lower()
             continue
-        if section not in ("fixed", "added", "changed", "verified", "improved"):
+        if section is None or not KEEP_SECTIONS.match(section):
             continue
         bold = BOLD.match(line)
         if bold:
@@ -87,11 +89,21 @@ def main():
             body = []
             continue
         bullet = BULLET.match(line)
-        if bullet and item is not None:
-            body.append(wrap(bullet.group(1)))
+        if bullet is None:
+            if item is not None and line.strip() and not line.startswith("#"):
+                body.append(wrap(line))
             continue
-        if item is not None and line.strip() and not line.startswith("#"):
-            body.append(wrap(line))
+        text = wrap(bullet.group(1))
+        # an older release wrote its entries as plain bullets with no bold
+        # heading, so the first sentence becomes the title
+        if item is None:
+            sentence = re.split(r"(?<=[.!?])\s", text, maxsplit=1)
+            title = sentence[0][:90].rstrip(",;")
+            current["items"].append({"title": title, "copy": ""})
+            item = current["items"][-1]
+            body = [text[len(title):].strip()] if len(sentence) > 1 else []
+            continue
+        body.append(text)
     flush_item()
     flush_section()
 

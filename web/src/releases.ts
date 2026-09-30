@@ -11,6 +11,10 @@ export const releases: Release[] = [
         title: 'Documentation claimed a feature that does not exist',
         copy: 'The README said X-Ray, block ESP, ore search, entity ESP and storage ESP are all prevented by withholding data. Ores are obfuscated, entities are hidden without line of sight, and sounds are fuzzed. Container contents are sent to the client exactly as vanilla sends them, and nothing in the plugin changes that. Suppressing them means rewriting block entity payloads on the wire, which is a much larger job than the ore rewrite and has not been done. The `visual` section of `config.yml` said the same thing in a comment, which is the one place a server owner looks to find out what a switch does. The README now has a "Not implemented" section for it rather than leaving the claim folded into a paragraph about what does work.',
       },
+      {
+        title: 'All 8 movement scenarios run clean against a real client, including jump and',
+        copy: 'sprint jump, which the harness had silently stopped exercising because mineflayer has no `bot.jump` and the scenario threw every tick. A green suite that skips two of its own cases is worse than a red one. 357 tests pass.',
+      },
     ],
   },
   {
@@ -37,6 +41,10 @@ export const releases: Release[] = [
         title: '/snuff reload ignored the GUI files',
         copy: 'It re-read `config.yml` and `checks.yml` and nothing else. Editing a GUI file or the report options and reloading changed nothing, which is the entire reason those files exist.',
       },
+      {
+        title: 'Every menu opens, every button in it responds, and returning to a parent',
+        copy: 'renders it. 12 windows walked with real clicks. 357 tests pass.',
+      },
     ],
   },
   {
@@ -58,6 +66,10 @@ export const releases: Release[] = [
       {
         title: 'A menu could fail to open entirely',
         copy: 'The item registry lookup can throw while the server is still starting. It was not guarded, so a single bad material could take the whole menu with it.',
+      },
+      {
+        title: 'The test classpath had no Paper api, so no GUI parsing could be tested at',
+        copy: 'all. That is why a submit button could sit at slot 49 inside a 5 row menu for three releases without anything failing. The local verification harness is now `devtools/` in the repository rather than a scratch directory, so it survives and can be rerun. 355 tests pass.',
       },
     ],
   },
@@ -96,6 +108,10 @@ export const releases: Release[] = [
       {
         title: 'Filler colour could not be configured',
         copy: 'The `filler` key was written twice per file, first as a material name and then as a boolean, so the material was always lost and every menu fell back to black. There is now a separate `filler-material` key.',
+      },
+      {
+        title: 'All 8 movement scenarios (idle, walk, jump, sprint jump, strafe, look, crouch, jump',
+        copy: 'stop) run against a real client with no flags. Before this release, 4 of the 8 flagged. A tempban blocks the reconnect with the reason, staff, and remaining time, and the player is admitted normally once it expires. 348 tests pass.',
       },
     ],
   },
@@ -215,6 +231,10 @@ export const releases: Release[] = [
         title: 'Visual cheats are neutralised, not just logged',
         copy: 'Entity hiding. Players and mobs with no legal line of sight are hidden from the client entirely, so Player ESP and tracers have nothing to reveal. The pass runs every 4 ticks, reveals anything within 16 blocks so close fights never break, and reveals early inside 24 blocks once a raycast confirms the view is about to open, so nothing pops in. Sound fuzzing. Sounds carrying a position, footsteps, eating, drinking, bow draws, attacks and armour, are nudged when the emitter is behind cover, so sound radar and sound ESP cannot be used to find players. `tuning.profile` in `config.yml` with `strict` as the default. Strict scales movement tolerance to 0.5 and reach tolerance to 0.6, so the margins narrow without editing thirty one check blocks by hand. The plugin logs its effective profile and counts on startup, and warns when any check is tuned so loosely that ordinary cheating will not alert.',
       },
+      {
+        title: 'The prefix now closes with a reset, so the gradient colour and the bold and italic',
+        copy: 'decorations stop at the bracket instead of bleeding into the message text. Added `tuning.profile` and a `visual` section to `config.yml`.',
+      },
     ],
   },
   {
@@ -261,6 +281,10 @@ export const releases: Release[] = [
         title: 'Documentation',
         copy: '`README.md`, `credits.md`, `docs/architecture.md`, this changelog, and configuration guidance.',
       },
+      {
+        title: 'Plugin enables cleanly, PacketEvents 2.14.0 loads, 23 checks register, zero errors.',
+        copy: 'Player tracking, latency measurement, alerts, the violation log and the file logger all work. Legitimate walking, sprinting and sprint jumping produced **zero** violations, which is the false positive result that matters most. Simulated flight was detected by `fly` with evidence including air time, delta and velocity, and the violation level escalated 4.0 to 8.0 to 12.0, at which point the setback threshold was reached and the level reset. The full alert to evidence to setback to reset path is confirmed working. Commands, tab completion, configuration reload, check toggling and persistence verified.',
+      },
     ],
   },
   {
@@ -290,6 +314,32 @@ export const releases: Release[] = [
       {
         title: 'Confidence',
         copy: 'A confidence model that accumulates weighted signals from independent checks, retains the peak over a bounded window, and decays. Several weak signals can now contribute to a decision rather than one check firing once.',
+      },
+      {
+        title: 'The world cache now carries block material names, not only physical classification, so',
+        copy: 'ore identification is real rather than inferred. Reach prefers resolved hitbox distance and falls back to the cursor only when the target is unknown, and records which basis was used in the evidence.',
+      },
+      {
+        title: '130 unit tests pass, up from 94.',
+        copy: 'Clean build with 31 checks registered. Zero code comments and zero em dash characters across the project.',
+      },
+    ],
+  },
+  {
+    version: '1.0.2-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: '138 unit tests pass, up from 130.',
+        copy: 'Clean build with 31 checks registered.',
+      },
+      {
+        title: 'Alerts never reached staff in game.',
+        copy: 'The alert path ran on the check thread, where the online player lookup returns nothing, so the console worked while chat silently produced no recipients. Delivery now runs on the main thread, and each recipient is isolated so one failure cannot abort the rest. The Velocity messenger had empty broadcast and console bodies, so alerts reached nobody on Velocity at all. Flag history was discarded the moment a player quit, which made reconnecting the cheapest way to wipe a record. History is now persisted per UUID with retention, a per player cap and an async writer, and staff are notified when a player returns carrying flags. The enforcement pipeline was unreachable. Nothing called it, so no confidence ever accumulated and no setback or cancel ever ran. It is now routed from the violation path and gated on confidence. The auto punishment path was deleted rather than guarded. The command execution interface and its call site were removed along with the dead state they used. All 31 checks still ship with alert only. MiningBeyondView could never fire. The world cache is a three block box, so the material at any real dig target was always null. Dig positions are now probed on the main thread, and the chunk distance maths compares relative chunk coordinates instead of the difference of two radii. Reach read creative mode as a hardcoded false and never evaluated line of sight. The combat environment now carries the game mode, and the check samples the segment from eye to target. Three false positive sources were removed. PitchLock required only pitch near ninety for six ticks, which flags anyone glancing down; it now requires bit constant pitch while placing, mining, gliding or airborne. Critical counted ordinary airborne movement and now requires genuine extra packets in the same tick. Drift read an offset another check happened to leave behind and now reads a centrally tracked delta.',
+      },
+      {
+        title: 'A staff menu with a flagged players list, opened with `/snuff`.',
+        copy: 'Commands are unchanged and still work from console. Inventory events are cancelled and permissions are rechecked at click time. A staff permission for the menu, a per staff verbose alert toggle, and an on and off form for the alerts command. Eight regression tests, and a fix so the artifact name derives from the project version instead of drifting behind it.',
       },
     ],
   },
@@ -324,6 +374,86 @@ export const releases: Release[] = [
       {
         title: 'Simplified command surface',
         copy: '`/snuff` with no arguments now opens the menu instead of printing a command list. `/snuff violations [player]` opens the flagged players menu or that player\'s history rather than printing text. Flagged players and warned players are shown with their real skin when they are online.',
+      },
+      {
+        title: '157 unit tests pass, up from 138.',
+        copy: '',
+      },
+    ],
+  },
+  {
+    version: '1.0.4-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: '165 unit tests pass, up from 157, with dedicated coverage for the join grace',
+        copy: 'the lag gate and both wind charge windows.',
+      },
+    ],
+  },
+  {
+    version: '1.0.5-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: 'Menu back buttons were dead.',
+        copy: 'They opened the parent inventory directly instead of going through the menu open path, which left the stale child menu registered as the player\'s open menu. Every click after going back resolved against the wrong inventory, so the whole tab set appeared inert. Navigation now re-registers correctly, which fixes the flagged players list, the warnings list and the settings menu at the same time.',
+      },
+      {
+        title: 'A warning ladder.',
+        copy: 'Each confident flag records one warning against the player. When the warning count reaches the configured limit, one timed ban is applied. The ban screen states which check it was for, how many warnings led to it, and that a false detection can be appealed with the admins once it expires. The ladder is keyed by UUID, so disconnecting does not clear it, and it has a cooldown so one burst of packets cannot consume the entire warning allowance. A manual staff punishment or unban resets it, so staff always have the final say. It only acts on confident detections, and a warning limit of one is the floor, so a misconfigured server cannot ban on the first flag. Configurable under `escalation`, including a warn only mode that stops at the limit and never bans, and a settings menu control to toggle the ladder and change the warning limit without editing the file. Escalation is off by default. It should only be enabled after thresholds are tuned on the target server, since no automatic ban can be risk free.',
+      },
+      {
+        title: 'plugin.yml carried a hardcoded version instead of the build template, so',
+        copy: 'every build since v1.0.2 reported 1.0.2-dev at runtime regardless of the real version. The template is restored and the version is verified by reading it back out of the built artifact.',
+      },
+      {
+        title: '176 unit tests pass, up from 165, including coverage that the first flag',
+        copy: 'never bans, that the ban lands exactly on the configured limit, that a reconnect cannot clear the ladder, that a burst of packets cannot burn warnings, and that the ban reason names the check and the appeal path.',
+      },
+    ],
+  },
+  {
+    version: '1.0.6-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: 'Menus no longer hand out items.',
+        copy: 'Every button in every tab was inert and the button items could be taken into the player\'s own inventory, which is an item duplication vector with real items. The cause was a lifecycle race: opening a menu registered it, then Bukkit fired the close event for the previous screen, and that handler deleted the registration of the new one. The registry now stores the menu together with its inventory, and a close event only clears the entry when the menu and the inventory both match what is actually closing. Cancellation no longer depends on that lookup succeeding, so a future failure degrades to a cancelled click rather than a free item. The warning ladder can be enabled again. The settings toggle set the value and then immediately re-read the config file, which ships the ladder disabled, and overwrote it. Settings now persist to the file, and the same method was adding the violation listener on every click, which leaked a listener per click. Log and history retention take a typed value in chat instead of a stepper. Stepping from 1 to 365 one click at a time was not usable. Typing cancel keeps the current value. The prompt times out so an ignored prompt cannot lock someone out of the menu, validates the number, sanitises the input, allows one pending prompt per player, re-checks permission when it completes, and always answers with success or failure. The alert cooldown keeps its stepper.',
+      },
+      {
+        title: 'Every placeholder in the punishment path now substitutes.',
+        copy: 'Call sites passed the angle brackets as part of the key while the renderer added its own, so the lookup was for a doubled string that appears nowhere. This affected the usage, player, duration and input placeholders, and it would have become more visible once the tags rendered, because a real player name would have been replaced by the literal word player. Messages render properly and every Snuff line carries the supplied gradient prefix. There were two message senders and only one understood the markup language, which is why the admin commands looked right and the punishment commands did not. There is now one shared sender used by the command path, the punishment path, the menu path, the mute and warn notices and the rejoin notice. The legacy hex form is accepted as input, so text generated by the RGBirdflop tool works verbatim, with no runtime dependency on that service. Punishments print a readable sequential id instead of the first eight characters of a UUID, which was an unreadable hex fragment such as 000001a0. The ban screen now names the appeal route explicitly. The rejoin notice reads as a line rather than a sentence with a bracketed prefix glued to it, and announces the count once.',
+      },
+      {
+        title: 'Attribute swapping to a spear is now detected.',
+        copy: 'The weapon fields existed and were written every tick, but no check read them, so the engine learned the held item every tick and never looked at it. The server side attack attribute is now observed and compared against what the held weapon should give, and reach consumes it. This keys off the attribute value rather than the item, so a legitimate spear user is never flagged simply for holding one.',
+      },
+      {
+        title: '193 unit tests pass, up from 176.',
+        copy: 'New coverage includes the exact prefix string supplied, hex and decoration conversion, malformed input, and the menu registry lifecycle, including the case that caused the duplication bug. Two of the new registry tests failed on the first run and caught a real mistake in the fix, where the stored menu was being compared against the closing inventory so the entry could never clear. The registry now stores both and compares like with like.',
+      },
+    ],
+  },
+  {
+    version: '1.0.7-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: '**Ping was never measured.** The engine had a working ping recorder that also feeds the',
+        copy: 'min, max and smoothed values the tolerance model uses, and nothing on Paper ever called it. Every alert reported 0ms. The user, who actually has 50 to 60ms, was told 0ms. Paper now reads the player ping every tick and feeds the model. This is not a display bug. The tolerance model is documented as widening its allowance as latency rises so that nobody is punished for their ping, and that entire term had been inert since the project began. Every tolerance decision has been made as if every player had zero latency. It is a plausible contributing cause of the false flagging reported throughout testing. Ping now reports as unknown rather than a fake 0 when it has not been measured, so a missing measurement can never again be read as a real zero.',
+      },
+      {
+        title: '**The gradient prefix is now rendered.** The legacy converter was applied to the message',
+        copy: 'body but never to the prefix, so the prefix reached players as literal `&` and `#` characters. The prefix and the join now live in `LegacyColour`, which has no dependencies and is directly testable. The warnings listing was still building its own plain `[Snuff]` string instead of using the shared sender, so that one path would have stayed wrong even after the prefix fix. Both paths are routed now, and the audit is for every literal prefix, not one. Flag history no longer prints a raw epoch integer. It shows a real date and time plus a relative value, which is what was originally asked for back in v1.0.2. Tab completion covers the punishment commands and every subcommand added since the completer was written. The previous list was hardcoded and contained none of them, so `/snuff mute` was not special, every new subcommand was missing. Player names, offline known names, and duration suggestions are all offered now. The retention prompt accepts the same duration syntax the punishment commands teach, so `5d` works instead of being rejected as not a number. It no longer consumes the first chat message it sees, so unrelated chatter passes through to chat and leaves the prompt standing. A message that is not a value attempt is not cancelled at all. Command feedback rewritten to be calmer. Errors are red and short, hints are grey, usage lines no longer shout.',
+      },
+      {
+        title: '**Mute command allowlist.** Muted players previously could not run a single command.',
+        copy: 'A new `mute.allowed-commands` list lets an owner grant specific commands. The default is an empty list, so an owner who configures nothing keeps today\'s strict behaviour. Names are matched case insensitively, with any leading slash stripped and plugin namespaces supported, because a client sends the bare name and a slash would silently never match. **Sound effects** on menus and command outcomes, limited to meaningful moments rather than every button: opening a menu, a successful action, a rejected action, a punishment applied. Individual staff can silence their own with `/snuff sounds off` without changing it for everyone, and a new `snuffac.sounds` permission covers it. The flag history line now reads as a sentence, with the check, the violation level, the ping and the time, rather than a run of values with a raw timestamp.',
+      },
+      {
+        title: '201 unit tests pass, up from 193.',
+        copy: 'New coverage is deliberately aimed at the integration rather than the mechanism, since that is how the previous three releases each slipped through: the prefix is now asserted through the join that was actually broken, and the body is checked for surviving legacy codes, the presence of all seven gradient stops, and safety on a null or malformed body.',
       },
     ],
   },
