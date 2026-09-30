@@ -356,6 +356,16 @@ checks:
       action: ALERT
       description: Sustained deviation of movement packet rate from server tick rate.
       evidence: DERIVED
+    blink:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Movement packets held back and then released in a burst.
+      evidence: DERIVED
     timer:
       enabled: true
       buffer-threshold: 1.0
@@ -364,5 +374,6 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Client movement rate against server ticks.
+      description: Client movement rate against server ticks, with an accumulating balance for a
+        client only a little ahead of the tick rate.
       evidence: DERIVED

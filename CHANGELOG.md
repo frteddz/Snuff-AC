@@ -5,6 +5,55 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.2.2-dev] - 2026-10-01
+
+Timer and Blink. The timer only caught a client running at nearly double
+speed, and Blink had no check at all.
+
+### Added
+
+**A new check for held back movement packets**
+
+- There was no check for Blink or LagSwitch, which hold movement packets back
+  and then send them all at once so the player appears to teleport and can
+  dodge hits. A new `blink` check measures the gap between position packets
+  and counts what follows.
+- A silence of 350 milliseconds or more, which is more than six vanilla
+  ticks, opens a release window. Five or more packets arriving inside 250
+  milliseconds of each other after that silence is a release, and two
+  releases in a row are reported. A client sending on every tick, and a
+  single late packet after lag, are both clean.
+- The report separates the silence length from the release length, so it is
+  visible whether the player was hidden or merely bursty.
+
+**A timer cheat that is only a little fast is now caught**
+
+- The timer check flagged a rate above 1.6 packets per tick or below 0.35. A
+  client running 10 percent fast, which is the whole point of a balance or
+  balance mode, never reached either number however long it ran.
+- A rate above one packet per tick now accumulates credit, scaled by how far
+  past the allowed ratio it is, and four windows running is reported. A rate
+  at or below the allowed ratio clears the credit, so ordinary jitter cannot
+  build it up, and the existing hard thresholds are untouched, so a blatant
+  timer is still reported by the rule that always caught it.
+
+### Fixed
+
+**Blink counted the wrong packets at first**
+
+- The first version measured how many packets were queued when a gap
+  appeared, which is the number that arrived before the silence rather than
+  the number released after it. Queued packets from before a gap are exactly
+  the ones a real client already sent, so nothing was ever counted. The check
+  now counts the packets that arrive after the silence, which is the part a
+  cheat produces.
+
+### Verified
+
+- 437 tests pass, 6 of them new.
+- Loaded on a real Paper 1.21.11 server, 36 checks, and a real client
+  walking, jumping and sprinting is clean.
+
 ## [1.2.1-dev] - 2026-10-01
 
 Two new checks. Jesus and Spider had no coverage at all, and both are cheap

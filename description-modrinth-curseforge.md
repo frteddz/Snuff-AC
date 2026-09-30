@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 35 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 36 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.2.1-dev**. Requires **Java 21**.
+Current release: **1.2.2-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,7 +29,7 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 35 checks
+## The 36 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
@@ -73,17 +73,18 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **Nuker**: distinct blocks started per burst and per second, so retrying one block is never counted as several, plus dig targets the server block view says are out of sight
 * **MiningBeyondView**: targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
-### Packet (5)
+### Packet (6)
 
 * **BadPackets** *(structural)*: structurally impossible packets only
 * **PacketSpam**: flood, measured rather than assumed
 * **ExtraPackets**: position packets beyond what a client should send
 * **PacketRate**: movement packet rate, evaluated only while the player is actually moving
-* **Timer**: game tick speed alteration, with a movement gate and a window floor
+* **Timer**: game tick speed alteration, with a movement gate, a window floor, and an accumulating balance so a client only a little ahead of the tick rate is still found
+* **Blink**: movement packets held back and then released in a burst, which is the Blink and LagSwitch cheat
 
 ## Prevention, not just reporting
 
-23 of the 35 checks can act on the packet **before** the server acts on it.
+23 of the 36 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

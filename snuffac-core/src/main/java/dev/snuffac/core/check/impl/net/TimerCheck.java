@@ -18,6 +18,8 @@ public final class TimerCheck implements Check {
     public static final double NEGATIVE_THRESHOLD = 0.35;
     public static final int MIN_PACKETS_PER_WINDOW = 40;
     public static final int REQUIRED_WINDOWS = 3;
+    public static final double BALANCE_RATIO = 1.02;
+    public static final int BALANCE_WINDOWS = 4;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -41,7 +43,9 @@ public final class TimerCheck implements Check {
 
     @Override
     public String description() {
-        return "Compares the client movement packet rate against server ticks to detect timer manipulation.";
+        return "Compares the client movement packet rate against server ticks to detect timer "
+                + "manipulation, and runs an accumulating balance so a client that is only a little "
+                + "ahead of the tick rate is still found.";
     }
 
     @Override
@@ -107,6 +111,10 @@ public final class TimerCheck implements Check {
             return;
         }
 
+        if (accountBalance(context, state, perTick)) {
+            return;
+        }
+
         boolean positive = perTick > POSITIVE_THRESHOLD;
         boolean negative = perTick < NEGATIVE_THRESHOLD;
 
@@ -127,6 +135,45 @@ public final class TimerCheck implements Check {
                     + round(perTick) + " movement packets per tick", evidence, 7.0);
         }
         state.reset();
+    }
+
+    private boolean accountBalance(CheckContext context, TimerState state, double perTick) {
+        if (perTick > 1.0 && perTick < POSITIVE_THRESHOLD) {
+            if (perTick <= BALANCE_RATIO) {
+                state.balanceWindows = 0;
+                state.balanceCredit = 0.0;
+                return false;
+            }
+            double excess = perTick - BALANCE_RATIO;
+            state.balanceCredit += excess * 10.0;
+            state.balanceWindows++;
+            if (state.balanceWindows < BALANCE_WINDOWS) {
+                return false;
+            }
+
+            Map<String, Object> evidence = context.newEvidence();
+            evidence.put("packetsPerTick", round(perTick));
+            evidence.put("allowedRatio", BALANCE_RATIO);
+            evidence.put("excessPerTick", round(excess));
+            evidence.put("balanceCredit", round(state.balanceCredit));
+            evidence.put("windows", state.balanceWindows);
+            evidence.put("totalPackets", state.totalPackets);
+            evidence.put("ping", round(context.ping()));
+            evidence.put("tps", round(context.tps()));
+
+            if (exempt(context)) {
+                state.reset();
+                return true;
+            }
+            context.flag("timer balance ran " + state.balanceWindows + " windows ahead at "
+                    + round(perTick) + " movement packets per tick", evidence, 6.0);
+            state.balanceCredit = 0.0;
+            state.balanceWindows = 0;
+            return true;
+        }
+        state.balanceCredit = 0.0;
+        state.balanceWindows = 0;
+        return false;
     }
 
     private static boolean exempt(CheckContext context) {
@@ -153,6 +200,8 @@ public final class TimerCheck implements Check {
         private int deviations;
         private double lastX;
         private double lastZ;
+        private double balanceCredit;
+        private int balanceWindows;
 
         private void reset() {
             packetsThisTick = 0;
@@ -160,6 +209,8 @@ public final class TimerCheck implements Check {
             totalPackets = 0L;
             moved = false;
             deviations = 0;
+            balanceCredit = 0.0;
+            balanceWindows = 0;
         }
     }
 }

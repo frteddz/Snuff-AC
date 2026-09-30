@@ -28,6 +28,7 @@ import dev.snuffac.core.check.impl.movement.StepCheck;
 import dev.snuffac.core.check.impl.movement.VelocityCheck;
 import dev.snuffac.core.check.impl.net.BadPacketsCheck;
 import dev.snuffac.core.check.impl.net.PacketSpamCheck;
+import dev.snuffac.core.check.impl.net.BlinkCheck;
 import dev.snuffac.core.check.impl.net.TimerCheck;
 import dev.snuffac.core.check.impl.world.FastBreakCheck;
 import dev.snuffac.core.check.impl.world.FastPlaceCheck;
@@ -142,6 +143,7 @@ public final class SnuffCore {
         registry.register(new BadPacketsCheck());
         registry.register(new PacketSpamCheck());
         registry.register(new TimerCheck());
+        registry.register(new BlinkCheck());
         registry.register(new ExtraPacketsCheck());
         registry.register(new PacketRateCheck());
 
