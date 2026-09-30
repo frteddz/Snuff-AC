@@ -78,7 +78,6 @@ public final class CheckState {
         lastViolation = null;
     }
 
-
     public double setbackProgress() {
         double threshold = config.setbackThreshold();
         if (threshold <= 0.0) {

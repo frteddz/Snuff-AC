@@ -22,7 +22,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public abstract class SnuffMenu implements InventoryHolder {
 
-
     private static final MiniMessage MINI = MiniMessage.miniMessage();
     private static final MenuRegistry REGISTRY = new MenuRegistry();
 
@@ -109,8 +108,7 @@ public abstract class SnuffMenu implements InventoryHolder {
             close(player);
             return;
         }
-        // the parent was handed to us by whoever opened us, and may never have
-        // been built, which showed staff an empty window
+
         target.build();
         REGISTRY.register(player.getUniqueId(), target, target.getInventory());
         target.open(player);

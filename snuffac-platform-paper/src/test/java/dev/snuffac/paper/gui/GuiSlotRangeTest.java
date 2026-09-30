@@ -13,12 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
-/**
- * A GUI file declares its own row count and its own slots. If a slot is outside
- * the declared inventory, the button silently lands somewhere else, so the row
- * count and the slots have to agree. This reads the shipped defaults as source,
- * because that is where the drift happens.
- */
 class GuiSlotRangeTest {
 
     private static final String DEFAULTS = "src/main/java/dev/snuffac/paper/GuiDefaults.java";

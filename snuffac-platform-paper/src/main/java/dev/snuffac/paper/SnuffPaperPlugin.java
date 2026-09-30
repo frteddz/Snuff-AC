@@ -202,8 +202,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             reportNotes.cancel(player.getUniqueId());
             return false;
         }
-        // a report note is prose, so it keeps spacing, case and punctuation,
-        // unlike the numeric retention prompt which parses a number
+
         String text = sanitiseNote(message);
         if (text.length() > dev.snuffac.paper.report.NotePrompts.MAX_LENGTH) {
             text = text.substring(0, dev.snuffac.paper.report.NotePrompts.MAX_LENGTH);
@@ -211,8 +210,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         boolean skipped = reportNotes.isExpiredWord(message);
         reportNotes.cancel(player.getUniqueId());
         String note = skipped ? "" : text;
-        // chat fires off the main thread, and a report touches the player
-        // list and the report store, so the write is moved onto the server thread
+
         Bukkit.getScheduler().runTask(this, () -> fileReport(player, targetId, category, note));
         return true;
     }

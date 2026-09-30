@@ -12,12 +12,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-/**
- * Every menu is meant to be editable from a file. This parses layout sources
- * directly so the rules hold without a server, including the rule that
- * mattered most: a button whose slot is outside the inventory is a bug, not
- * something to silently relocate.
- */
 class GuiLayoutContractTest {
 
     private static ConfigSource source(Map<String, Object> values) {
@@ -118,8 +112,7 @@ class GuiLayoutContractTest {
 
     @Test
     void aCategoryAddedToTheOptionsFileIsNotDropped() {
-        // report_afk does not exist in any built in list, because it came from
-        // report-options.yml, and the allowlist used to blank it
+
         assertTrue(dev.snuffac.core.gui.GuiRules.isAllowedAction("report_afk"),
                 "a category an owner added to report-options.yml was sanitised to an empty "
                 + "action, so the button rendered but did nothing when clicked");

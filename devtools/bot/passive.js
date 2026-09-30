@@ -1,4 +1,4 @@
-// A second player who stands still, used as the target for reports and punishments.
+
 const mineflayer = require('mineflayer')
 const seconds = Number(process.argv[2] || 60)
 const bot = mineflayer.createBot({

@@ -1,5 +1,5 @@
-// A legitimate vanilla client that plays normally, so the anticheat can be
-// checked for false positives. Nothing here cheats.
+
+
 const mineflayer = require('mineflayer')
 
 const scenario = process.argv[2] || 'idle'
@@ -33,7 +33,6 @@ bot.on('message', (message) => {
   }
 })
 
-// mineflayer has no bot.jump, a jump is the jump control held for one tick
 const doJump = (b) => {
   b.setControlState('jump', true)
   setTimeout(() => b.setControlState('jump', false), 60)

@@ -8,13 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-/**
- * A report with a category and no detail is close to useless, and the note
- * field had been on every stored report since it was introduced without ever
- * being reachable. These cover the prompt itself: it must not fire for a
- * player who did not open one, it must expire, and it must never let a
- * second prompt overwrite a first.
- */
 class NotePromptsTest {
 
     private static final UUID STAFF = UUID.randomUUID();

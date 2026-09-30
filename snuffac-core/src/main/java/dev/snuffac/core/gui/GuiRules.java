@@ -85,9 +85,7 @@ public final class GuiRules {
         if (ALLOWED_ACTIONS.contains(candidate)) {
             return true;
         }
-        // report categories are listed in a file the owner edits, so the set of
-        // valid ones cannot be known here. The id is still constrained, and the
-        // built in control actions are excluded so a category cannot shadow them.
+
         return !REPORT_RESERVED.contains(candidate) && REPORT_CATEGORY.matcher(candidate).matches();
     }
 

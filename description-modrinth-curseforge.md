@@ -1,6 +1,6 @@
 # Snuff AC
 
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/A1A3259HI2)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Donate-ff5e5b?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/majdsafi)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
@@ -36,47 +36,47 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ### Movement (13)
 
-* **Fly** — unsupported flight from the server's own block view
-* **Speed** — prediction based, with 36 discretised input candidates and the best fit kept
-* **NoFall** — fall damage suppressed by claiming ground contact while airborne
-* **AirMovement** — airborne acceleration against the predicted state
-* **GroundSpoof** *(structural)* — claimed ground with no supporting block
-* **GroundFlag** — sustained ground contact contradicting the server block view, the signature of air walk and no-fall spoofing
-* **Step** — vertical gain beyond the modelled step height
-* **HighJump** — launch velocity beyond what the jump strength attribute permits
-* **LongJump** — horizontal distance inconsistent with current momentum
-* **ImpossibleMovement** *(structural)* — sequences the predictor cannot reconcile
-* **Drift** — sustained per-tick offset between prediction and reported position
-* **PitchLock** — pitch pinned to an exact constant, used by placement and glide modules
-* **Velocity** — response to server-applied knockback, with damped displacement predicted
+* **Fly**: unsupported flight from the server's own block view
+* **Speed**: prediction based, with 36 discretised input candidates and the best fit kept
+* **NoFall**: fall damage suppressed by claiming ground contact while airborne
+* **AirMovement**: airborne acceleration against the predicted state
+* **GroundSpoof** *(structural)*: claimed ground with no supporting block
+* **GroundFlag**: sustained ground contact contradicting the server block view, the signature of air walk and no-fall spoofing
+* **Step**: vertical gain beyond the modelled step height
+* **HighJump**: launch velocity beyond what the jump strength attribute permits
+* **LongJump**: horizontal distance inconsistent with current momentum
+* **ImpossibleMovement** *(structural)*: sequences the predictor cannot reconcile
+* **Drift**: sustained per-tick offset between prediction and reported position
+* **PitchLock**: pitch pinned to an exact constant, used by placement and glide modules
+* **Velocity**: response to server-applied knockback, with damped displacement predicted
 
 ### Combat (9)
 
-* **Reach** — eye-to-hitbox measurement with ping-aware tolerance; the attack is cancelled when out of range
-* **AttackAngle** — the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
-* **AutoClicker** — attack timing patterns, frequency analysis and consistency
-* **Aim** — rotation behaviour around attacks
-* **KillAura** — target sequencing, rapid multi-target switching, and target switching between attacks
-* **ImpossibleAttack** *(structural)* — attack sequences that do not fit observable state
-* **Critical** — forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack
-* **RotationSnapBack** — a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce
-* **InvalidAttackState** *(structural)* — attacks that are invalid for the current player state
+* **Reach**: eye-to-hitbox measurement with ping-aware tolerance; the attack is cancelled when out of range
+* **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
+* **AutoClicker**: attack timing patterns, frequency analysis and consistency
+* **Aim**: rotation behaviour around attacks
+* **KillAura**: target sequencing, rapid multi-target switching, and target switching between attacks
+* **ImpossibleAttack** *(structural)*: attack sequences that do not fit observable state
+* **Critical**: forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack
+* **RotationSnapBack**: a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce
+* **InvalidAttackState** *(structural)*: attacks that are invalid for the current player state
 
 ### World (5)
 
-* **FastBreak** — break timing against material and tool context
-* **FastPlace** — placement and interaction rate
-* **Scaffold** — placement behaviour and the movement context around it
-* **Nuker** — raw dig packet rate rather than distinct block counting
-* **MiningBeyondView** — targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
+* **FastBreak**: break timing against material and tool context
+* **FastPlace**: placement and interaction rate
+* **Scaffold**: placement behaviour and the movement context around it
+* **Nuker**: raw dig packet rate rather than distinct block counting
+* **MiningBeyondView**: targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
 ### Packet (5)
 
-* **BadPackets** *(structural)* — structurally impossible packets only
-* **PacketSpam** — flood, measured rather than assumed
-* **ExtraPackets** — position packets beyond what a client should send
-* **PacketRate** — movement packet rate, evaluated only while the player is actually moving
-* **Timer** — game tick speed alteration, with a movement gate and a window floor
+* **BadPackets** *(structural)*: structurally impossible packets only
+* **PacketSpam**: flood, measured rather than assumed
+* **ExtraPackets**: position packets beyond what a client should send
+* **PacketRate**: movement packet rate, evaluated only while the player is actually moving
+* **Timer**: game tick speed alteration, with a movement gate and a window floor
 
 ## Prevention, not just reporting
 
@@ -97,9 +97,9 @@ optional warning ladder is off and is a staff decision to enable.
 Render-time cheats cannot be detected, because nothing about them reaches the
 server. They can be prevented, by withholding data the client is not entitled to.
 
-* **X-Ray and ore ESP** — valuable ores are rewritten into decoy blocks in the chunk data that is actually sent. Enforced through the server engine, and verified on Paper 1.21.11 build 132 across the overworld, nether and end.
-* **Player ESP and tracers** — players and mobs with no legal line of sight are hidden from the client, and revealed a few blocks early so nothing pops in.
-* **Sound radar** — sounds carrying a position are nudged when the emitter is behind cover.
+* **X-Ray and ore ESP**: valuable ores are rewritten into decoy blocks in the chunk data that is actually sent. Enforced through the server engine, and verified on Paper 1.21.11 build 132 across the overworld, nether and end.
+* **Player ESP and tracers**: players and mobs with no legal line of sight are hidden from the client, and revealed a few blocks early so nothing pops in.
+* **Sound radar**: sounds carrying a position are nudged when the emitter is behind cover.
 
 **Not implemented: storage ESP.** Container contents are sent to the client
 exactly as vanilla sends them. Suppressing them means rewriting block entity
@@ -117,23 +117,23 @@ leaves the client, so nothing arrives at the server.
 
 Available to players:
 
-* `/snuff report <player>` — report a player, pick a category, add a description
-* `/snuff version` — version, platform and check count
+* `/snuff report <player>`: report a player, pick a category, add a description
+* `/snuff version`: version, platform and check count
 
 Staff:
 
-* `/snuff menu` — open the staff menu
-* `/snuff reports` — report admin view, with claim and resolve
-* `/snuff violations [player]` — flagged players, with their last known location
-* `/snuff tp <player>` — teleport to a flagged player or their last known position
-* `/snuff bypass <player> [on|off]` — grant or revoke the anticheat bypass
-* `/snuff clearflags <player> confirm` — clear a violation history
-* `/snuff clearwarns <player> confirm` — reset the warning ladder count
-* `/snuff clearpunishments <player> confirm` — clear every active punishment
-* `/snuff punishments [player]` — what someone is currently serving
-* `/snuff settings` — retention, prevention and the warning ladder
-* `/snuff reload` — re-read config, checks, GUI files and report options
-* `/snuff toggle <check>` — enable or disable a check
+* `/snuff menu`: open the staff menu
+* `/snuff reports`: report admin view, with claim and resolve
+* `/snuff violations [player]`: flagged players, with their last known location
+* `/snuff tp <player>`: teleport to a flagged player or their last known position
+* `/snuff bypass <player> [on|off]`: grant or revoke the anticheat bypass
+* `/snuff clearflags <player> confirm`: clear a violation history
+* `/snuff clearwarns <player> confirm`: reset the warning ladder count
+* `/snuff clearpunishments <player> confirm`: clear every active punishment
+* `/snuff punishments [player]`: what someone is currently serving
+* `/snuff settings`: retention, prevention and the warning ladder
+* `/snuff reload`: re-read config, checks, GUI files and report options
+* `/snuff toggle <check>`: enable or disable a check
 * `/snuff checks`, `/snuff info`, `/snuff stats`, `/snuff profile`, `/snuff alerts`, `/snuff debug`, `/snuff sounds`
 
 Punishments: `ban`, `tempban`, `ipban`, `tempipban`, `timeout`, `mute`, `tempmute`,
@@ -168,10 +168,10 @@ LuckPerms, so every node the code checks is declared.
 
 ## Configuration
 
-* `config.yml` — general behaviour, alerts, prevention, tolerance, tuning profile, anti-xray, visual concealment, reports
-* `checks.yml` — every check, its thresholds, its evidence kind, and its action
-* `GUI/*.yml` — six menu files. Material, name, lore, slot, action, permission, amount and glint are all owner editable
-* `GUI/report-options.yml` — the report categories. Add one and it appears in the picker
+* `config.yml`: general behaviour, alerts, prevention, tolerance, tuning profile, anti-xray, visual concealment, reports
+* `checks.yml`: every check, its thresholds, its evidence kind, and its action
+* `GUI/*.yml`: six menu files. Material, name, lore, slot, action, permission, amount and glint are all owner editable
+* `GUI/report-options.yml`: the report categories. Add one and it appears in the picker
 
 `tuning.profile` ships **strict**. `balanced` and `lenient` widen the margins if
 you would rather have fewer flags.
@@ -210,7 +210,7 @@ logs a failure and leaves protection off rather than throwing.
 ## Donate
 
 Developing and testing an anticheat takes a lot of time. If Snuff AC protects your
-server, consider supporting it on [Ko-fi](https://ko-fi.com/A1A3259HI2).
+server, consider supporting it on [Ko-fi](https://ko-fi.com/majdsafi).
 
 ## Ad space
 

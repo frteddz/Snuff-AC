@@ -13,10 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
-/**
- * Report categories live in their own file so a server owner can add one without
- * touching the plugin. The built in list is the fallback, not the source.
- */
 public final class ReportOptions {
 
     public static final String FILE = "report-options.yml";

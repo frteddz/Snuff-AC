@@ -17,9 +17,10 @@ PLUGIN = ROOT / "snuffac-platform-paper" / "src/main/resources/plugin.yml"
 COMMAND = ROOT / "snuffac-platform-paper/src/main/java/dev/snuffac/paper/SnuffCommand.java"
 PROPERTIES = ROOT / "gradle.properties"
 
+KOFI = "majdsafi"
+
 # words in the description that are bolded for emphasis rather than naming a check
 NOT_CHECKS = {"structural", "derived", "strict", "before", "after"}
-
 
 def main():
     doc = DESC.read_text(encoding="utf-8")
@@ -58,8 +59,8 @@ def main():
 
     if "storage" not in doc.lower():
         problems.append("description does not disclose that storage ESP is not implemented")
-    if "A1A3259HI2" not in doc:
-        problems.append("the ko-fi link does not match the one used by the site")
+    if KOFI not in doc:
+        problems.append(f"the ko-fi link is not {KOFI}, the account the owner uses")
 
     if problems:
         print(f"{len(problems)} problem(s) in the description:")
@@ -68,7 +69,6 @@ def main():
         return 1
     print(f"description is in sync: {len(checks)} checks, {len(commands)} commands, {len(nodes)} permissions, version {version}")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

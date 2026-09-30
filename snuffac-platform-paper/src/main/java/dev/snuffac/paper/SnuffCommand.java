@@ -24,7 +24,6 @@ import org.bukkit.entity.Player;
 
 public final class SnuffCommand implements CommandExecutor, TabCompleter {
 
-
     private final SnuffPaperPlugin plugin;
     private final PunishCommands punishCommands;
 

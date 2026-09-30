@@ -1,5 +1,5 @@
-// Files a report against a second player, then claims it as staff.
-// Tester2 must already be connected.
+
+
 const mineflayer = require('mineflayer')
 const bot = mineflayer.createBot({
   host: '127.0.0.1', port: 25565, username: 'Tester', auth: 'offline',

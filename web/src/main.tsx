@@ -6,8 +6,6 @@ import { releases } from './releases'
 const latest = releases[releases.length - 1]
 import './styles.css'
 
-// github pages serves the site from a subpath, and vite only rewrites urls it
-// can see in html and css, so anything built at runtime needs the base here
 const base = import.meta.env.BASE_URL
 const asset = (path: string) => `${base}${path.replace(/^\//, '')}`
 
@@ -72,18 +70,34 @@ function App() {
   const [activeCategory, setActiveCategory] = useState<'All' | Category>('All')
   const [activeCheck, setActiveCheck] = useState<Check>(checks[1])
   const heroVideo = useRef<HTMLVideoElement>(null)
+  const heroVideoMobile = useRef<HTMLVideoElement>(null)
   const visibleChecks = useMemo(() => activeCategory === 'All' ? checks : checks.filter((check) => check.category === activeCategory), [activeCategory])
 
   useEffect(() => {
-    if (heroVideo.current) {
-      heroVideo.current.playbackRate = 1
-      // preload="none" keeps the 7MB file off the critical path, so it has to
-      // be kicked off once the page is interactive. Anyone who asked for
-      // reduced motion gets the poster and nothing else.
-      if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-        heroVideo.current.load()
+    const portrait = window.matchMedia('(max-width: 700px)')
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)')
+
+    const syncVideos = () => {
+      const wide = heroVideo.current
+      const tall = heroVideoMobile.current
+      if (!wide || !tall) {
+        return
+      }
+      const unwanted = portrait.matches ? wide : tall
+      unwanted.removeAttribute('src')
+      unwanted.removeAttribute('poster')
+      unwanted.load()
+      if (motion.matches) {
+        for (const video of [wide, tall]) {
+          video.playbackRate = 1
+        }
+        ;(portrait.matches ? tall : wide).load()
       }
     }
+
+    syncVideos()
+    portrait.addEventListener('change', syncVideos)
+    motion.addEventListener('change', syncVideos)
     window.scrollTo(0, 0)
     const sections = Array.from(document.querySelectorAll('main section'))
     sections.forEach((section) => section.classList.add('scroll-reveal'))
@@ -91,7 +105,11 @@ function App() {
       if (entry.isIntersecting) entry.target.classList.add('in-view')
     }), { threshold: 0.12 })
     sections.forEach((section) => observer.observe(section))
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      portrait.removeEventListener('change', syncVideos)
+      motion.removeEventListener('change', syncVideos)
+    }
   }, [])
 
   const closeMenu = () => setMenuOpen(false)
@@ -126,6 +144,18 @@ function App() {
           poster={asset('hero-poster.jpg')}
           aria-hidden="true"
         />
+        <video
+          ref={heroVideoMobile}
+          className="hero-background hero-background-mobile"
+          src={asset('hero-background-mobile.mp4')}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          poster={asset('hero-poster-mobile.jpg')}
+          aria-hidden="true"
+        />
         <div className="shell">
         <div className="hero-copy">
           <img className="hero-wordmark" src={asset('snuff-wordmark.png')} alt="" aria-hidden="true" />
@@ -134,7 +164,7 @@ function App() {
             An open-source Minecraft Java Edition anticheat built around prediction, evidence,
             and server-side authority.
           </p>
-          <div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Read the architecture</a></div>
+          <div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/majdsafi" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Read the architecture</a></div>
         </div>
         <div className="hero-visual" aria-hidden="true" />
         </div>
@@ -186,10 +216,9 @@ function App() {
 
       <section className="section shell whatsnew-section"><SectionLabel index="13">Latest release</SectionLabel><div className="section-heading"><h2>What changed in<br /><em>{latest.version}.</em></h2><p>{latest.items[0]?.copy ?? ''}</p></div><div className="whatsnew-list">{latest.items.map((item) => <div className="whatsnew-row" key={item.title}><b>{item.title}</b><p>{item.copy}</p></div>)}</div><div className="whatsnew-foot"><a className="button button-primary" href={`${base}changelog.html`}>All {releases.length} releases <ArrowUpRight size={15} /></a></div></section>
 
-
       <section className="section shell roadmap"><div className="roadmap-head"><div><SectionLabel index="14">Development status</SectionLabel><h2>Useful now.<br /><em>Honest about what’s next.</em></h2></div><div className="release-stamp"><span>DEVELOPMENT RELEASE</span><b>{releases[releases.length - 1].version}</b><small>not recommended for production public servers</small></div></div><div className="roadmap-list">{['Case notes and second opinions', 'Acknowledged velocity and transaction tracking', 'Collision and skipped tick prediction', 'Database backends and staff audit log', 'Folia compatibility decision'].map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, '0')}</span><p>{item}</p><small>{index === 4 ? 'future enforcement' : 'planned work'}</small></div>)}</div><div className="roadmap-note"><CircleAlert size={17} /><p>The warning ladder is the one automatic action, and it is off until an owner turns it on after tuning. Every other punishment in this release is a staff decision.</p></div></section>
 
-      <section className="cta-section"><div className="shell cta"><div className="cta-mark"><img src={asset('fav-icon.png')} alt="" /></div><h2>Build your server<br /><em>on evidence.</em></h2><p>Open source means you can inspect how it works.</p><div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Documentation</a></div></div></section>
+      <section className="cta-section"><div className="shell cta"><div className="cta-mark"><img src={asset('fav-icon.png')} alt="" /></div><h2>Build your server<br /><em>on evidence.</em></h2><p>Open source means you can inspect how it works.</p><div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/majdsafi" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Documentation</a></div></div></section>
     </main>
     <section className="section shell shaders-section"><SectionLabel index="15">Shaders</SectionLabel><div className="section-heading"><h2>Every frame on<br /><em>this page.</em></h2><p>All background imagery is rendered Minecraft footage using community shader packs, credited below. Snuff AC itself is not a resource pack and does not ship any of these.</p></div><div className="shader-list">{[['Bliss Shaders', 'https://modrinth.com/shader/bliss-shader'], ['Arc', 'https://modrinth.com/shader/arc-shader'], ['Solas Shader', 'https://modrinth.com/shader/solas-shader'], ['Noble Shaders', 'https://modrinth.com/shader/noble'], ['Super Duper Vanilla', 'https://modrinth.com/shader/super-duper-vanilla']].map(([name, href]) => <a key={name} href={href} target="_blank" rel="noreferrer"><b>{name}</b><ArrowUpRight size={14} /></a>)}</div></section>
 

@@ -40,7 +40,6 @@ KEEP = re.compile(
     r"fix|add|chang|verif|improv|correct|limit|not yet|known|honest|number|licen"
 )
 
-
 def version_key(version):
     parts = []
     for chunk in version.replace("-dev", "").split("."):
@@ -49,14 +48,11 @@ def version_key(version):
         parts.append(0)
     return tuple(parts)
 
-
 def wrap(text):
     return " ".join(text.split())
 
-
 def ts(value):
     return "'" + value.replace("\\", "\\\\").replace("'", "\\'") + "'"
-
 
 def title_from(text):
     parts = SENTENCE.split(text, maxsplit=1)
@@ -65,7 +61,6 @@ def title_from(text):
         cut = title.rfind(" ", 0, 96)
         title = (title[:cut] if cut > 40 else title[:96]).rstrip(",;")
     return title, (parts[1] if len(parts) > 1 else "")
-
 
 def heading_kinds(sections):
     """Decides per heading whether it names a group or is the change itself.
@@ -92,7 +87,6 @@ def heading_kinds(sections):
         if pending is not None:
             kinds[pending] = bullets >= 2 and len(pending.split()) <= 4
     return kinds
-
 
 def split_grouped(body, items, kinds):
     """Reads a section where a heading is either a group or the change."""
@@ -132,7 +126,6 @@ def split_grouped(body, items, kinds):
         title, rest = title_from(wrap(bullet.group(1)))
         items.append({"group": group, "title": title, "copy": rest})
 
-
 def split_flat(body, items):
     """A bold heading is the change, and the lines under it are its detail."""
     heading = None
@@ -162,7 +155,6 @@ def split_flat(body, items):
     close()
     return items
 
-
 def as_prose(lines):
     """Joins a detail list into one paragraph."""
     parts = []
@@ -176,7 +168,6 @@ def as_prose(lines):
         parts.append(line)
     text = "".join(parts)
     return re.sub(r"\s+", " ", text).replace("..", ".").strip()
-
 
 def parse(lines):
     releases = []
@@ -230,7 +221,6 @@ def parse(lines):
     close_release()
     return releases
 
-
 def main():
     if not CHANGELOG.is_file():
         print("CHANGELOG.md not found", file=sys.stderr)
@@ -273,7 +263,6 @@ def main():
         f"{total} entries, {grouped} under a group"
     )
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -1,6 +1,5 @@
-// Opens every menu and clicks what is actually there, so a moved button is
-// reported rather than silently skipped. bot.clickWindow is the API that sends
-// a real click; window.clickSlot does nothing at all.
+
+
 const mineflayer = require('mineflayer')
 
 const bot = mineflayer.createBot({
@@ -53,13 +52,12 @@ const click = (slot) => {
   try {
     bot.clickWindow(slot, 0, 0)
   } catch (failure) {
-    // the server can close the window while a click is being built
+
     report.push(`click failed: ${failure.message}`)
     window = null
   }
 }
 
-// Walk the main menu by name, so a moved button is found rather than missed.
 const find = (predicate) => {
   if (!window) return -1
   for (let slot = 0; slot < window.inventoryStart; slot++) {
@@ -73,7 +71,7 @@ const byName = (word) => find((item) => item.name.includes(word))
 const steps = [
   { at: 2500, do: () => { opener = () => bot.chat('/snuff menu'); opener() } },
   { at: 5000, do: () => click(byName('player_head')) },
-  // on a single page Previous is a no op, so go straight back to the main menu
+
   { at: 7000, do: () => click(byName('oak_door')) },
   { at: 9000, do: () => click(byName('writable_book')) },
   { at: 11000, do: () => click(byName('oak_door')) },

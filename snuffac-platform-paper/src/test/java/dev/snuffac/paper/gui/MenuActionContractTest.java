@@ -12,12 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 
-/**
- * A menu action is a string that arrives from a file, so every string a shipped
- * menu file can produce must be handled by the menu that renders it. This
- * asserts that statically, because the alternative is a button that looks
- * real and does nothing.
- */
 class MenuActionContractTest {
 
     private static final String GUI_DIR = "src/main/java/dev/snuffac/paper/gui";

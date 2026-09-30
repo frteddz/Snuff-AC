@@ -8,7 +8,6 @@ export type Release = {
   items: ReleaseItem[]
 }
 
-
 export const releases: Release[] = [
   {
     version: '1.0.0-dev',

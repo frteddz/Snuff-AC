@@ -5,13 +5,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
-/**
- * A report with a category but no detail is close to useless to the staff
- * handling it, and the note field already exists on every stored report and
- * has never been reachable from a menu. This collects it in chat, with a
- * timeout so a player who walks away does not get a note typed into an
- * unexpected prompt later.
- */
 public final class NotePrompts {
 
     public static final long MILLIS = 60_000L;
@@ -19,7 +12,6 @@ public final class NotePrompts {
 
     private record Prompt(UUID target, String targetName, String category, long expires) {
     }
-
 
     private final Map<UUID, Prompt> pending = new ConcurrentHashMap<>();
 

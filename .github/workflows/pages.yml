@@ -7,6 +7,7 @@ on:
       - 'web/**'
       - 'sync-site-changelog.py'
       - 'check-description.py'
+      - 'check-style.py'
       - 'description-modrinth-curseforge.md'
       - 'CHANGELOG.md'
       - 'gradle.properties'
@@ -38,6 +39,9 @@ jobs:
         run: |
           python3 sync-site-changelog.py
           python3 check-description.py
+
+      - name: fail on an em dash or a comment
+        run: python3 check-style.py
 
       - name: install
         working-directory: web

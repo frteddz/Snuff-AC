@@ -16,6 +16,7 @@ icon.png
 # swallow them. the hero background was ignored by *.mp4, which meant it was
 # never committed and every deploy served a page with no video.
 !web/public/hero-background.mp4
+!web/public/hero-background-mobile.mp4
 !web/public/fullres-animated-icon.mp4
 !docs/header.gif
 web/node_modules

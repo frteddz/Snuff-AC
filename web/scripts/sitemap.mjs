@@ -1,5 +1,5 @@
-// Builds sitemap.xml and feed.xml from the generated release data, so the
-// sitemap can never list a page or a release that does not exist.
+
+
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 

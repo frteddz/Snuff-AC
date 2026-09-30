@@ -1,4 +1,4 @@
-// Selects the AFK category that was added to report-options.yml at runtime.
+
 const mineflayer = require('mineflayer')
 const bot = mineflayer.createBot({
   host: '127.0.0.1', port: 25565, username: 'Tester', auth: 'offline',

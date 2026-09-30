@@ -1,15 +1,11 @@
-// The changelog lives on its own page, generated from CHANGELOG.md by
-// sync-site-changelog.py so the two can never disagree about a release.
-// Oldest first, because a changelog is a history and a history has a
-// direction.
+
+
 import { useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowUpRight, Menu, X } from 'lucide-react'
 import { releases } from './releases'
 import './styles.css'
 
-// github pages serves the site from a subpath, and vite only rewrites urls it
-// can see in html and css, so anything built at runtime needs the base here
 const base = import.meta.env.BASE_URL
 const asset = (path: string) => `${base}${path.replace(/^\//, '')}`
 
