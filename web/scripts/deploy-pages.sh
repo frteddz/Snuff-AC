@@ -26,7 +26,8 @@ while read -r url; do
     missing=1
   fi
 done < <(
-  grep -ohE '(src|poster|href)="/Snuff-AC/[^"#?]+"' "$DIST"/*.html | sed -E 's/.*="//' | sort -u
+  grep -ohE '(src|poster|href)="/Snuff-AC/[^"#?]+"' "$DIST"/*.html \
+    | sed -E 's/.*="//; s/"$//' | sort -u
 )
 [ "$missing" -eq 0 ] || { echo "refusing to publish a site with missing assets" >&2; exit 1; }
 
