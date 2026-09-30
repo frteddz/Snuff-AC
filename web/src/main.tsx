@@ -128,12 +128,13 @@ function App() {
         <div className="shell">
         <div className="hero-copy">
           <img className="hero-wordmark" src={asset('snuff-wordmark.png')} alt="" aria-hidden="true" />
-          <h1>Snuff AC, an open-source anticheat for Minecraft servers</h1>
+          <h1>
+            <em>Evidence-based detection.</em>
+            <span className="visually-hidden">Snuff AC, an open-source anticheat for Minecraft servers</span>
+          </h1>
           <p className="hero-lede">
-            Snuff AC is a free, open-source anticheat for Minecraft Java Edition. It runs 32
-            movement, combat, world and packet checks on Paper and Purpur, and it works by
-            predicting the movement and measuring the deviation rather than reacting to a
-            single anomaly.
+            An open-source Minecraft Java Edition anticheat built around prediction, evidence,
+            and server-side authority.
           </p>
           <div className="hero-actions"><a className="button button-primary" href={repo} target="_blank" rel="noreferrer"><img className="social-icon" src={asset('social/github_icon.png')} alt="" /> View on GitHub <ArrowUpRight size={15} /></a><a className="button button-kofi" href="https://ko-fi.com/A1A3259HI2" target="_blank" rel="noreferrer"><img className="kofi-icon" src={asset('social/kofi_icon.png')} alt="" /> Support me on Ko-fi <ArrowUpRight size={15} /></a><a className="button button-quiet" href={docs} target="_blank" rel="noreferrer"><BookOpen size={17} /> Read the architecture</a></div>
         </div>
