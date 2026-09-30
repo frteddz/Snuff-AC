@@ -12,7 +12,11 @@ out/
 *.mp4
 icon.png
 
-# the README header animation is part of the project
+# these are part of the site and the readme, so the blanket rule above must not
+# swallow them. the hero background was ignored by *.mp4, which meant it was
+# never committed and every deploy served a page with no video.
+!web/public/hero-background.mp4
+!web/public/fullres-animated-icon.mp4
 !docs/header.gif
 web/node_modules
 web/dist

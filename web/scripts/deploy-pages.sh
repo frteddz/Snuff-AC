@@ -15,6 +15,21 @@ trap 'rm -rf "$WORK"' EXIT
 [ -f "$DIST/index.html" ] || { echo "no build found, run npm run build in web/" >&2; exit 1; }
 [ -f "$DIST/sitemap.xml" ] || { echo "sitemap missing, the build did not finish" >&2; exit 1; }
 
+# every local asset the html and css ask for has to exist in the build, or the
+# page ships broken. this is how the hero video went missing: it was ignored by
+# a *.mp4 rule in .gitignore, so it was never in the checkout the ci builds.
+missing=0
+while read -r url; do
+  target="$DIST${url#*Snuff-AC}"
+  if [ ! -f "$target" ]; then
+    echo "referenced but not built: $url" >&2
+    missing=1
+  fi
+done < <(
+  grep -ohE '(src|poster|href)="/Snuff-AC/[^"#?]+"' "$DIST"/*.html | sed -E 's/.*="//' | sort -u
+)
+[ "$missing" -eq 0 ] || { echo "refusing to publish a site with missing assets" >&2; exit 1; }
+
 # a custom domain redirects every visitor, so it only ships when asked for
 if [ "${1:-}" = "--domain" ]; then
   cp "$ROOT/web/public/CNAME.documented" "$WORK/CNAME"

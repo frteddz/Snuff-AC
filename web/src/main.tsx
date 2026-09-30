@@ -76,9 +76,10 @@ function App() {
 
   useEffect(() => {
     if (heroVideo.current) {
-      // the video is marked preload="none" so it costs nothing until here,
-      // and it is skipped entirely for anyone who asked for less motion
       heroVideo.current.playbackRate = 1
+      // preload="none" keeps the 7MB file off the critical path, so it has to
+      // be kicked off once the page is interactive. Anyone who asked for
+      // reduced motion gets the poster and nothing else.
       if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
         heroVideo.current.load()
       }
@@ -122,7 +123,7 @@ function App() {
           loop
           playsInline
           preload="none"
-          poster={asset('og-image.png')}
+          poster={asset('hero-poster.jpg')}
           aria-hidden="true"
         />
         <div className="shell">
