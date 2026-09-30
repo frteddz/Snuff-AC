@@ -10,7 +10,7 @@ Free, open-source anticheat for Minecraft Java Edition servers. 33 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.1.8-dev**. Requires **Java 21**.
+Current release: **1.1.9-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -55,11 +55,11 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 * **Reach**: eye-to-hitbox measurement for attacks and to the nearest block face for interactions, with ping-aware tolerance; out of range attacks and interactions are cancelled
 * **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
-* **AutoClicker**: attack timing patterns, frequency analysis and consistency
+* **AutoClicker**: attack timing patterns, frequency analysis, a perfectly even interval spread, and the same delay repeated down the sample
 * **Aim**: rotation behaviour around attacks
 * **KillAura**: target sequencing, rapid multi-target switching, attacks on targets outside the field of view or behind the player, and rotation with no mouse jitter
 * **ImpossibleAttack** *(structural)*: attack sequences that do not fit observable state
-* **Critical**: forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack
+* **Critical**: forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack, and a critical landed while the server knows the player is not actually falling
 * **RotationSnapBack**: a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce
 * **InvalidAttackState** *(structural)*: attacks that are invalid for the current player state
 

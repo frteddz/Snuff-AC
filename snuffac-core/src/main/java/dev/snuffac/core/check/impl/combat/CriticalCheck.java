@@ -18,6 +18,9 @@ public final class CriticalCheck implements Check {
     public static final double LEGIT_DISTANCE = 1.35;
     public static final double LEGIT_REACH = 4.2;
     public static final int REQUIRED = 3;
+    public static final int FALL_STATE_REQUIRED = 2;
+    public static final double MIN_FALL_SPEED = 0.05;
+    public static final double GROUND_SLACK = 0.02;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -41,7 +44,9 @@ public final class CriticalCheck implements Check {
 
     @Override
     public String description() {
-        return "Detects forced criticals produced by sending extra position packets with a small vertical lift immediately before an attack.";
+        return "Detects forced criticals produced by sending extra position packets with a small "
+                + "vertical lift immediately before an attack, and reports a critical landed while "
+                + "the server knows the player is not falling.";
     }
 
     @Override
@@ -67,11 +72,32 @@ public final class CriticalCheck implements Check {
         }
 
         prune(context, state, attack.arrivalNanos());
+        boolean falling = isGenuineFall(context);
+        state.landingTicks = falling ? 0 : state.landingTicks + 1;
+
+        Map<String, Object> landing = null;
+        if (state.lifts < REQUIRED && !isGenuineFall(context)) {
+            if (state.landingTicks < FALL_STATE_REQUIRED) {
+                return;
+            }
+            landing = context.newEvidence();
+            landing.put("mode", "not falling");
+            landing.put("consecutive", state.landingTicks);
+            landing.put("onGround", context.player().movement().onGround());
+            landing.put("velocityY", round(context.player().movement().velocity().y()));
+            landing.put("inWater", context.player().movement().inWaterOrLava());
+            landing.put("onClimbable", context.player().movement().onClimbable());
+            landing.put("fallDistance", round(context.player().movement().fallDistance()));
+            context.flag("critical landed while not falling", landing, 8.0);
+            state.landingTicks = 0;
+        }
+
         if (state.lifts < REQUIRED) {
             return;
         }
 
         Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "extra packets");
         evidence.put("lifts", state.lifts);
         evidence.put("windowNanos", WINDOW_NANOS);
         evidence.put("lastLiftY", state.lastLift);
@@ -79,6 +105,24 @@ public final class CriticalCheck implements Check {
         evidence.put("distance", Math.round(attack.cursorPosition().distanceTo(context.position()) * 100.0) / 100.0);
         context.flag("forced critical through extra movement packets", evidence, 9.0);
         state.lifts = 0;
+        state.landingTicks = 0;
+        return;
+    }
+
+    public static boolean isGenuineFall(CheckContext context) {
+        var movement = context.player().movement();
+        if (movement.onGround()) {
+            return false;
+        }
+        if (movement.inWaterOrLava() || movement.onClimbable() || movement.riding()
+                || movement.inVehicle() || movement.gliding() || movement.flying()) {
+            return false;
+        }
+        if (movement.hasLevitation() || movement.hasSlowFalling()) {
+            return false;
+        }
+        return -movement.velocity().y() >= MIN_FALL_SPEED
+                || movement.fallDistance() > GROUND_SLACK;
     }
 
     private static void record(CheckContext context, CriticalState state, long arrivalNanos) {
@@ -139,5 +183,10 @@ public final class CriticalCheck implements Check {
         private double lastLift;
         private int lifts;
         private int groundTicks;
+        private int landingTicks;
+    }
+
+    private static double round(double value) {
+        return Math.round(value * 10000.0) / 10000.0;
     }
 }

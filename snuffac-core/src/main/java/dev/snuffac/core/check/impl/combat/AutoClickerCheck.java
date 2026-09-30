@@ -14,6 +14,11 @@ public final class AutoClickerCheck implements Check {
     private static final long WINDOW_MILLIS = 1000L;
     private static final double MIN_VARIANCE = 0.0;
     private static final int BURST_TICKS = 3;
+    public static final int CADENCE_MIN_SAMPLES = 14;
+    public static final double SPREAD_MIN = 0.06;
+    public static final double SPREAD_RATIO = 0.04;
+    public static final int REPEAT_RUN = 6;
+    public static final double REPEAT_SPREAD = 1.5;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -37,7 +42,9 @@ public final class AutoClickerCheck implements Check {
 
     @Override
     public String description() {
-        return "Analyses attack and swing cadence for impossible rates and machine perfect timing variance.";
+        return "Analyses attack and swing cadence for impossible rates and machine perfect timing "
+                + "variance, including the distribution shape of the intervals, repeated identical "
+                + "delays and a perfectly even cadence.";
     }
 
     @Override
@@ -107,6 +114,32 @@ public final class AutoClickerCheck implements Check {
         evidence.put("perfectTicks", state.perfectTicks);
         evidence.put("swings", combat.swings());
 
+        state.cadenceSamples++;
+        double spread = standardDeviation(intervals, mean);
+        double longestRepeat = longestRepeatRun(intervals);
+
+        evidence.put("intervalSpread", round(spread));
+        evidence.put("longestRepeat", longestRepeat);
+        evidence.put("cadenceSamples", state.cadenceSamples);
+
+        boolean machineEven = state.cadenceSamples >= CADENCE_MIN_SAMPLES
+                && mean > 0.0
+                && spread < SPREAD_MIN
+                && spread / mean < SPREAD_RATIO;
+        boolean repeatedDelay = state.cadenceSamples >= CADENCE_MIN_SAMPLES
+                && longestRepeat >= REPEAT_RUN
+                && spread < REPEAT_SPREAD;
+
+        if (machineEven || repeatedDelay) {
+            String shape = machineEven
+                    ? "perfectly even"
+                    : "the same delay " + (int) longestRepeat + " times running";
+            context.flag("click cadence with " + shape + " at " + round(cps) + " cps", evidence, 6.0);
+            state.perfectTicks = 0;
+            state.cadenceSamples = 0;
+            return;
+        }
+
         if (state.perfectTicks >= BURST_TICKS) {
             context.flag("machine perfect click cadence with cps " + round(cps), evidence, 6.0);
             state.perfectTicks = 0;
@@ -122,6 +155,24 @@ public final class AutoClickerCheck implements Check {
         if (state != null) {
             state.perfectTicks = 0;
         }
+    }
+
+    public static int longestRepeatRun(long[] values) {
+        int best = 0;
+        int run = 0;
+        long previous = Long.MIN_VALUE;
+        for (long value : values) {
+            if (value == previous) {
+                run++;
+            } else {
+                run = 1;
+                previous = value;
+            }
+            if (run > best) {
+                best = run;
+            }
+        }
+        return best;
     }
 
     private static double mean(long[] values) {
@@ -152,5 +203,6 @@ public final class AutoClickerCheck implements Check {
 
         private final java.util.ArrayList<Long> samples = new java.util.ArrayList<>(64);
         private int perfectTicks;
+        private int cadenceSamples;
     }
 }

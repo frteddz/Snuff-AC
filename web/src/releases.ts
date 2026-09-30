@@ -1211,4 +1211,23 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.1.9-dev',
+    tag: 'v1.1.9-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 2,
+    items: [
+      {
+        group: null,
+        title: 'A critical landed on the ground is now reported',
+        copy: 'The check looked for extra movement packets before an attack and nothing else. A cheat that makes the client believe it is falling, without sending a packet, produced no extra packets, so it was never seen. The server already knows whether a player is really falling: negative vertical velocity, not in water, not on a ladder, not in a vehicle, not gliding, no levitation, no slow falling. A critical landed on two consecutive attacks while the server knows the player is not falling is now flagged, and the evidence states which of those conditions held. A real jump critical is unaffected, because a real jump is genuinely falling.',
+      },
+      {
+        group: null,
+        title: 'Click cadence is judged by the shape of the intervals',
+        copy: 'The check measured the rate and the standard deviation of the intervals, but variance was compared against zero, so the perfect timing branch could not be reached from a normal sample. Two shape rules are added. A spread under 0.06 milliseconds across 14 samples is a perfectly even cadence. A hand does not produce that, and a machine does. The spread is also compared against the mean interval, so an evenly spaced burst on a slow cadence is not mistaken for a fast one. The same delay six times running, while the surrounding spread stays under.1.5 milliseconds, is a repeated delay. That is the signature of a fixed delay cheat and of a drag pattern, which the source notes warn about, so the wide spread requirement keeps ordinary human clicking out of it.',
+      },
+    ],
+  },
 ]
