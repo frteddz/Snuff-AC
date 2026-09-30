@@ -60,7 +60,7 @@ function PixelIcon({ name, alt = '' }: { name: string; alt?: string }) {
 }
 
 function Logo() {
-  return <a className="logo" href="#top" aria-label="Snuff AC home"><img src={asset('fav-icon.png')} alt="" /><span>snuff <b>ac</b></span></a>
+  return <a className="logo" href="#top"><img src={asset('fav-icon.png')} alt="" /><span>Snuff <b>AC</b></span></a>
 }
 
 function SectionLabel({ index, children }: { index: string; children: string }) {
@@ -99,6 +99,7 @@ function App() {
   return <div id="top">
     <header className="nav-wrap">
       <nav className="nav shell" aria-label="Main navigation">
+        <Logo />
         <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}>{menuOpen ? <X size={20} /> : <Menu size={20} />}</button>
         <div className={`nav-links ${menuOpen ? 'open' : ''}`}>
           <a href={`${base}changelog.html`} onClick={closeMenu}>Changelog</a>
@@ -128,10 +129,7 @@ function App() {
         <div className="shell">
         <div className="hero-copy">
           <img className="hero-wordmark" src={asset('snuff-wordmark.png')} alt="" aria-hidden="true" />
-          <h1>
-            <em>Evidence-based detection.</em>
-            <span className="visually-hidden">Snuff AC, an open-source anticheat for Minecraft servers</span>
-          </h1>
+          <h1><em>Evidence-based detection.</em></h1>
           <p className="hero-lede">
             An open-source Minecraft Java Edition anticheat built around prediction, evidence,
             and server-side authority.
