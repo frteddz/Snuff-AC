@@ -8,7 +8,8 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Sustained unsupported flight detected from the server block view.
+      description: Sustained unsupported flight from the server block view, plus an air time
+        budget that only legitimate support refills.
       evidence: DERIVED
     speed:
       enabled: true
@@ -140,7 +141,8 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Eye to hitbox distance with ping and vehicle aware tolerance.
+      description: Eye to hitbox distance for attacks and to the nearest face for block
+        interactions, with ping and vehicle aware tolerance.
       evidence: DERIVED
     autoclicker:
       enabled: true

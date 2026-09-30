@@ -8,6 +8,7 @@ export type Release = {
   items: ReleaseItem[]
 }
 
+
 export const releases: Release[] = [
   {
     version: '1.0.0-dev',
@@ -1120,6 +1121,35 @@ export const releases: Release[] = [
         group: null,
         title: 'The category chosen before the note was lost',
         copy: 'Submitting asked for the note, then built a fresh picker to file with, so the report came back as "pick a category first".',
+      },
+    ],
+  },
+  {
+    version: '1.1.6-dev',
+    tag: 'v1.1.6-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 4,
+    items: [
+      {
+        group: null,
+        title: 'A block can no longer be used from across the map',
+        copy: 'Reach measured the eye to the hitbox distance, and only for attacks. Opening a chest, a door, a button or a workbench sent the same kind of packet and nothing looked at it, so interaction reach was unlimited while the check said it was capped. Distance is now measured to the nearest face of the block rather than its centre, the same way it is measured for a hitbox. Capped at the vanilla survival range of 4.5 blocks and 5 in creative, with the same ping tolerance attacks already had, so a laggy player is not punished for the round trip. Two out of range interactions in a row are needed before anything is reported, and the interaction is blocked rather than only alerted, so the cheat gains nothing.',
+      },
+      {
+        group: null,
+        title: 'Flight now runs out of air',
+        copy: 'The air time limit was written down, checked, and then thrown away: the code returned early once the limit was passed, which is the one case the limit was there to catch. A player could stay off the ground indefinitely and the check would never speak. Air time is now a budget that only legitimate support refills. Touching ground, or a ladder, water, honey, soul sand, a vehicle, an elytra, slow falling, levitation, riptiding, knockback or a wind charge puts it back in full. Hovering on nothing spends it. A brief brush past a vine does not refill it, so clipping support in a loop no longer lasts forever. The report carries the air time, the unsupported tick count and the height the player was at, so a report says why the budget ran out.',
+      },
+      {
+        group: null,
+        title: 'Nuker counted retries on one block as many blocks',
+        copy: 'The check counts distinct blocks per second, and says so in its own report, but the burst rule counted raw dig packets instead. Clicking a block you cannot break three times sent three packets, which read as a burst across three blocks. A player using the wrong tool got a Nuker flag for it. The burst now counts distinct blocks, and the report reads "started digging.5 distinct blocks within 700ms" instead of claiming distinct blocks while counting packets. Found with a real client hammering one block: 48 refused dig attempts, no flag.',
+      },
+      {
+        group: null,
+        title: 'The Nuker window was pruning block positions as if they were timestamps',
+        copy: 'The sliding window stored packed block positions and then compared each one against the clock to decide what had fallen out of the last second. A packed position is a large number, so `now - entry` was never small, nothing ever aged out, and the per second limit was really a limit on all time. The window now stores the time of each dig alongside the position, so the per second limit means per second.',
       },
     ],
   },

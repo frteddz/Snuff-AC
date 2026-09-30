@@ -72,19 +72,23 @@ public final class NukerCheck implements Check {
         }
 
         long now = System.currentTimeMillis();
-        state.recent.removeIf(entry -> now - entry >= WINDOW_MILLIS);
-        state.recent.add(dig.packedPosition());
+        state.recent.removeIf(event -> now - event.atMillis() >= WINDOW_MILLIS);
+        state.recent.add(new DigEvent(now, dig.packedPosition()));
 
-        long burst = state.recent.stream().filter(entry -> now - entry < BURST_WINDOW_MILLIS).count();
-        long distinct = state.recent.stream().distinct().count();
+        long burst = state.recent.stream()
+                .filter(event -> now - event.atMillis() < BURST_WINDOW_MILLIS)
+                .map(DigEvent::packed)
+                .distinct()
+                .count();
+        long distinct = state.recent.stream().map(DigEvent::packed).distinct().count();
 
         if (burst < BURST_LIMIT && distinct <= MAX_DISTINCT_PER_SECOND) {
             return;
         }
 
-        BlockPos sample = BlockPos.unpack(state.recent.peekLast());
+        BlockPos sample = BlockPos.unpack(state.recent.peekLast().packed());
         Map<String, Object> evidence = context.newEvidence();
-        evidence.put("digPacketsInBurst", burst);
+        evidence.put("distinctBlocksInBurst", burst);
         evidence.put("distinctBlocks", distinct);
         evidence.put("maximum", MAX_DISTINCT_PER_SECOND);
         evidence.put("window", WINDOW_MILLIS);
@@ -92,8 +96,8 @@ public final class NukerCheck implements Check {
         evidence.put("sampleY", sample.y());
         evidence.put("sampleZ", sample.z());
         evidence.put("distance", round(context.player().position().distanceTo(sample.toVec())));
-        context.flag("sent " + burst + " dig packets within " + BURST_WINDOW_MILLIS
-                + "ms across " + distinct + " distinct block(s)", evidence, 6.0);
+        context.flag("started digging " + burst + " distinct blocks within " + BURST_WINDOW_MILLIS
+                + "ms, " + distinct + " in the last second", evidence, 6.0);
         state.recent.clear();
     }
 
@@ -105,8 +109,11 @@ public final class NukerCheck implements Check {
         return Math.round(value * 100.0) / 100.0;
     }
 
+    record DigEvent(long atMillis, long packed) {
+    }
+
     static final class NukerState {
 
-        private final java.util.ArrayDeque<Long> recent = new java.util.ArrayDeque<>();
+        private final java.util.ArrayDeque<DigEvent> recent = new java.util.ArrayDeque<>();
     }
 }

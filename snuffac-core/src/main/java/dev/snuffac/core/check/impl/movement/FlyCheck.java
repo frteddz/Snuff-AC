@@ -12,6 +12,9 @@ public final class FlyCheck extends AbstractMovementCheck {
     private static final int HOVER_TICKS = 40;
     private static final int RISE_GRACE_TICKS = 4;
     private static final int RISES_BEFORE_FLAG = 3;
+    private static final int PARTIAL_SUPPORT_REFILL = 10;
+    private static final int BUDGET_CAP = MAX_AIR_TICKS + 60;
+    private static final int BUDGETS_BEFORE_FLAG = 2;
 
     @Override
     public String key() {
@@ -30,7 +33,8 @@ public final class FlyCheck extends AbstractMovementCheck {
 
     @Override
     public String description() {
-        return "Detects sustained unsupported flight using the server block view instead of client claims.";
+        return "Detects sustained unsupported flight using the server block view instead of client claims, "
+                + "and runs an air time budget that only legitimate support can refill.";
     }
 
     @Override
@@ -82,7 +86,7 @@ public final class FlyCheck extends AbstractMovementCheck {
         }
 
         int airTicks = movementState.ticksSinceGround();
-        if (airTicks > MAX_AIR_TICKS) {
+        if (spendAirBudget(context, state, airTicks, movementState)) {
             return;
         }
         if (cache.onGroundBelow()) {
@@ -144,7 +148,7 @@ public final class FlyCheck extends AbstractMovementCheck {
             return;
         }
         int airTicks = movementState.ticksSinceGround();
-        if (airTicks > MAX_AIR_TICKS) {
+        if (spendAirBudget(context, state, airTicks, movementState)) {
             return;
         }
         if (airTicks < RISE_GRACE_TICKS) {
@@ -167,6 +171,63 @@ public final class FlyCheck extends AbstractMovementCheck {
         state.sameLevelTicks = 0;
     }
 
+    private boolean spendAirBudget(
+            CheckContext context,
+            FlyState state,
+            int airTicks,
+            dev.snuffac.core.player.MovementState movement) {
+
+        if (airTicks < 2) {
+            state.refill(MAX_AIR_TICKS);
+            state.unsupportedTicks = 0;
+            return false;
+        }
+
+        if (partialSupport(movement)) {
+            state.refill(MAX_AIR_TICKS);
+            state.unsupportedTicks = 0;
+            return false;
+        }
+
+        state.unsupportedTicks++;
+        state.budget = Math.max(0, state.budget - 1);
+
+        if (state.budget > 0) {
+            return false;
+        }
+        if (state.budgetFlags >= BUDGETS_BEFORE_FLAG) {
+            return true;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "air budget");
+        evidence.put("airTicks", airTicks);
+        evidence.put("unsupportedTicks", state.unsupportedTicks);
+        evidence.put("budget", state.budget);
+        evidence.put("velocityY", round(movement.velocity().y()));
+        evidence.put("fallDistance", round(movement.fallDistance()));
+        evidence.put("ticksSinceKnockback", movement.ticksSinceKnockback());
+        evidence.put("height", round(movement.position().y()));
+
+        context.requestSetback("air time budget exhausted after " + state.unsupportedTicks + " ticks");
+        context.flag("unsupported for " + state.unsupportedTicks
+                + " ticks with no valid support", evidence, 10.0);
+
+        state.budgetFlags++;
+        state.budget = PARTIAL_SUPPORT_REFILL * 4;
+        return true;
+    }
+
+    private static boolean partialSupport(dev.snuffac.core.player.MovementState movement) {
+        return movement.flying() || movement.gliding() || movement.riding()
+                || movement.inVehicle() || movement.inWaterOrLava() || movement.swimming()
+                || movement.onClimbable() || movement.onHoney() || movement.onSoulSand()
+                || movement.hasSlowFalling() || movement.hasLevitation() || movement.riptiding()
+                || movement.ticksSinceKnockback() < 12
+                || movement.ticksSinceBlockChange() < 3
+                || movement.ticksOnFire() > 0;
+    }
+
     @Override
     public void onTick(CheckContext context) {
         var state = (FlyState) state(context.player());
@@ -186,10 +247,20 @@ public final class FlyCheck extends AbstractMovementCheck {
 
         private int sameLevelTicks;
         private int rises;
+        private int budget = MAX_AIR_TICKS;
+        private int unsupportedTicks;
+        private int budgetFlags;
+
+        private void refill(int target) {
+            budget = Math.min(BUDGET_CAP, Math.max(budget, target));
+        }
 
         private void reset() {
             sameLevelTicks = 0;
             rises = 0;
+            budget = MAX_AIR_TICKS;
+            unsupportedTicks = 0;
+            budgetFlags = 0;
         }
     }
 }

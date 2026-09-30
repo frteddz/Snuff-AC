@@ -10,7 +10,7 @@ Free, open-source anticheat for Minecraft Java Edition servers. 32 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.1.5-dev**. Requires **Java 21**.
+Current release: **1.1.6-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -36,7 +36,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ### Movement (13)
 
-* **Fly**: unsupported flight from the server's own block view
+* **Fly**: unsupported flight from the server's own block view, plus an air time budget that only legitimate support refills
 * **Speed**: prediction based, with 36 discretised input candidates and the best fit kept
 * **NoFall**: fall damage suppressed by claiming ground contact while airborne
 * **AirMovement**: airborne acceleration against the predicted state
@@ -52,7 +52,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ### Combat (9)
 
-* **Reach**: eye-to-hitbox measurement with ping-aware tolerance; the attack is cancelled when out of range
+* **Reach**: eye-to-hitbox measurement for attacks and to the nearest block face for interactions, with ping-aware tolerance; out of range attacks and interactions are cancelled
 * **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
 * **AutoClicker**: attack timing patterns, frequency analysis and consistency
 * **Aim**: rotation behaviour around attacks
@@ -67,7 +67,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **FastBreak**: break timing against material and tool context
 * **FastPlace**: placement and interaction rate
 * **Scaffold**: placement behaviour and the movement context around it
-* **Nuker**: raw dig packet rate rather than distinct block counting
+* **Nuker**: distinct blocks started per burst and per second, so retrying one block is never counted as several
 * **MiningBeyondView**: targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
 ### Packet (5)

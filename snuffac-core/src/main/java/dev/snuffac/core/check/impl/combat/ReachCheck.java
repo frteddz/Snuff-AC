@@ -5,12 +5,15 @@ import dev.snuffac.api.Vec3d;
 import dev.snuffac.core.check.Check;
 import dev.snuffac.core.check.CheckContext;
 import dev.snuffac.core.packet.AttackPacket;
+import dev.snuffac.core.packet.BlockPlacePacket;
 import dev.snuffac.core.packet.PacketType;
 import dev.snuffac.core.packet.SnuffPacket;
 import dev.snuffac.core.combat.HitboxVerifier;
 import dev.snuffac.core.combat.ReachResolver;
 import dev.snuffac.core.combat.EntitySnapshot;
 import dev.snuffac.core.physics.MovementConstants;
+import dev.snuffac.core.util.BlockKind;
+import dev.snuffac.core.util.BlockPos;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,10 +22,12 @@ public final class ReachCheck implements Check {
     public static final int WEAPON_STREAK = 4;
 
     private static final double MIN_EXCESS = 0.02;
+    private static final double MIN_INTERACTION_EXCESS = 0.10;
+    private static final int INTERACTION_STREAK = 2;
 
     @Override
     public Set<PacketType> packetInterests() {
-        return Set.of(PacketType.ATTACK);
+        return Set.of(PacketType.ATTACK, PacketType.BLOCK_PLACE);
     }
 
     @Override
@@ -42,7 +47,8 @@ public final class ReachCheck implements Check {
 
     @Override
     public String description() {
-        return "Measures eye to hitbox distance with ping aware tolerance and rejects attacks outside the limit.";
+        return "Measures eye to hitbox distance with ping aware tolerance and rejects attacks and block "
+                + "interactions outside the limit.";
     }
 
     @Override
@@ -52,6 +58,10 @@ public final class ReachCheck implements Check {
 
     @Override
     public void onPacket(CheckContext context, SnuffPacket packet) {
+        if (packet instanceof BlockPlacePacket placement) {
+            checkInteractionReach(context, placement);
+            return;
+        }
         if (!(packet instanceof AttackPacket attack)) {
             return;
         }
@@ -190,6 +200,70 @@ public final class ReachCheck implements Check {
         state.excessTicks = 0;
     }
 
+    private void checkInteractionReach(CheckContext context, BlockPlacePacket placement) {
+        var state = (ReachState) state(context.player());
+        if (state == null) {
+            return;
+        }
+        var player = context.player();
+        var movement = player.movement();
+        var cache = player.worldCache();
+
+        if (movement.ticksSinceTeleport() <= 1 || movement.inVehicle()) {
+            return;
+        }
+        if (!cache.chunkLoaded()) {
+            return;
+        }
+
+        var position = BlockPos.unpack(placement.packedPosition());
+        if (cache.kindAt(position) == BlockKind.AIR) {
+            return;
+        }
+
+        boolean creative = player.combatEnvironment().creative();
+        var resolved = ReachResolver.resolveInteraction(
+                player.position(),
+                movement.sneaking(),
+                position,
+                creative);
+
+        double tolerance = context.config().reachToleranceFor(context.ping(), false);
+        double maximum = resolved.allowed() + tolerance;
+        double excess = resolved.distance() - maximum;
+
+        if (excess <= MIN_INTERACTION_EXCESS) {
+            state.interactionStreak = 0;
+            return;
+        }
+
+        state.interactionStreak++;
+        if (state.interactionStreak < INTERACTION_STREAK) {
+            return;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "interaction");
+        evidence.put("distance", round(resolved.distance()));
+        evidence.put("maximum", round(maximum));
+        evidence.put("excess", round(excess));
+        evidence.put("tolerance", round(tolerance));
+        evidence.put("ping", round(context.ping()));
+        evidence.put("block", position.toString());
+        evidence.put("material", cache.materialAt(position));
+        evidence.put("face", placement.faceId());
+        evidence.put("hand", placement.handOrdinal());
+        evidence.put("creative", creative);
+        evidence.put("sneaking", movement.sneaking());
+        evidence.put("streak", state.interactionStreak);
+
+        context.preventInteraction("block interaction at " + round(resolved.distance())
+                + " over " + round(maximum));
+        context.flag("block interaction at " + round(resolved.distance())
+                + " exceeds " + round(maximum), evidence, Math.min(excess * 8.0, 10.0));
+        state.interactionStreak = 0;
+    }
+
     static Vec3d eyePosition(Vec3d position, float pitch) {
         double height = MovementConstants.PLAYER_EYE_HEIGHT;
         return new Vec3d(position.x(), position.y() + height, position.z());
@@ -205,5 +279,6 @@ public final class ReachCheck implements Check {
         private int resolvedHits;
         private boolean lineOfSightBlocked;
         private int weaponFlags;
+        private int interactionStreak;
     }
 }

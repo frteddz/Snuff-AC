@@ -5,6 +5,71 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.6-dev] - 2026-10-01
+
+Reach and Flight. Two things the checks already claimed to do, plus a false
+positive a real client turned up while this was being worked on.
+
+### Added
+
+**A block can no longer be used from across the map**
+
+- Reach measured the eye to the hitbox distance, and only for attacks. Opening
+  a chest, a door, a button or a workbench sent the same kind of packet and
+  nothing looked at it, so interaction reach was unlimited while the check
+  said it was capped. Distance is now measured to the nearest face of the
+  block rather than its centre, the same way it is measured for a hitbox.
+- Capped at the vanilla survival range of 4.5 blocks and 5 in creative, with
+  the same ping tolerance attacks already had, so a laggy player is not
+  punished for the round trip. Two out of range interactions in a row are
+  needed before anything is reported, and the interaction is blocked rather
+  than only alerted, so the cheat gains nothing.
+
+**Flight now runs out of air**
+
+- The air time limit was written down, checked, and then thrown away: the code
+  returned early once the limit was passed, which is the one case the limit
+  was there to catch. A player could stay off the ground indefinitely and the
+  check would never speak.
+- Air time is now a budget that only legitimate support refills. Touching
+  ground, or a ladder, water, honey, soul sand, a vehicle, an elytra, slow
+  falling, levitation, riptiding, knockback or a wind charge puts it back in
+  full. Hovering on nothing spends it. A brief brush past a vine does not
+  refill it, so clipping support in a loop no longer lasts forever.
+- The report carries the air time, the unsupported tick count and the height
+  the player was at, so a report says why the budget ran out.
+
+### Fixed
+
+**Nuker counted retries on one block as many blocks**
+
+- The check counts distinct blocks per second, and says so in its own report,
+  but the burst rule counted raw dig packets instead. Clicking a block you
+  cannot break three times sent three packets, which read as a burst across
+  three blocks. A player using the wrong tool got a Nuker flag for it.
+- The burst now counts distinct blocks, and the report reads "started digging
+  5 distinct blocks within 700ms" instead of claiming distinct blocks while
+  counting packets. Found with a real client hammering one block: 48 refused
+  dig attempts, no flag.
+
+**The Nuker window was pruning block positions as if they were timestamps**
+
+- The sliding window stored packed block positions and then compared each one
+  against the clock to decide what had fallen out of the last second. A packed
+  position is a large number, so `now - entry` was never small, nothing ever
+  aged out, and the per second limit was really a limit on all time. The
+  window now stores the time of each dig alongside the position, so the
+  per second limit means per second.
+
+### Verified
+
+- 381 tests pass, 16 of them new: 13 for interaction reach and the air
+  budget, 3 for the dig window.
+- Loaded on a real Paper 1.21.11 server, 32 checks, anti-xray active on all
+  three dimensions, no errors.
+- A real client standing still, falling from the build limit, climbing, and
+  retrying a dig it cannot complete are all clean.
+
 ## [1.1.5-dev] - 2026-09-30
 
 The note field. Every stored report has carried a note since reports were
