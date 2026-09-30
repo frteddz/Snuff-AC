@@ -1297,4 +1297,23 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.3-dev',
+    tag: 'v1.2.3-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 2,
+    items: [
+      {
+        group: null,
+        title: 'Fall distance is now tracked on the server',
+        copy: 'The check asked whether the client claimed ground contact while the server still saw air, which only catches a no-fall module that lies about onGround. The source asks for the real fall distance to be tracked server side, which catches the module that simply never reports a fall at all. The downward distance is accumulated from the position packets while there is nothing underfoot, and a landing past 3 blocks of it, twice, is reported. A block under the feet clears the total, so a descent that ends on solid ground is not carried into the next jump. Water, a ladder, gliding, flying and slow falling clear it too, since none of them is a fall. The report carries both distances, the server one and the client one, so a disagreement between them is visible rather than implied.',
+      },
+      {
+        group: null,
+        title: 'The causes that absorb knockback are checked rather than assumed',
+        copy: 'A player who takes a hit inside a cobweb, in water, or on a ladder loses most of the knockback, and the client is right to move less. The check had a list of exemptions, and these three were not on it, so a player hit into a cobweb was reported for discarding knockback they never received. The block above the head, the block below the feet, the feet block itself and the climbable state are now read. Any of them is treated as absorbing the impulse, and a short grace is granted so the geometry can change between the hit and the response. Flat ground absorbs nothing, so the original detection is unchanged where it should be.',
+      },
+    ],
+  },
 ]

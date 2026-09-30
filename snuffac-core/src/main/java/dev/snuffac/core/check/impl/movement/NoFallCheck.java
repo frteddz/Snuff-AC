@@ -10,6 +10,8 @@ public final class NoFallCheck extends AbstractMovementCheck {
 
     private static final int MIN_FALL_TICKS = 3;
     private static final double MAX_LEGIT_FALL_DISTANCE = 3.0;
+    public static final double SERVER_FALL_DISTANCE_LIMIT = 3.0;
+    public static final int SERVER_FALL_REQUIRED = 2;
 
     @Override
     public String key() {
@@ -28,7 +30,9 @@ public final class NoFallCheck extends AbstractMovementCheck {
 
     @Override
     public String description() {
-        return "Detects resetting fall damage by claiming ground contact while the server still sees air.";
+        return "Detects resetting fall damage by claiming ground contact while the server still "
+                + "sees air, tracks the real fall distance server side, and reports a landing that "
+                + "the server says should have been further than the client claims.";
     }
 
     @Override
@@ -72,6 +76,10 @@ public final class NoFallCheck extends AbstractMovementCheck {
 
         double fallDistance = movementState.fallDistance();
 
+        if (accountServerFall(context, state, movementState, cache, fallDistance)) {
+            return;
+        }
+
         if (movementState.onGround()) {
             if (state.airTicksBefore > MIN_FALL_TICKS && !cache.onGroundBelow() && fallDistance > MAX_LEGIT_FALL_DISTANCE) {
                 Map<String, Object> evidence = context.newEvidence();
@@ -93,6 +101,54 @@ public final class NoFallCheck extends AbstractMovementCheck {
         state.airTicks++;
     }
 
+    private boolean accountServerFall(
+            CheckContext context,
+            NoFallState state,
+            dev.snuffac.core.player.MovementState movementState,
+            dev.snuffac.core.player.PlayerWorldCache cache,
+            double fallDistance) {
+
+        if (movementState.onGround()) {
+            double serverFall = state.serverFallDistance;
+            if (serverFall > SERVER_FALL_DISTANCE_LIMIT
+                    && state.serverFalls >= SERVER_FALL_REQUIRED) {
+                Map<String, Object> evidence = context.newEvidence();
+                evidence.put("mode", "server fall");
+                evidence.put("serverFallDistance", round(serverFall));
+                evidence.put("clientFallDistance", round(fallDistance));
+                evidence.put("limit", SERVER_FALL_DISTANCE_LIMIT);
+                evidence.put("landings", state.serverFalls);
+                evidence.put("positionY", round(movementState.position().y()));
+                context.flag("landed after a server side fall of " + round(serverFall)
+                        + " blocks, which should have cost fall damage", evidence, 9.0);
+            }
+            state.serverFallDistance = 0.0;
+            state.serverFalls = 0;
+            return false;
+        }
+
+        if (!cache.chunkLoaded()) {
+            return false;
+        }
+
+        if (cache.onGroundBelow()) {
+            state.serverFallDistance = 0.0;
+            return false;
+        }
+
+        state.serverFallDistance += Math.max(0.0, -movementState.delta().y());
+        if (movementState.inWaterOrLava() || movementState.onClimbable()
+                || movementState.gliding() || movementState.flying()
+                || movementState.hasSlowFalling()) {
+            state.serverFallDistance = 0.0;
+            return false;
+        }
+        if (state.serverFallDistance > SERVER_FALL_DISTANCE_LIMIT) {
+            state.serverFalls++;
+        }
+        return false;
+    }
+
     @Override
     public void onTick(CheckContext context) {
         var state = (NoFallState) state(context.player());
@@ -112,10 +168,14 @@ public final class NoFallCheck extends AbstractMovementCheck {
 
         private int airTicksBefore;
         private int airTicks;
+        private double serverFallDistance;
+        private int serverFalls;
 
         private void reset() {
             airTicksBefore = 0;
             airTicks = 0;
+            serverFallDistance = 0.0;
+            serverFalls = 0;
         }
     }
 }

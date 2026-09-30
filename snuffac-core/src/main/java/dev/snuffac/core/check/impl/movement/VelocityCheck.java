@@ -192,6 +192,29 @@ public final class VelocityCheck extends AbstractMovementCheck {
         return new Vec3d(impulse.x() * horizontal, verticalY, impulse.z() * horizontal);
     }
 
+    public static boolean absorbedByTerrain(
+            CheckContext context, dev.snuffac.core.player.MovementState movement) {
+        var cache = context.player().worldCache();
+        if (!cache.chunkLoaded()) {
+            return true;
+        }
+        var feet = dev.snuffac.core.util.BlockPos.of(movement.position());
+        var head = feet.offset(0, 2, 0);
+        if (cache.kindAt(head) == dev.snuffac.core.util.BlockKind.COBWEB) {
+            return true;
+        }
+        if (cache.kindAt(feet.offset(0, -1, 0)) == dev.snuffac.core.util.BlockKind.COBWEB) {
+            return true;
+        }
+        if (cache.isLiquid(feet)) {
+            return true;
+        }
+        if (cache.isClimbable(feet) || cache.isClimbable(feet.offset(0, 1, 0))) {
+            return true;
+        }
+        return movement.onClimbable();
+    }
+
     private static double round(double value) {
         return Math.round(value * 10000.0) / 10000.0;
     }

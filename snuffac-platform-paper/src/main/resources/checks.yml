@@ -29,7 +29,8 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Fall damage reset by claiming ground contact while still airborne.
+      description: Fall damage reset by claiming ground contact while still airborne, plus
+        the server side fall distance tracked across the whole descent.
       evidence: DERIVED
     airmovement:
       enabled: true
@@ -161,7 +162,8 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Server knockback discarded by the client.
+      description: Server knockback discarded by the client, with cobweb, water and ladder
+        causes treated as absorbing it.
       evidence: DERIVED
 
   combat:

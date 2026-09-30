@@ -10,7 +10,7 @@ Free, open-source anticheat for Minecraft Java Edition servers. 36 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.2.2-dev**. Requires **Java 21**.
+Current release: **1.2.3-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -38,7 +38,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 * **Fly**: unsupported flight from the server's own block view, plus an air time budget that only legitimate support refills
 * **Speed**: prediction based, with 36 discretised input candidates and the best fit kept, plus an accumulator for a client that is only slightly fast for a long time
-* **NoFall**: fall damage suppressed by claiming ground contact while airborne
+* **NoFall**: fall damage suppressed by claiming ground contact while airborne, and the server side fall distance tracked across the whole descent
 * **AirMovement**: airborne acceleration against the predicted state
 * **GroundSpoof** *(structural)*: claimed ground with no supporting block
 * **GroundFlag**: sustained ground contact contradicting the server block view, the signature of air walk and no-fall spoofing
@@ -51,7 +51,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **Jesus**: standing on a liquid surface with no valid block beneath, which is the WaterWalk cheat
 * **Spider**: sustained upward movement against a wall with no climbable block beside it
 * **PitchLock**: pitch pinned to an exact constant, used by placement and glide modules
-* **Velocity**: response to server-applied knockback, with damped displacement predicted
+* **Velocity**: response to server-applied knockback, with damped displacement predicted and cobweb, water and ladder causes treated as absorbing it
 
 ### Combat (9)
 
