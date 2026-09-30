@@ -274,7 +274,13 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
             core.enforcement().minConfidenceForPrevention(core.config().minConfidenceForPrevention());
             core.alerts().clearCooldowns();
             SnuffSounds.enabled(core.config().staffSounds());
-            getLogger().info("configuration reloaded");
+            dev.snuffac.paper.gui.GuiLayout.reload(this);
+            dev.snuffac.paper.report.ReportOptions.invalidate();
+            List<String> moved = dev.snuffac.paper.gui.GuiLayout.outOfRangeSlots();
+            for (String warning : moved) {
+                getLogger().warning("GUI layout warning: " + warning);
+            }
+            getLogger().info("configuration reloaded, GUI files re-read");
         } catch (RuntimeException failure) {
             getLogger().warning("reload failed: " + failure);
         }
@@ -571,6 +577,9 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         this.reports = new dev.snuffac.core.report.ReportStore(
                 getDataFolder().toPath().resolve("reports.tsv"));
         this.reports.retentionDays(core.config().reportRetentionDays());
+        dev.snuffac.paper.report.ReportOptions.writeDefaults(this);
+        this.reports.allowedCategories(id -> dev.snuffac.paper.report.ReportOptions.load(this).stream()
+                .anyMatch(option -> option.id().equalsIgnoreCase(id)));
         this.reports.load();
         GuiDefaults.write(this);
         long interval = Math.max(1L, core.config().visualIntervalTicks());

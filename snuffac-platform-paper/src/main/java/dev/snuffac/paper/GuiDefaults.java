@@ -64,17 +64,29 @@ public final class GuiDefaults {
         yaml.set("rows", 3);
         yaml.set("filler-material", "GRAY_STAINED_GLASS_PANE");
         yaml.set("filler", true);
-        item(yaml, 10, "BOOK", "Log Retention", List.of("Days of violation history to keep"), "none",
-                "snuffac.admin", 1, false);
-        item(yaml, 12, "COMPARATOR", "Prevention", List.of("Toggle prevention and setbacks"), "none",
-                "snuffac.admin", 1, false);
-        item(yaml, 14, "CLOCK", "Alert Cooldown", List.of("Per player alert rate limit"), "none",
-                "snuffac.admin", 1, false);
-        item(yaml, 16, "LEVER", "Warning Ladder", List.of("Automatic action, off by default"), "none",
-                "snuffac.admin", 1, false);
-        item(yaml, 18, "TUNING_FORK", "Tuning Profile", List.of("Strict, balanced or lenient"), "none",
-                "snuffac.admin", 1, false);
-        item(yaml, 22, "ARROW", "Back", List.of(), "report_back", "snuffac.admin", 1, false);
+        item(yaml, 10, "BOOK", "Log Retention", List.of("Days before old log files are deleted",
+                "<gray>Current: <aqua>{log-retention} days", "", "Click, then type the number in chat",
+                "Type cancel to keep it"), "set_log_retention", "snuffac.admin", 1, false);
+        item(yaml, 11, "PAPER", "History Retention", List.of("Days before old flag history is purged",
+                "<gray>Current: <aqua>{history-retention} days", "", "Click, then type the number in chat",
+                "Type cancel to keep it"), "set_history_retention", "snuffac.admin", 1, false);
+        item(yaml, 12, "COMPARATOR", "Prevention",
+                List.of("Turn setbacks and cancellation on or off",
+                        "<gray>State: <white>{prevention}", "", "Left click to toggle"),
+                "toggle_prevention", "snuffac.escalation.manage", 1, false);
+        item(yaml, 13, "CLOCK", "Alert Cooldown", List.of("Per player alert rate limit",
+                "<gray>Current: <aqua>{cooldown}ms", "", "Left click to decrease",
+                "Right click to increase"), "cooldown", "snuffac.alerts.manage", 1, false);
+        item(yaml, 14, "LADDER", "Warn Ladder", List.of("Automatic warns then a timed ban",
+                "<gray>Max warnings: <white>{max-warnings}",
+                "<gray>Ban length: <white>{ban-length}",
+                "<gray>Minimum confidence: <white>{min-confidence}",
+                "<gray>State: <white>{escalation}", "", "Left click to toggle on or off",
+                "Right click to raise or lower the warning limit"), "escalation",
+                "snuffac.escalation.manage", 1, false);
+        item(yaml, 15, "BARRIER", "Close", List.of(), "close", "snuffac.use", 1, false);
+        item(yaml, 22, "REDSTONE", "Reload Config",
+                List.of("Re-read config and checks from disk"), "reload", "snuffac.admin", 1, false);
         return yaml;
     }
 

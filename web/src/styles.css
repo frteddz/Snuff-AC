@@ -245,3 +245,83 @@ main section.scroll-reveal.in-view > * { opacity: 1; transform: none; }
   margin: 0;
   color: var(--muted);
 }
+
+.page-head {
+  padding: 7rem 0 3rem;
+}
+
+.page-head .section-heading h1 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  margin: 0 0 1.1rem;
+}
+
+.page-head .section-heading p {
+  max-width: 68ch;
+}
+
+.page-head .section-heading a {
+  color: var(--accent, #f18154);
+}
+
+.latest-strip {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  flex-wrap: wrap;
+  margin-top: 2.2rem;
+  padding: 1.3rem 1.5rem;
+  border: 1px solid var(--line);
+}
+
+.latest-strip > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.latest-strip span {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+
+.latest-strip b {
+  font-size: 1.15rem;
+}
+
+.latest-strip .button {
+  margin-left: auto;
+}
+
+.changelog-page .changelog-list {
+  margin-bottom: 5rem;
+}
+
+.changelog-entry header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.changelog-entry header h2 {
+  font-size: 1.7rem;
+  margin: 0;
+}
+
+.changelog-entry header a {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.changelog-entry header a:hover {
+  color: var(--ink);
+}

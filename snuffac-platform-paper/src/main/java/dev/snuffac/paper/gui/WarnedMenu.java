@@ -23,7 +23,7 @@ public final class WarnedMenu extends SnuffMenu {
     private final dev.snuffac.paper.SnuffPaperPlugin plugin;
 
     public WarnedMenu(Plugin plugin) {
-        super(plugin, 54, "Warned Players");
+        super(plugin, 54, "Warned Players", GuiLayout.load(plugin, dev.snuffac.paper.GuiDefaults.WARNED));
         this.plugin = (dev.snuffac.paper.SnuffPaperPlugin) plugin;
     }
 
@@ -66,6 +66,14 @@ public final class WarnedMenu extends SnuffMenu {
                 stack.setItemMeta(meta);
             }
             getInventory().setItem(i, stack);
+        }
+        if (layout() != null && !layout().buttons().isEmpty()) {
+            for (GuiLayout.Button button : layout().buttons()) {
+                if (button.enabled() && button.slot() >= 45) {
+                    set(button.slot(), button.material(), button.name(), button.lore(), button.action());
+                }
+            }
+            return;
         }
         set(45, Material.OAK_DOOR, "<white>Back", List.of(), ACTION_BACK);
         set(49, Material.BARRIER, "<white>Close", List.of(), ACTION_CLOSE);

@@ -628,7 +628,6 @@ public final class SnuffCommand implements CommandExecutor, TabCompleter {
             StaffMessages.send(player, "That player is exempt from reports.");
             return;
         }
-        dev.snuffac.paper.gui.ReportsMenu.resetNote();
         dev.snuffac.paper.gui.ReportsMenu menu = new dev.snuffac.paper.gui.ReportsMenu(
                 plugin, plugin.reports(), target, false, 0, "", "");
         menu.setParent(new dev.snuffac.paper.gui.MainMenu(plugin, plugin.guiBridge()));

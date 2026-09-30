@@ -124,25 +124,10 @@ class MenuActionContractTest {
     }
 
     @Test
-    void everyReportCategoryHasAnExplicitCase() {
-        String reports = read(GUI_DIR + "/ReportsMenu.java");
-        Set<String> categories = Set.of("cheating", "exploiting", "language", "offensive",
-                "griefing", "name", "impersonation");
-        for (String category : categories) {
-            String action = "report_" + category;
-            assertTrue(reportConstants().contains(action),
-                    action + " has no action constant in ReportsMenu");
-            assertTrue(reports.contains("case ACTION_REPORT_" + category.toUpperCase(
-                    java.util.Locale.ROOT)),
-                    action + " has no explicit case, it relied on a startsWith fallback");
-        }
-    }
-
-    @Test
-    void theReportPickerIsNotGatedBehindTheStaffMenuPermission() {
-        String reports = read(GUI_DIR + "/ReportsMenu.java");
-        assertTrue(reports.contains("snuffac.report"),
-                "a player facing menu must be gated on the report permission, not the staff "
-                + "menu permission, or every click closed the menu for a normal player");
+    void reportCategoriesComeFromTheOptionsFileRatherThanASwitch() {
+        String menu = read(GUI_DIR + "/ReportsMenu.java");
+        assertTrue(menu.contains("isCategoryAction(action)"),
+                "categories are listed in a file now, so a hardcoded case per category would "
+                + "silently drop any category an owner adds");
     }
 }

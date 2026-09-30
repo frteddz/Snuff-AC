@@ -166,8 +166,15 @@ public final class GuiLayout {
             return fallback;
         }
         Material material = Material.matchMaterial(name.trim().toUpperCase(Locale.ROOT));
-        if (material == null || !material.isItem()) {
+        if (material == null) {
             return fallback;
+        }
+        try {
+            if (!material.isItem()) {
+                return fallback;
+            }
+        } catch (RuntimeException | LinkageError registryUnavailable) {
+            return material;
         }
         return material;
     }

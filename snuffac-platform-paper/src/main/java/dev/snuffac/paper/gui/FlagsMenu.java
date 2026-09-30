@@ -37,7 +37,7 @@ public final class FlagsMenu extends SnuffMenu {
     private final int page;
 
     public FlagsMenu(Plugin plugin, FlagsBridge bridge, int page) {
-        super(plugin, 54, "Flagged Players");
+        super(plugin, 54, "Flagged Players", GuiLayout.load(plugin, dev.snuffac.paper.GuiDefaults.FLAGS));
         this.bridge = bridge;
         this.page = page;
     }
@@ -50,12 +50,34 @@ public final class FlagsMenu extends SnuffMenu {
         for (int i = 0; i < CONTENT && start + i < rows.size(); i++) {
             renderEntry(start + i, rows.get(start + i));
         }
+        if (layout() != null && !layout().buttons().isEmpty()) {
+            renderButtons(pages);
+            return;
+        }
         set(45, Material.ARROW, "<white>Previous",
                 List.of("<gray>Page " + (page + 1) + " of " + pages), ACTION_PREV);
         set(49, Material.KNOWLEDGE_BOOK, "<white>Refresh", List.of("<gray>Reload the list"), ACTION_REFRESH);
         set(53, Material.ARROW, "<white>Next",
                 List.of("<gray>Page " + (page + 1) + " of " + pages), ACTION_NEXT);
         set(45 + 3, Material.OAK_DOOR, "<white>Back", List.of("<gray>Return to the menu"), ACTION_BACK);
+    }
+
+    private void renderButtons(int pages) {
+        for (GuiLayout.Button button : layout().buttons()) {
+            if (!button.enabled() || button.slot() < CONTENT) {
+                continue;
+            }
+            String name = button.name();
+            List<String> lore = new ArrayList<>(button.lore());
+            if (name.contains("{page}") || lore.stream().anyMatch(line -> line.contains("{page}"))) {
+                String count = String.valueOf(pages);
+                name = name.replace("{page}", String.valueOf(page + 1)).replace("{pages}", count);
+                for (int i = 0; i < lore.size(); i++) {
+                    lore.set(i, lore.get(i).replace("{page}", String.valueOf(page + 1)).replace("{pages}", count));
+                }
+            }
+            set(button.slot(), button.material(), name, lore, button.action());
+        }
     }
 
     private void renderEntry(int slot, Entry entry) {

@@ -25,3 +25,11 @@ anticheat_knowledge.md
 
 # third party reference jars, never committed
 DonutSus-*.jar
+
+# dev harness
+devtools/bot/node_modules/
+devtools/bot/*.log
+devtools/bot/last-*.txt
+devtools/bot/*.json
+devtools/bot/suite.txt
+devtools/bot/run-*.log

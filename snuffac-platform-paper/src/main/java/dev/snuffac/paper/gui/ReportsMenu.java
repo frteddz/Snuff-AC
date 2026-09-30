@@ -111,21 +111,52 @@ public final class ReportsMenu extends SnuffMenu {
     }
 
     private void renderPicker() {
-        if (layout() != null && !layout().buttons().isEmpty()) {
-            fillFromLayout();
+        Player online = targetOnline();
+        List<dev.snuffac.paper.report.ReportOptions.Option> options =
+                dev.snuffac.paper.report.ReportOptions.load(plugin);
+        if (selectedCategory == null && !options.isEmpty()) {
+            selectedCategory = options.get(0).id();
+        }
+        GuiLayout.Layout layout = layout();
+        if (layout != null && !layout.buttons().isEmpty()) {
+            for (GuiLayout.Button button : layout.buttons()) {
+                if (!button.enabled() || !button.action().startsWith("report_")
+                        || ACTION_SUBMIT.equals(button.action()) || ACTION_BACK.equals(button.action())) {
+                    continue;
+                }
+                String id = button.action().substring("report_".length());
+                dev.snuffac.paper.report.ReportOptions.Option option = find(options, id);
+                if (option == null) {
+                    continue;
+                }
+                set(button.slot(), option.icon(), "<white>" + option.label(),
+                        option.description().isBlank() ? List.of() : List.of("<gray>" + option.description()),
+                        button.action());
+            }
+            for (GuiLayout.Button button : layout.buttons()) {
+                if (ACTION_SUBMIT.equals(button.action())) {
+                    set(button.slot(), button.material(), button.name(),
+                            List.of("<gray>Target: <white>"
+                                            + (online == null ? target.getName() : online.getName()),
+                                    "<gray>Selected: <white>" + label(selectedCategory)),
+                            button.action());
+                } else if (ACTION_BACK.equals(button.action())) {
+                    set(button.slot(), button.material(), button.name(), button.lore(), button.action());
+                }
+            }
             return;
         }
-        Player online = targetOnline();
         int slot = 10;
-        for (ReportCategory.Definition definition : ReportCategory.all()) {
+        for (dev.snuffac.paper.report.ReportOptions.Option option : options) {
             if (slot >= 16) {
                 slot = 28;
             }
             if (slot >= 34) {
                 break;
             }
-            set(slot, iconFor(definition.id()), "<white>" + definition.label(),
-                    List.of("<gray>" + definition.description()), "report_" + definition.id());
+            set(slot, option.icon(), "<white>" + option.label(),
+                    option.description().isBlank() ? List.of() : List.of("<gray>" + option.description()),
+                    "report_" + option.id());
             slot++;
         }
         set(49, Material.PAPER, "<white>Submit report",
@@ -133,6 +164,16 @@ public final class ReportsMenu extends SnuffMenu {
                         "<gray>Selected: <white>" + label(selectedCategory)),
                 ACTION_SUBMIT);
         set(45, Material.ARROW, "<white>Back", List.of(), ACTION_BACK);
+    }
+
+    private static dev.snuffac.paper.report.ReportOptions.Option find(
+            List<dev.snuffac.paper.report.ReportOptions.Option> options, String id) {
+        for (dev.snuffac.paper.report.ReportOptions.Option option : options) {
+            if (option.id().equalsIgnoreCase(id)) {
+                return option;
+            }
+        }
+        return null;
     }
 
     private void renderAdmin() {
@@ -273,11 +314,12 @@ public final class ReportsMenu extends SnuffMenu {
         if (category == null) {
             return "nothing yet";
         }
-        ReportCategory.Definition definition = ReportCategory.get(category);
-        return definition == null ? category : definition.label();
+        dev.snuffac.paper.report.ReportOptions.Option option =
+                find(dev.snuffac.paper.report.ReportOptions.load(plugin), category);
+        return option == null ? category : option.label();
     }
 
-    private static String note = "";
+    private String note = "";
 
     public void note(String value) {
         note = value == null ? "" : value;
@@ -285,10 +327,6 @@ public final class ReportsMenu extends SnuffMenu {
 
     public String note() {
         return note;
-    }
-
-    public static void resetNote() {
-        note = "";
     }
 
     private static Material iconFor(String category) {
@@ -325,18 +363,15 @@ public final class ReportsMenu extends SnuffMenu {
             StaffMessages.send(player, "You do not have permission to handle reports.");
             return;
         }
+        if (isCategoryAction(action)) {
+            select(action.substring("report_".length()), player);
+            return;
+        }
         switch (action) {
             case ACTION_BACK -> openParent(player);
             case ACTION_SUBMIT -> submit(player);
             case ACTION_CLAIM -> claim(player);
             case ACTION_RESOLVE -> resolve(player);
-            case ACTION_REPORT_CHEATING -> select("cheating", player);
-            case ACTION_REPORT_EXPLOITING -> select("exploiting", player);
-            case ACTION_REPORT_LANGUAGE -> select("language", player);
-            case ACTION_REPORT_OFFENSIVE -> select("offensive", player);
-            case ACTION_REPORT_GRIEFING -> select("griefing", player);
-            case ACTION_REPORT_NAME -> select("name", player);
-            case ACTION_REPORT_IMPERSONATION -> select("impersonation", player);
             default -> {
             }
         }
@@ -350,6 +385,16 @@ public final class ReportsMenu extends SnuffMenu {
                 ACTION_REPORT_CHEATING, ACTION_REPORT_EXPLOITING, ACTION_REPORT_LANGUAGE,
                 ACTION_REPORT_OFFENSIVE, ACTION_REPORT_GRIEFING, ACTION_REPORT_NAME,
                 ACTION_REPORT_IMPERSONATION);
+    }
+
+    public static boolean isCategoryAction(String action) {
+        if (action == null || !action.startsWith("report_")) {
+            return false;
+        }
+        return !ACTION_SUBMIT.equals(action) && !ACTION_BACK.equals(action)
+                && !ACTION_CLAIM.equals(action) && !ACTION_RESOLVE.equals(action)
+                && !ACTION_RELEASE.equals(action) && !ACTION_OPEN_PICKER.equals(action)
+                && !ACTION_OPEN_ADMIN.equals(action);
     }
 
     private void select(String category, Player player) {

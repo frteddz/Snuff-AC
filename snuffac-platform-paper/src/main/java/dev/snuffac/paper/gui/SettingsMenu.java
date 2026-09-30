@@ -1,5 +1,6 @@
 package dev.snuffac.paper.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -22,48 +23,40 @@ public final class SettingsMenu extends SnuffMenu {
     private final dev.snuffac.paper.SnuffPaperPlugin plugin;
 
     public SettingsMenu(Plugin plugin) {
-        super(plugin, 27, "Snuff Settings");
+        super(plugin, 27, "Snuff Settings", GuiLayout.load(plugin, dev.snuffac.paper.GuiDefaults.SETTINGS));
         this.plugin = (dev.snuffac.paper.SnuffPaperPlugin) plugin;
     }
 
     @Override
     protected void render() {
+        GuiLayout.Layout layout = layout();
+        if (layout == null || layout.buttons().isEmpty()) {
+            return;
+        }
+        for (GuiLayout.Button button : layout.buttons()) {
+            if (!button.enabled()) {
+                continue;
+            }
+            set(button.slot(), button.material(), button.name(), values(button.lore()), button.action());
+        }
+    }
+
+    private List<String> values(List<String> lore) {
         var config = plugin.core().config();
-        set(10, Material.CLOCK, "<white>Log Retention",
-                List.of("<gray>Days before old log files are deleted",
-                        "<white>Current: <aqua>" + config.logRetentionDays() + " days",
-                        "",
-                        "<gray>Click, then type the number in chat",
-                        "<gray>Type cancel to keep it"), null);
-        set(11, Material.PAPER, "<white>History Retention",
-                List.of("<gray>Days before old flag history is purged",
-                        "<white>Current: <aqua>" + config.historyRetentionDays() + " days",
-                        "",
-                        "<gray>Click, then type the number in chat",
-                        "<gray>Type cancel to keep it"), null);
-        set(12, Material.LEVER, "<white>Prevention",
-                List.of("<gray>Setback and cancel actions",
-                        "<white>Current: <aqua>" + (config.preventionEnabled() ? "enabled" : "disabled"),
-                        "<gray>Click to toggle"), ACTION_PREVENTION);
-        set(13, Material.BELL, "<white>Alert Cooldown",
-                List.of("<gray>Milliseconds between repeat alerts",
-                        "<white>Current: <aqua>" + config.alertCooldownMillis() + "ms",
-                        "",
-                        "<gray>Left click to decrease",
-                        "<gray>Right click to increase"), null);
-        set(14, Material.LADDER, "<white>Warn Ladder",
-                List.of("<gray>Automatic warns then a timed ban",
-                        "<gray>Max warnings: <white>" + escalation().maxWarnings(),
-                        "<gray>Ban length: <white>" + dev.snuffac.core.punish.Durations
-                                .describe(escalation().banMillis()),
-                        "<gray>Minimum confidence: <white>" + escalation().minConfidence(),
-                        "<gray>State: <white>" + (escalation().enabled() ? "on" : "off"),
-                        "",
-                        "<gray>Left click to toggle on or off",
-                        "<gray>Right click to raise or lower the warning limit"), ACTION_ESCALATION);
-        set(15, Material.BARRIER, "<white>Close", List.of(), ACTION_CLOSE);
-        set(22, Material.REDSTONE, "<white>Reload Config",
-                List.of("<gray>Re-read config and checks from disk"), ACTION_RELOAD);
+        List<String> rendered = new ArrayList<>(lore.size());
+        for (String line : lore) {
+            rendered.add(line
+                    .replace("{log-retention}", String.valueOf(config.logRetentionDays()))
+                    .replace("{history-retention}", String.valueOf(config.historyRetentionDays()))
+                    .replace("{prevention}", config.preventionEnabled() ? "on" : "off")
+                    .replace("{cooldown}", String.valueOf(config.alertCooldownMillis()))
+                    .replace("{max-warnings}", String.valueOf(escalation().maxWarnings()))
+                    .replace("{ban-length}", dev.snuffac.core.punish.Durations
+                            .describe(escalation().banMillis()))
+                    .replace("{min-confidence}", String.valueOf(escalation().minConfidence()))
+                    .replace("{escalation}", escalation().enabled() ? "on" : "off"));
+        }
+        return rendered;
     }
 
     @Override
@@ -71,41 +64,51 @@ public final class SettingsMenu extends SnuffMenu {
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
-        int slot = event.getRawSlot();
         if (!plugin.canUseMenu(player)) {
             close(player);
             return;
         }
         boolean increase = event.isRightClick();
         var config = plugin.core().config();
-        if (slot == 10) {
-            plugin.promptForRetention(player, RetentionKind.LOG);
-            close(player);
+        String action = actionOf(event.getInventory(), event.getRawSlot());
+        if (action == null) {
             return;
-        } else if (slot == 11) {
-            plugin.promptForRetention(player, RetentionKind.HISTORY);
-            close(player);
-            return;
-        } else if (slot == 12) {
-            config.preventionEnabled(!config.preventionEnabled());
-            plugin.persistPrevention();
-        } else if (slot == 13) {
-            config.alertCooldownMillis(clamp(config.alertCooldownMillis() + (increase ? 500 : -500), 0, 60_000));
-            plugin.persistRetention();
-        } else if (slot == 14) {
-            if (event.isRightClick()) {
-                escalation().maxWarnings(clamp(escalation().maxWarnings() + 1, 1, 50));
-            } else {
-                escalation().enabled(!escalation().enabled());
+        }
+        switch (action) {
+            case "set_log_retention" -> {
+                plugin.promptForRetention(player, RetentionKind.LOG);
+                close(player);
+                return;
             }
-            plugin.applyEscalationConfigFromSettings();
-        } else if (slot == 15) {
-            close(player);
-            return;
-        } else if (slot == 22) {
-            plugin.reloadEverything();
-        } else {
-            return;
+            case "set_history_retention" -> {
+                plugin.promptForRetention(player, RetentionKind.HISTORY);
+                close(player);
+                return;
+            }
+            case "toggle_prevention" -> {
+                config.preventionEnabled(!config.preventionEnabled());
+                plugin.persistPrevention();
+            }
+            case "cooldown" -> {
+                config.alertCooldownMillis(clamp(config.alertCooldownMillis() + (increase ? 500 : -500), 0, 60_000));
+                plugin.persistRetention();
+            }
+            case "escalation" -> {
+                if (increase) {
+                    escalation().maxWarnings(clamp(escalation().maxWarnings() + 1, 1, 50));
+                } else {
+                    escalation().enabled(!escalation().enabled());
+                }
+                plugin.applyEscalationConfigFromSettings();
+            }
+            case ACTION_CLOSE -> {
+                close(player);
+                return;
+            }
+            case ACTION_RELOAD -> plugin.reloadEverything();
+            default -> {
+                return;
+            }
         }
         build();
         player.updateInventory();

@@ -24,11 +24,16 @@ public final class ReportStore {
     private final AtomicInteger rateCounter = new AtomicInteger();
     private final AtomicInteger sequence = new AtomicInteger();
     private final Path file;
+    private volatile java.util.function.Predicate<String> allowed = ReportCategory::isValid;
     private volatile long retentionDays = 30L;
     private volatile boolean loaded;
 
     public ReportStore(Path file) {
         this.file = file;
+    }
+
+    public void allowedCategories(java.util.function.Predicate<String> allowed) {
+        this.allowed = allowed == null ? ReportCategory::isValid : allowed;
     }
 
     public void retentionDays(long days) {
@@ -86,7 +91,7 @@ public final class ReportStore {
             String category,
             String note) {
 
-        if (!ReportCategory.isValid(category)) {
+        if (category == null || category.isBlank() || !allowed.test(category.trim().toLowerCase(Locale.ROOT))) {
             return null;
         }
         String safeNote = ReportCategory.sanitiseNote(note, MAX_NOTE_LENGTH);
