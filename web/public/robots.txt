@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://snuff.ac/sitemap.xml
+Sitemap: https://frteddz.github.io/Snuff-AC/sitemap.xml

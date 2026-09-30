@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
-const ORIGIN = 'https://snuff.ac'
+const ORIGIN = 'https://frteddz.github.io/Snuff-AC'
 
 const data = await readFile(resolve(root, 'src', 'releases.ts'), 'utf8')
 const versions = [...data.matchAll(/version: '([^']+)'/g)].map((m) => m[1])

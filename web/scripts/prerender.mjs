@@ -12,7 +12,8 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
-const ORIGIN = 'https://snuff.ac'
+const gradle = resolve(root, '..', 'gradle.properties')
+const ORIGIN = 'https://frteddz.github.io/Snuff-AC'
 const BASE = '/Snuff-AC/' 
 
 // both entry files call createRoot at module scope, which needs a real DOM.
@@ -52,6 +53,11 @@ const render = async (page) => {
   return module[page.component] ?? module.default
 }
 
+const version = async () => {
+  const properties = await readFile(gradle, 'utf8')
+  return properties.match(/version=([0-9.]+(?:-dev)?)/)?.[1] ?? '0.0.0-dev'
+}
+
 const main = async () => {
   for (const page of PAGES) {
     const component = await render(page)
@@ -60,6 +66,7 @@ const main = async () => {
     }
     const { default: React } = await import('react')
     const markup = renderToString(React.createElement(component))
+    const current = await version()
 
     const file = resolve(root, 'dist', page.out)
     let html = await readFile(file, 'utf8')
@@ -83,6 +90,8 @@ const main = async () => {
         `<link rel="preload" as="font" type="font/woff2" href="${ORIGIN}/fonts/space-grotesk-500.woff2" crossorigin />\n    <link rel="icon"`
       )
     }
+    // the softwareVersion in the structured data has to match the jar
+    html = html.replace(/"softwareVersion": "[^"]*"/, `"softwareVersion": "${current}"`)
     await writeFile(file, html, 'utf8')
     const text = markup.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
     console.log(`prerendered ${page.out}: ${markup.length} bytes of html, ${text.length} characters of text`)
