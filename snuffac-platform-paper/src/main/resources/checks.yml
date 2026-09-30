@@ -122,6 +122,26 @@ checks:
       action: ALERT
       description: Sustained constant per tick offset between prediction and client.
       evidence: DERIVED
+    jesus:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Standing on a liquid surface with no valid block beneath.
+      evidence: DERIVED
+    spider:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Sustained upward movement against a wall with no climbable block beside it.
+      evidence: DERIVED
     phase:
       enabled: true
       buffer-threshold: 1.0

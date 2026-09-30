@@ -5,6 +5,51 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.2.1-dev] - 2026-10-01
+
+Two new checks. Jesus and Spider had no coverage at all, and both are cheap
+to detect from data the server already has.
+
+### Added
+
+**A new check for walking on water**
+
+- There was no check for Jesus or WaterWalk. A new `jesus` check looks at
+  where the player is standing: inside a liquid, with nothing beneath them
+  that they could stand on. Air, water, lava and barrier are not support; a
+  solid block, or ice, is.
+- The player has to actually move, so standing still in a river is not a
+  report, and any upward movement resets the counter, because that is a jump
+  out of the water rather than a walk across it. Six ticks of horizontal
+  travel with no sinking is reported and the player is set back.
+- The evidence reports how deep the liquid is, so shallow water a player is
+  wading through can be told apart from a lake.
+
+**A new check for climbing walls**
+
+- A new `spider` check reports sustained upward movement while the player is
+  inside a solid block column. Rising 0.12 or more per tick for four ticks
+  with nothing climbable is reported and set back.
+- Ladders, water, honey, soul sand, gliding, flying, a vehicle, levitation
+  and slow falling all exempt the tick, because every one of them raises a
+  player legitimately. Rising in open space is a jump, not a wall climb.
+
+### Fixed
+
+**Support detection treated any non liquid block as ground**
+
+- The first version of the water walk check accepted any block that was not
+  water or lava, which included air. A player standing on the surface of a
+  deep lake was reported as walking on it, because the block below their feet
+  was air. Support now requires a block the player cannot sink through, which
+  is what the rule was always meant to mean.
+
+### Verified
+
+- 431 tests pass, 9 of them new.
+- Loaded on a real Paper 1.21.11 server, 35 checks, anti-xray active, and a
+  real client walking, jumping, sprinting and digging is clean.
+
 ## [1.2.0-dev] - 2026-10-01
 
 Scaffold and Nuker. The first release of the 1.2 line, and the first two
