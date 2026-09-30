@@ -5,6 +5,54 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.3-dev] - 2026-09-30
+
+The release where the previous release's feature was actually tested. Every
+menu was opened and every button clicked with a real client, which found five
+things that reading the code did not.
+
+### Fixed
+
+**A report category added to the file never worked** (entry 018)
+
+- The allowlist that sanitises every button action held only the seven built
+  in categories, so a category an owner added to `report-options.yml` was
+  sanitised to an empty string. The button never entered the menu at all, so
+  the previous release's headline feature did not do the thing it was written
+  for. The id is still constrained to a plain identifier and the five control
+  actions are excluded, so a category cannot shadow Back or Submit.
+- Confirmed by adding an AFK category at runtime, reloading, and filing a
+  report with it, then restarting and filing another.
+
+**Two menus had a Back button that closed the inventory**
+
+- Settings and Warned were opened without a parent, so Back had nowhere to go
+  and closed the window instead. Settings had no Back button to configure at
+  all, which is why nothing was missed.
+
+**Returning to a parent menu showed an empty window**
+
+- The parent menu was rendered only once, when it was first created, and
+  never rebuilt. It is now built before it is shown.
+
+**The Flags config described one button while the menu renders four**
+
+- Previous, Refresh and Next were hardcoded and not configurable, and the file
+  offered only Back. The layout now describes all four, and Warned describes
+  only the two it actually has.
+
+**/snuff reload ignored the GUI files**
+
+- It re-read `config.yml` and `checks.yml` and nothing else. Editing a GUI
+  file or the report options and reloading changed nothing, which is the
+  entire reason those files exist.
+
+### Verified
+
+- Every menu opens, every button in it responds, and returning to a parent
+  renders it. 12 windows walked with real clicks.
+- 357 tests pass.
+
 ## [1.1.2-dev] - 2026-09-30
 
 Configurability release. The GUI files for three menus were written to disk
