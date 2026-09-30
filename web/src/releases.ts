@@ -4,6 +4,16 @@ type Release = { version: string; stamp: string; items: ReleaseItem[] }
 
 export const releases: Release[] = [
   {
+    version: '1.1.4-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: 'Documentation claimed a feature that does not exist',
+        copy: 'The README said X-Ray, block ESP, ore search, entity ESP and storage ESP are all prevented by withholding data. Ores are obfuscated, entities are hidden without line of sight, and sounds are fuzzed. Container contents are sent to the client exactly as vanilla sends them, and nothing in the plugin changes that. Suppressing them means rewriting block entity payloads on the wire, which is a much larger job than the ore rewrite and has not been done. The `visual` section of `config.yml` said the same thing in a comment, which is the one place a server owner looks to find out what a switch does. The README now has a "Not implemented" section for it rather than leaving the claim folded into a paragraph about what does work.',
+      },
+    ],
+  },
+  {
     version: '1.1.3-dev',
     stamp: '2026-09-30',
     items: [

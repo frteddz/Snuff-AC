@@ -22,7 +22,6 @@ const note = (line) => {
 }
 
 let ticks = 0
-let jumpAt = 0
 
 bot.on('error', (error) => note(`ERROR ${error.message}`))
 bot.on('kicked', (reason) => note(`KICKED ${JSON.stringify(reason)}`))
@@ -34,16 +33,23 @@ bot.on('message', (message) => {
   }
 })
 
+// mineflayer has no bot.jump, a jump is the jump control held for one tick
+const doJump = (b) => {
+  b.setControlState('jump', true)
+  setTimeout(() => b.setControlState('jump', false), 60)
+}
+
 const scenarios = {
   idle: () => {},
   walk: (b) => b.setControlState('forward', true),
   jump: (b) => {
-    if (ticks % 20 === 0) b.jump()
+    if (ticks % 20 === 0) doJump(b)
   },
   sprintjump: (b) => {
     if (ticks % 20 === 0) {
       b.setControlState('sprint', true)
-      b.jump()
+      b.setControlState('forward', true)
+      doJump(b)
     }
   },
   strafe: (b) => {
@@ -62,7 +68,7 @@ const scenarios = {
   jumpstop: (b) => {
     if (ticks % 20 === 0) {
       b.setControlState('forward', true)
-      b.jump()
+      doJump(b)
     }
     if (ticks % 20 === 10) b.setControlState('forward', false)
   }
@@ -85,7 +91,6 @@ bot.once('spawn', () => {
       setTimeout(() => bot.quit(), 500)
     }
   }, 50)
-  void jumpAt
 })
 
 setTimeout(() => {

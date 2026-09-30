@@ -105,8 +105,11 @@ reports:
 visual:
   # Client side rendering cheats cannot be detected, only neutralised. The
   # server stops telling the client about things the player is not allowed to
-  # legally see, so there is nothing left for X-Ray, Block ESP, Storage ESP,
-  # Player ESP or tracers to reveal. Requires anti-xray.mode to be on.
+  # legally see, so there is nothing left for X-Ray, Block ESP, Player ESP or
+  # tracers to reveal. Requires anti-xray.mode to be on.
+  #
+  # Storage ESP is not covered. Container contents are sent to the client
+  # exactly as vanilla sends them and this plugin does not change that.
   # Entity hiding sends an EntityDestroy packet for players and mobs with no
   # legal line of sight, and resends them a few blocks before the view opens
   # so nothing pops in.

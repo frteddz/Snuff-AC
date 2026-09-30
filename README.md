@@ -193,7 +193,7 @@ everything is lying to its users.
 
 **Not detectable from the server, at all**
 
-- X-Ray, block ESP, ore search, entity ESP and storage ESP. These are render time
+- X-Ray, block ESP, ore search and entity ESP. These are render time
   predicates over block data a vanilla client already receives. The server sends the
   chunk and the client decides what to draw, so nothing tells the server that a player
   looked through a wall. There is no packet, field or timing signature.
@@ -215,6 +215,15 @@ afterwards:
 
 All three are controlled by the `anti-xray` and `visual` sections of `config.yml`. Full
 bright is still impossible to touch, because it never leaves the client.
+
+**Not implemented**
+
+- Storage ESP. The user guide describes a container viewer that does not exist in the
+  plugin. Ores are obfuscated, so a client has no ore data to draw, but chest and
+  container contents are still sent to the client exactly as vanilla sends them, and
+  nothing here changes that. Suppressing that data means rewriting block entity
+  payloads on the wire, which is a considerably larger job than the ore rewrite and
+  has not been done. It will not be claimed until it works.
 
 No placeholder check was added to pretend otherwise.
 

@@ -5,6 +5,35 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.4-dev] - 2026-09-30
+
+Documentation release. Storage ESP is listed as working in the README, the
+config comments, and the marketplace description. It does not work, and it
+never has.
+
+### Fixed
+
+**Documentation claimed a feature that does not exist**
+
+- The README said X-Ray, block ESP, ore search, entity ESP and storage ESP are
+  all prevented by withholding data. Ores are obfuscated, entities are hidden
+  without line of sight, and sounds are fuzzed. Container contents are sent to
+  the client exactly as vanilla sends them, and nothing in the plugin changes
+  that. Suppressing them means rewriting block entity payloads on the wire,
+  which is a much larger job than the ore rewrite and has not been done.
+- The `visual` section of `config.yml` said the same thing in a comment, which
+  is the one place a server owner looks to find out what a switch does.
+- The README now has a "Not implemented" section for it rather than leaving
+  the claim folded into a paragraph about what does work.
+
+### Verified
+
+- All 8 movement scenarios run clean against a real client, including jump and
+  sprint jump, which the harness had silently stopped exercising because
+  mineflayer has no `bot.jump` and the scenario threw every tick. A green
+  suite that skips two of its own cases is worse than a red one.
+- 357 tests pass.
+
 ## [1.1.3-dev] - 2026-09-30
 
 The release where the previous release's feature was actually tested. Every
