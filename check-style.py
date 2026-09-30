@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Fails on an em dash, an en dash, or a comment in the source tree.
+"""Checks source formatting.
 
-The project carries none of the three. This exists so a future change cannot
-add one without the build noticing.
+Rejects em dashes, en dashes, and comments, and runs in CI so a change that
+introduces one fails the build.
 """
 import re
 import sys
@@ -41,7 +41,7 @@ def main():
         for problem in problems:
             print(f"  {problem}")
         return 1
-    print("no em dashes, no en dashes, no comments")
+    print("source formatting ok")
     return 0
 
 if __name__ == "__main__":

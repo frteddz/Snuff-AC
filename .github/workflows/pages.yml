@@ -40,7 +40,7 @@ jobs:
           python3 sync-site-changelog.py
           python3 check-description.py
 
-      - name: fail on an em dash or a comment
+      - name: check source formatting
         run: python3 check-style.py
 
       - name: install
