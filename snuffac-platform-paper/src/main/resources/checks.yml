@@ -69,7 +69,8 @@ checks:
       setback-threshold: 1.0
       alert-threshold: 1.0
       action: ALERT
-      description: Launch velocity above the maximum allowed by effects.
+      description: Launch velocity above the maximum allowed by effects, and vertical gain past
+        the step height in one tick.
       evidence: DERIVED
     longjump:
       enabled: true
@@ -172,7 +173,8 @@ checks:
       setback-threshold: 0.0
       alert-threshold: 2.0
       action: ALERT
-      description: Multi target attacks and repeated pre attack aim snaps.
+      description: Multi target attacks, repeated pre attack aim snaps, targets outside the field of
+        view, and linear jitter free rotation.
       evidence: DERIVED
 
     attackangle:

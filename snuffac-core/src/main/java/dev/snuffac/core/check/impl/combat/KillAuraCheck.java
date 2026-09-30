@@ -20,6 +20,12 @@ public final class KillAuraCheck implements Check {
     private static final int REQUIRED_SNAPS = 6;
     public static final double MIN_SWITCH_ANGLE = 40.0;
     public static final int SWITCH_LIMIT = 3;
+    public static final double FOV_LIMIT = 110.0;
+    private static final int BEHIND_LIMIT = 3;
+    private static final int LINEAR_MIN_SAMPLES = 12;
+    private static final double LINEAR_TOLERANCE = 0.12;
+    private static final double JITTER_FLOOR = 0.35;
+    private static final int ROTATION_WINDOW = 24;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -43,7 +49,9 @@ public final class KillAuraCheck implements Check {
 
     @Override
     public String description() {
-        return "Detects attacking multiple entities in rotation and repeated instant aim snaps before attacking.";
+        return "Detects attacking multiple entities in rotation, attacks on targets outside the field "
+                + "of view or behind the player, and rotation that is linear or free of the jitter a "
+                + "real mouse produces.";
     }
 
     @Override
@@ -96,6 +104,9 @@ public final class KillAuraCheck implements Check {
         }
         state.recent.add(new TargetEntry(attack.targetId(), now));
 
+        accountFieldOfView(context, attack, state);
+        accountRotationPattern(context, attack, state);
+
         long distinct = state.recent.stream().map(TargetEntry::targetId).distinct().count();
         if (distinct >= MIN_TARGETS) {
             Map<String, Object> evidence = context.newEvidence();
@@ -125,6 +136,103 @@ public final class KillAuraCheck implements Check {
         snapEvidence.put("attackCps", context.player().combat().attacks());
         context.flag("repeated aim snapping before attacking", snapEvidence, 5.0);
         state.snaps = 0;
+    }
+
+    private void accountFieldOfView(CheckContext context, AttackPacket attack, AuraState state) {
+        var environment = context.player().combatEnvironment();
+        var target = environment.byId(attack.targetId());
+        if (target == null) {
+            return;
+        }
+        double offAngle = angleFromFacing(context, target.position());
+        if (offAngle <= FOV_LIMIT) {
+            state.behindTicks = 0;
+            return;
+        }
+
+        state.behindTicks++;
+        if (state.behindTicks < BEHIND_LIMIT) {
+            return;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "field of view");
+        evidence.put("offAngle", round(offAngle));
+        evidence.put("limit", FOV_LIMIT);
+        evidence.put("behindTicks", state.behindTicks);
+        evidence.put("targetId", attack.targetId());
+        evidence.put("targetDistance", round(
+                context.player().position().distanceTo(target.position())));
+
+        context.preventAttack("attack " + round(offAngle) + " degrees off target");
+        context.flag("attacked a target " + round(offAngle) + " degrees away from facing direction",
+                evidence, 7.0);
+        state.behindTicks = 0;
+    }
+
+    private void accountRotationPattern(CheckContext context, AttackPacket attack, AuraState state) {
+        var window = state.rotation;
+        window.offer(Math.abs(MathUtil.deltaDegrees(state.previousYaw, attack.yaw())));
+        state.previousYaw = attack.yaw();
+
+        if (window.size() < LINEAR_MIN_SAMPLES) {
+            return;
+        }
+
+        double[] deltas = window.recentDeltas();
+        double jitter = meanAbsoluteDeviation(deltas);
+        if (jitter < JITTER_FLOOR) {
+            return;
+        }
+        if (!isLinear(deltas)) {
+            return;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "rotation pattern");
+        evidence.put("samples", deltas.length);
+        evidence.put("jitter", round(jitter));
+        evidence.put("gridConstant", round(window.constant()));
+        evidence.put("snaps", state.snaps);
+
+        context.flag("rotation between attacks is perfectly linear with no mouse jitter", evidence, 8.0);
+        window.clear();
+        state.snaps = 0;
+    }
+
+    public static double meanAbsoluteDeviation(double[] values) {
+        if (values.length == 0) {
+            return 0.0;
+        }
+        double mean = 0.0;
+        for (double value : values) {
+            mean += value;
+        }
+        mean /= values.length;
+        double total = 0.0;
+        for (double value : values) {
+            total += Math.abs(value - mean);
+        }
+        return total / values.length;
+    }
+
+    public static boolean isLinear(double[] values) {
+        if (values.length < 4) {
+            return false;
+        }
+        double first = values[0];
+        double last = values[values.length - 1];
+        if (Math.abs(last - first) < 1.0E-6) {
+            return false;
+        }
+        double span = values.length - 1;
+        for (int i = 0; i < values.length; i++) {
+            double expected = first + (last - first) * (i / span);
+            if (Math.abs(values[i] - expected) > LINEAR_TOLERANCE) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -207,5 +315,44 @@ public final class KillAuraCheck implements Check {
         private final java.util.ArrayDeque<TargetEntry> recent = new java.util.ArrayDeque<>();
         private double lastAttackYaw;
         private int snaps;
+        private int behindTicks;
+        private double previousYaw;
+        private final RotationWindow rotation = new RotationWindow();
+    }
+
+    static final class RotationWindow {
+
+        private final double[] deltas = new double[ROTATION_WINDOW];
+        private int count;
+        private final GcdAnalysis.Window grid = new GcdAnalysis.Window();
+
+        void offer(double delta) {
+            grid.offer(delta);
+            if (count < ROTATION_WINDOW) {
+                deltas[count++] = delta;
+            } else {
+                System.arraycopy(deltas, 1, deltas, 0, ROTATION_WINDOW - 1);
+                deltas[ROTATION_WINDOW - 1] = delta;
+            }
+        }
+
+        double[] recentDeltas() {
+            double[] result = new double[count];
+            System.arraycopy(deltas, 0, result, 0, count);
+            return result;
+        }
+
+        double constant() {
+            return grid.constant();
+        }
+
+        int size() {
+            return count;
+        }
+
+        void clear() {
+            count = 0;
+            grid.clear();
+        }
     }
 }

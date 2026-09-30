@@ -11,6 +11,11 @@ public final class HighJumpCheck extends AbstractMovementCheck {
 
     public static final double MIN_EXCESS = 0.08;
     public static final int REQUIRED_CONSECUTIVE = 3;
+    public static final double STEP_HEIGHT = 0.6;
+    private static final double STEP_EXCESS = 0.05;
+    private static final int STEP_LIMIT = 2;
+    private static final double GRAVITY = 0.08;
+    private static final double TERMINAL = 3.92;
 
     @Override
     public String key() {
@@ -29,7 +34,8 @@ public final class HighJumpCheck extends AbstractMovementCheck {
 
     @Override
     public String description() {
-        return "Detects launch velocities above the maximum produced by jumping with the current effects.";
+        return "Detects launch velocities above the maximum produced by jumping with the current "
+                + "effects, and vertical gain past the step height in a single tick.";
     }
 
     @Override
@@ -82,6 +88,8 @@ public final class HighJumpCheck extends AbstractMovementCheck {
             return;
         }
 
+        accountStepHeight(context, state, observed, maximum);
+
         Map<String, Object> evidence = context.newEvidence();
         evidence.put("excess", round(excess));
         evidence.put("observed", round(observed));
@@ -97,6 +105,37 @@ public final class HighJumpCheck extends AbstractMovementCheck {
         state.badJumps = 0;
     }
 
+    private void accountStepHeight(CheckContext context, JumpState state, double observed, double launch) {
+        if (observed <= launch) {
+            state.stepTicks = 0;
+            return;
+        }
+        double gain = observed;
+        if (gain <= STEP_HEIGHT + STEP_EXCESS) {
+            state.stepTicks = 0;
+            return;
+        }
+
+        state.stepTicks++;
+        if (state.stepTicks < STEP_LIMIT) {
+            return;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "step height");
+        evidence.put("verticalGain", round(gain));
+        evidence.put("stepHeight", STEP_HEIGHT);
+        evidence.put("excess", round(gain - STEP_HEIGHT));
+        evidence.put("consecutive", state.stepTicks);
+        evidence.put("airTicks", context.player().movement().ticksSinceGround());
+        evidence.put("gravityPerTick", GRAVITY);
+        evidence.put("terminalVelocity", TERMINAL);
+
+        context.flag("gained " + round(gain) + " blocks in one tick, the step height is "
+                + STEP_HEIGHT, evidence, 9.0);
+        state.stepTicks = 0;
+    }
+
     @Override
     public void onTick(CheckContext context) {
         var state = (JumpState) state(context.player());
@@ -105,7 +144,7 @@ public final class HighJumpCheck extends AbstractMovementCheck {
         }
     }
 
-    static double maximumLaunch(int jumpBoost, boolean sprinting, double jumpStrength) {
+    public static double maximumLaunch(int jumpBoost, boolean sprinting, double jumpStrength) {
         double value = MovementConstants.JUMP_VELOCITY * jumpStrength
                 + MovementConstants.JUMP_BOOST_PER_LEVEL * jumpBoost
                 + (sprinting ? MovementConstants.SPRINT_JUMP_BOOST : 0.0);
@@ -120,5 +159,6 @@ public final class HighJumpCheck extends AbstractMovementCheck {
 
         private int excessTicks;
         private int badJumps;
+        private int stepTicks;
     }
 }

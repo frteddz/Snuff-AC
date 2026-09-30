@@ -10,7 +10,7 @@ Free, open-source anticheat for Minecraft Java Edition servers. 32 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.1.6-dev**. Requires **Java 21**.
+Current release: **1.1.7-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -43,7 +43,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **GroundSpoof** *(structural)*: claimed ground with no supporting block
 * **GroundFlag**: sustained ground contact contradicting the server block view, the signature of air walk and no-fall spoofing
 * **Step**: vertical gain beyond the modelled step height
-* **HighJump**: launch velocity beyond what the jump strength attribute permits
+* **HighJump**: launch velocity beyond what the jump strength attribute permits, and vertical gain past the step height in one tick
 * **LongJump**: horizontal distance inconsistent with current momentum
 * **ImpossibleMovement** *(structural)*: sequences the predictor cannot reconcile
 * **Drift**: sustained per-tick offset between prediction and reported position
@@ -56,7 +56,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
 * **AutoClicker**: attack timing patterns, frequency analysis and consistency
 * **Aim**: rotation behaviour around attacks
-* **KillAura**: target sequencing, rapid multi-target switching, and target switching between attacks
+* **KillAura**: target sequencing, rapid multi-target switching, attacks on targets outside the field of view or behind the player, and rotation with no mouse jitter
 * **ImpossibleAttack** *(structural)*: attack sequences that do not fit observable state
 * **Critical**: forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack
 * **RotationSnapBack**: a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce

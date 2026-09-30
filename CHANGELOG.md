@@ -5,6 +5,62 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.7-dev] - 2026-10-01
+
+KillAura and HighJump. Both checks had a rule for the case they were named
+after and nothing for the cases around it.
+
+### Added
+
+**Aura no longer ignores what is behind you**
+
+- The field of view rule was in the code but dead. `postAttack` measured the
+  angle to the target and flagged anything past 90 degrees, which cannot
+  happen: the vanilla server rejects an attack that far off facing before the
+  packet reaches a check, so the branch never ran on a real server.
+- The limit is now 110 degrees, which is as far as a player can look while
+  still having a target on screen, and three consecutive attacks past it are
+  needed. The attack is blocked, so an aura that targets behind the player
+  gains nothing.
+
+**Rotation that no mouse could produce**
+
+- Aims that a human cannot make are now caught by shape rather than size. The
+  rotation between attacks is sampled, and flagged when the steps form a
+  straight line with no jitter: a real hand does not produce evenly spaced
+  rotation, and a cheat that interpolates between two points produces exactly
+  that. A turn in the middle of the sample is not flagged, so deliberate
+  sweeps and target changes stay clean.
+- A spread of under 0.35 degrees across the sample is required before the
+  rule applies, so a player who barely moves the mouse is never caught by a
+  pattern that has no pattern in it. The resolved mouse grid is carried in the
+  evidence, so the sensitivity is visible rather than guessed.
+
+**Step height is now a number, not a vibe**
+
+- HighJump only looked at the launch velocity of a jump. A cheat that steps
+  straight up a block without jumping at all never produced a launch, so it
+  was never seen. Vertical gain past 0.6 blocks in a single tick is now
+  flagged after two consecutive ticks, with the gravity and terminal
+  velocity figures in the evidence.
+
+### Fixed
+
+**The jump ceiling was not actually the vanilla ceiling**
+
+- The limit was 0.42 multiplied by the jump strength attribute, but a real
+  jump peaks at 0.42 reduced by the 0.98 vertical drag, so a genuine jump
+  sat almost exactly on the boundary. The drag is now applied to the whole
+  sum, so the ceiling is 0.4116 for a standing jump and the boost and sprint
+  bonuses are added in the same place. The three figures are asserted
+  directly, since a check that flags a real jump is worse than no check.
+
+### Verified
+
+- 393 tests pass, 12 of them new.
+- Loaded on a real Paper 1.21.11 server, 32 checks, no errors, and a real
+  client moving, jumping and attacking is clean.
+
 ## [1.1.6-dev] - 2026-10-01
 
 Reach and Flight. Two things the checks already claimed to do, plus a false
