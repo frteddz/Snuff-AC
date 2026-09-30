@@ -7,11 +7,12 @@ on:
       - 'web/**'
       - 'sync-site-changelog.py'
       - 'CHANGELOG.md'
+      - 'gradle.properties'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -42,6 +43,16 @@ jobs:
         working-directory: web
         run: npm run build
 
+      - name: publish to the gh-pages branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GIT_COMMIT: ${{ github.sha }}
+        run: web/scripts/deploy-pages.sh
+
+      - uses: actions/configure-pages@v5
+        continue-on-error: true
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist
@@ -55,3 +66,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        continue-on-error: true
