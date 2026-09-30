@@ -37,6 +37,7 @@ public final class GuiRules {
             "report_impersonation",
             "report_back",
             "report_submit",
+            "report_note",
             "report_claim",
             "report_unclaim",
             "report_resolve",

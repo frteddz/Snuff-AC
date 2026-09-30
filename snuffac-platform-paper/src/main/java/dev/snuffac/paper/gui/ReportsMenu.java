@@ -19,6 +19,7 @@ public final class ReportsMenu extends SnuffMenu {
     public static final String ACTION_OPEN_ADMIN = "open_reports_admin";
     public static final String ACTION_BACK = "report_back";
     public static final String ACTION_SUBMIT = "report_submit";
+    public static final String ACTION_NOTE = "report_note";
     public static final String ACTION_CLAIM = "report_claim";
     public static final String ACTION_RELEASE = "report_unclaim";
     public static final String ACTION_RESOLVE = "report_resolve";
@@ -33,6 +34,8 @@ public final class ReportsMenu extends SnuffMenu {
     private final SnuffPaperPlugin plugin;
     private final ReportStore store;
     private final Player target;
+    private final java.util.UUID targetId;
+    private final String targetName;
     private final boolean adminView;
     private final int page;
     private final String filterStatus;
@@ -47,6 +50,20 @@ public final class ReportsMenu extends SnuffMenu {
             int page,
             String filterStatus,
             String filterCategory) {
+        this(plugin, store, target, target == null ? null : target.getUniqueId(),
+                target == null ? null : target.getName(), adminView, page, filterStatus, filterCategory);
+    }
+
+    public ReportsMenu(
+            SnuffPaperPlugin plugin,
+            ReportStore store,
+            Player target,
+            java.util.UUID targetId,
+            String targetName,
+            boolean adminView,
+            int page,
+            String filterStatus,
+            String filterCategory) {
         super(plugin, 54, adminView ? "Reports" : "Report a player",
                 GuiLayout.load(plugin, adminView
                         ? dev.snuffac.paper.GuiDefaults.REPORTS_ADMIN
@@ -54,6 +71,8 @@ public final class ReportsMenu extends SnuffMenu {
         this.plugin = plugin;
         this.store = store;
         this.target = target;
+        this.targetId = targetId;
+        this.targetName = targetName;
         this.adminView = adminView;
         this.page = page;
         this.filterStatus = filterStatus;
@@ -103,11 +122,16 @@ public final class ReportsMenu extends SnuffMenu {
     }
 
     private Player targetOnline() {
-        if (target == null) {
+        if (targetId == null) {
             return null;
         }
-        Player online = Bukkit.getPlayer(target.getUniqueId());
+        Player online = Bukkit.getPlayer(targetId);
         return online != null && online.isOnline() ? online : null;
+    }
+
+    private String targetLabel() {
+        Player online = targetOnline();
+        return online != null ? online.getName() : (targetName == null ? "that player" : targetName);
     }
 
     private void renderPicker() {
@@ -137,9 +161,11 @@ public final class ReportsMenu extends SnuffMenu {
                 if (ACTION_SUBMIT.equals(button.action())) {
                     set(button.slot(), button.material(), button.name(),
                             List.of("<gray>Target: <white>"
-                                            + (online == null ? target.getName() : online.getName()),
+                                            + targetLabel(),
                                     "<gray>Selected: <white>" + label(selectedCategory)),
                             button.action());
+                } else if (ACTION_NOTE.equals(button.action())) {
+                    set(button.slot(), button.material(), button.name(), noteLore(), button.action());
                 } else if (ACTION_BACK.equals(button.action())) {
                     set(button.slot(), button.material(), button.name(), button.lore(), button.action());
                 }
@@ -159,11 +185,25 @@ public final class ReportsMenu extends SnuffMenu {
                     "report_" + option.id());
             slot++;
         }
+        set(47, Material.WRITABLE_BOOK, "<white>Add Detail",
+                note.isBlank()
+                        ? List.of("<gray>Optional, but staff can only act on what they are told",
+                                "<gray>Current: <white>none, click to type one")
+                        : List.of("<gray>Current: <white>" + note, "<gray>Click to replace"),
+                ACTION_NOTE);
         set(49, Material.PAPER, "<white>Submit report",
-                List.of("<gray>Target: <white>" + (online == null ? target.getName() : online.getName()),
-                        "<gray>Selected: <white>" + label(selectedCategory)),
+                List.of("<gray>Target: <white>" + targetLabel(),
+                        "<gray>Selected: <white>" + label(selectedCategory),
+                        "<gray>Detail: <white>" + (note.isBlank() ? "none yet" : note)),
                 ACTION_SUBMIT);
         set(45, Material.ARROW, "<white>Back", List.of(), ACTION_BACK);
+    }
+
+    private List<String> noteLore() {
+        return note.isBlank()
+                ? List.of("<gray>Optional, but staff can only act on what they are told",
+                        "<gray>Current: <white>none, click to type one")
+                : List.of("<gray>Current: <white>" + note, "<gray>Click to replace");
     }
 
     private static dev.snuffac.paper.report.ReportOptions.Option find(
@@ -367,6 +407,10 @@ public final class ReportsMenu extends SnuffMenu {
             select(action.substring("report_".length()), player);
             return;
         }
+        if (ACTION_NOTE.equals(action)) {
+            plugin.openReportNote(player, targetId, targetLabel(), selectedCategory);
+            return;
+        }
         switch (action) {
             case ACTION_BACK -> openParent(player);
             case ACTION_SUBMIT -> submit(player);
@@ -432,16 +476,30 @@ public final class ReportsMenu extends SnuffMenu {
         player.updateInventory();
     }
 
+    public void selectCategory(String category) {
+        if (category != null) {
+            selectedCategory = category;
+        }
+    }
+
+    public void submitNow(Player player) {
+        submit(player);
+    }
+
     private void submit(Player player) {
         if (selectedCategory == null) {
             StaffMessages.send(player, "Pick a category first.");
             return;
         }
+        if (note.isBlank()) {
+            plugin.openReportNote(player, targetId, targetLabel(), selectedCategory);
+            return;
+        }
         var entry = store.file(
                 player.getUniqueId(),
                 player.getName(),
-                target.getUniqueId(),
-                target.getName(),
+                targetId,
+                targetLabel(),
                 selectedCategory,
                 note);
         if (entry == null) {
@@ -449,7 +507,7 @@ public final class ReportsMenu extends SnuffMenu {
             return;
         }
         store.save();
-        StaffMessages.send(player, "Report filed against " + target.getName() + ".");
+        StaffMessages.send(player, "Report filed against " + targetLabel() + ".");
         close(player);
     }
 

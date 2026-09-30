@@ -5,6 +5,48 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.1.5-dev] - 2026-09-30
+
+The note field. Every stored report has carried a note since reports were
+added, and there has never been a way to fill it in.
+
+### Added
+
+**A report can carry a description of what happened**
+
+- The picker takes a note in chat, 240 characters, with a 60 second timeout
+  and a cancel word, and the button shows the current text so it can be
+  replaced. Filed and claimed with a real client, and the text is stored as
+  typed.
+- Submitting with no note offers the prompt rather than filing a bare
+  category, since a report with only a category gives staff nothing to act
+  on. Typing `cancel` files it without one.
+
+### Fixed
+
+**Chat input was being stripped before it was stored**
+
+- The note prompt reused the same sanitiser as the numeric retention prompt,
+  which keeps letters and digits only, so `they were duplicating obsidian`
+  was stored as `theywereduplicatingobsidiani`. Notes are prose, so they keep
+  spacing, case and punctuation, and only control characters are replaced.
+
+**A report could not be filed against someone who had just left**
+
+- The note prompt held a live `Player` and refused to file if they went
+  offline, and the prompt itself ran on the chat thread, which is not the
+  thread a report store may be touched from. The prompt now holds the player
+  id, and the write is moved onto the server thread.
+
+**The category chosen before the note was lost**
+
+- Submitting asked for the note, then built a fresh picker to file with, so
+  the report came back as "pick a category first".
+
+### Verified
+
+- 365 tests pass, 8 of them for the note prompt.
+
 ## [1.1.4-dev] - 2026-09-30
 
 Documentation release. Storage ESP is listed as working in the README, the

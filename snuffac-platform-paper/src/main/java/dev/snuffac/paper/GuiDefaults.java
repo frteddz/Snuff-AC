@@ -141,6 +141,10 @@ public final class GuiDefaults {
                 "report_name", "snuffac.report", 1, false);
         item(yaml, 16, "PLAYER_HEAD", "Staff Impersonation", List.of("Pretending to be an administrator"),
                 "report_impersonation", "snuffac.report", 1, false);
+        item(yaml, 47, "WRITABLE_BOOK", "Add Detail",
+                List.of("<gray>Optional, but staff can only act on what they are told",
+                        "<gray>Current: <white>none, click to type one"),
+                "report_note", "snuffac.report", 1, false);
         item(yaml, 49, "PAPER", "Submit report", List.of("Confirm the selected category"),
                 "report_submit", "snuffac.report", 1, false);
         item(yaml, 45, "ARROW", "Back", List.of(), "report_back", "snuffac.report", 1, false);

@@ -156,6 +156,8 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         config.escalationWarnOnly(escalation.warnOnly());
     }
 
+    private final dev.snuffac.paper.report.NotePrompts reportNotes =
+            new dev.snuffac.paper.report.NotePrompts();
     private final java.util.Map<UUID, RetentionPrompt> retentionPrompts = new java.util.concurrent.ConcurrentHashMap<>();
 
     public void promptForRetention(Player player, dev.snuffac.paper.gui.SettingsMenu.RetentionKind kind) {
@@ -177,6 +179,71 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         getConfig().set("prevention.enabled", core.config().preventionEnabled());
         saveConfig();
         core.enforcement().preventionEnabled(core.config().preventionEnabled());
+    }
+
+    public void openReportNote(Player player, UUID targetId, String targetName, String category) {
+        if (targetId == null) {
+            StaffMessages.send(player, "That report has no target, so nothing was filed.");
+            return;
+        }
+        reportNotes.open(player.getUniqueId(), targetId, targetName, category);
+        StaffMessages.send(player, "Type what happened to " + targetName
+                + ", in " + dev.snuffac.paper.report.NotePrompts.MAX_LENGTH
+                + " characters or less, or type <white>cancel</white> to submit without it.");
+    }
+
+    public boolean handleNoteChat(Player player, String message) {
+        if (!reportNotes.isWaiting(player.getUniqueId())) {
+            return false;
+        }
+        UUID targetId = reportNotes.target(player.getUniqueId());
+        String category = reportNotes.category(player.getUniqueId());
+        if (targetId == null) {
+            reportNotes.cancel(player.getUniqueId());
+            return false;
+        }
+        // a report note is prose, so it keeps spacing, case and punctuation,
+        // unlike the numeric retention prompt which parses a number
+        String text = sanitiseNote(message);
+        if (text.length() > dev.snuffac.paper.report.NotePrompts.MAX_LENGTH) {
+            text = text.substring(0, dev.snuffac.paper.report.NotePrompts.MAX_LENGTH);
+        }
+        boolean skipped = reportNotes.isExpiredWord(message);
+        reportNotes.cancel(player.getUniqueId());
+        String note = skipped ? "" : text;
+        // chat fires off the main thread, and a report touches the player
+        // list and the report store, so the write is moved onto the server thread
+        Bukkit.getScheduler().runTask(this, () -> fileReport(player, targetId, category, note));
+        return true;
+    }
+
+    private void fileReport(Player player, UUID targetId, String category, String note) {
+        if (!player.isOnline()) {
+            return;
+        }
+        Player target = Bukkit.getPlayer(targetId);
+        String targetName = target == null
+                ? reportOptionsName(targetId)
+                : target.getName();
+        if (reports.rateLimited(player.getUniqueId())) {
+            StaffMessages.send(player, "You are filing reports too quickly. Try again later.");
+            return;
+        }
+        dev.snuffac.paper.gui.ReportsMenu menu = new dev.snuffac.paper.gui.ReportsMenu(
+                this, reports, target, targetId, targetName, false, 0, "", "");
+        menu.note(note);
+        menu.selectCategory(category);
+        menu.submitNow(player);
+    }
+
+    private String reportOptionsName(UUID targetId) {
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online.getUniqueId().equals(targetId)) {
+                return online.getName();
+            }
+        }
+        org.bukkit.OfflinePlayer offline = Bukkit.getOfflinePlayer(targetId);
+        return offline.getName();
     }
 
     public boolean handleRetentionChat(Player player, String message) {
@@ -240,6 +307,22 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         }
     }
 
+    private static String sanitiseNote(String message) {
+        if (message == null) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder(message.length());
+        for (int i = 0; i < message.length() && i < dev.snuffac.paper.report.NotePrompts.MAX_LENGTH; i++) {
+            char c = message.charAt(i);
+            if (Character.isISOControl(c)) {
+                builder.append(' ');
+            } else {
+                builder.append(c);
+            }
+        }
+        return builder.toString().trim();
+    }
+
     private static String sanitizeChatInput(String message) {
         if (message == null) {
             return "";
@@ -257,6 +340,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     public void purgeExpiredRetentionPrompts() {
         long now = System.currentTimeMillis();
         retentionPrompts.entrySet().removeIf(entry -> entry.getValue().expiresMillis() < now);
+        reportNotes.sweep();
     }
 
     private record RetentionPrompt(

@@ -4,6 +4,32 @@ type Release = { version: string; stamp: string; items: ReleaseItem[] }
 
 export const releases: Release[] = [
   {
+    version: '1.1.5-dev',
+    stamp: '2026-09-30',
+    items: [
+      {
+        title: 'A report can carry a description of what happened',
+        copy: 'The picker takes a note in chat, 240 characters, with a 60 second timeout and a cancel word, and the button shows the current text so it can be replaced. Filed and claimed with a real client, and the text is stored as typed. Submitting with no note offers the prompt rather than filing a bare category, since a report with only a category gives staff nothing to act on. Typing `cancel` files it without one.',
+      },
+      {
+        title: 'Chat input was being stripped before it was stored',
+        copy: 'The note prompt reused the same sanitiser as the numeric retention prompt, which keeps letters and digits only, so `they were duplicating obsidian` was stored as `theywereduplicatingobsidiani`. Notes are prose, so they keep spacing, case and punctuation, and only control characters are replaced.',
+      },
+      {
+        title: 'A report could not be filed against someone who had just left',
+        copy: 'The note prompt held a live `Player` and refused to file if they went offline, and the prompt itself ran on the chat thread, which is not the thread a report store may be touched from. The prompt now holds the player id, and the write is moved onto the server thread.',
+      },
+      {
+        title: 'The category chosen before the note was lost',
+        copy: 'Submitting asked for the note, then built a fresh picker to file with, so the report came back as "pick a category first".',
+      },
+      {
+        title: '365 tests pass, 8 of them for the note prompt.',
+        copy: '',
+      },
+    ],
+  },
+  {
     version: '1.1.4-dev',
     stamp: '2026-09-30',
     items: [

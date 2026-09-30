@@ -131,7 +131,8 @@ public final class MechanicsListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChatPrompt(org.bukkit.event.player.AsyncPlayerChatEvent event) {
-        if (plugin.handleRetentionChat(event.getPlayer(), event.getMessage())) {
+        if (plugin.handleRetentionChat(event.getPlayer(), event.getMessage())
+                || plugin.handleNoteChat(event.getPlayer(), event.getMessage())) {
             event.setCancelled(true);
         }
     }
