@@ -1230,4 +1230,23 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.0-dev',
+    tag: 'v1.2.0-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 2,
+    items: [
+      {
+        group: null,
+        title: 'Scaffold no longer assumes the player is aiming at what they place',
+        copy: 'The tower pattern was detected, but only if the player was sprinting, airborne and not crouching. Every other way a scaffold cheat works was invisible: a player standing still, walking backwards, or crouching while auto placing was never seen at all. Placement is now validated against the look direction. The target is the centre of the face being clicked, and both the yaw and the pitch error against the player\'s actual facing are measured. More than 62 degrees off, three placements running, is reported and the placement is blocked. A real player places within a few degrees of what they are looking at, and 62 degrees leaves room for lag and for reaching to the side. Placing with nothing in hand is now reported after three attempts. The server knows the held item, and no placement is possible without one, so this is a case that cannot happen legitimately. The evidence records the held slot so it is visible why.',
+      },
+      {
+        group: null,
+        title: 'Nuker now checks whether the target was ever visible',
+        copy: 'The check counted dig packets and, since the last release, distinct blocks per burst and per second. Neither asks the obvious question: how did the player know to dig that block. A client that starts digging a block the server has solid geometry between it and the player is using information the server never sent. The eye to block distance is measured and the segment sampled against the block view. Two consecutive dig starts at a block more than 6 blocks away and behind solid blocks are reported. A block the server has no data for is not judged, because sight cannot be established without data, and a block in front of the player is never flagged.',
+      },
+    ],
+  },
 ]

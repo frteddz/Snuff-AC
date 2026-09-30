@@ -10,7 +10,7 @@ Free, open-source anticheat for Minecraft Java Edition servers. 33 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.1.9-dev**. Requires **Java 21**.
+Current release: **1.2.0-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -67,8 +67,8 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 * **FastBreak**: break timing against material and tool context
 * **FastPlace**: placement and interaction rate
-* **Scaffold**: placement behaviour and the movement context around it
-* **Nuker**: distinct blocks started per burst and per second, so retrying one block is never counted as several
+* **Scaffold**: tower scaffolding while airborne, placements the player is not facing, and placements with nothing in hand to place
+* **Nuker**: distinct blocks started per burst and per second, so retrying one block is never counted as several, plus dig targets the server block view says are out of sight
 * **MiningBeyondView**: targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
 ### Packet (5)

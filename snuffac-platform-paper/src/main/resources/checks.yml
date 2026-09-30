@@ -270,7 +270,8 @@ checks:
       setback-threshold: 0.0
       alert-threshold: 2.0
       action: ALERT
-      description: Air scaffold tower placement pattern.
+      description: Air scaffold tower placement pattern, placements the player is not facing,
+        and placements with nothing in hand.
       evidence: DERIVED
     miningbeyondview:
       enabled: true
@@ -290,7 +291,8 @@ checks:
       setback-threshold: 0.0
       alert-threshold: 2.0
       action: ALERT
-      description: Abnormal number of distinct blocks started per second.
+      description: Abnormal number of distinct blocks started per burst and per second, and
+        dig targets the server block view says are out of sight.
       evidence: DERIVED
 
   packet:

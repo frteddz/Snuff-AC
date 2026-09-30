@@ -5,6 +5,50 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.2.0-dev] - 2026-10-01
+
+Scaffold and Nuker. The first release of the 1.2 line, and the first two
+checks that were measuring a rate but never checking the cheat's actual
+signature.
+
+### Added
+
+**Scaffold no longer assumes the player is aiming at what they place**
+
+- The tower pattern was detected, but only if the player was sprinting,
+  airborne and not crouching. Every other way a scaffold cheat works was
+  invisible: a player standing still, walking backwards, or crouching while
+  auto placing was never seen at all.
+- Placement is now validated against the look direction. The target is the
+  centre of the face being clicked, and both the yaw and the pitch error
+  against the player's actual facing are measured. More than 62 degrees off,
+  three placements running, is reported and the placement is blocked. A real
+  player places within a few degrees of what they are looking at, and 62
+  degrees leaves room for lag and for reaching to the side.
+- Placing with nothing in hand is now reported after three attempts. The
+  server knows the held item, and no placement is possible without one, so
+  this is a case that cannot happen legitimately. The evidence records the
+  held slot so it is visible why.
+
+**Nuker now checks whether the target was ever visible**
+
+- The check counted dig packets and, since the last release, distinct blocks
+  per burst and per second. Neither asks the obvious question: how did the
+  player know to dig that block. A client that starts digging a block the
+  server has solid geometry between it and the player is using information
+  the server never sent.
+- The eye to block distance is measured and the segment sampled against the
+  block view. Two consecutive dig starts at a block more than 6 blocks away
+  and behind solid blocks are reported. A block the server has no data for is
+  not judged, because sight cannot be established without data, and a block
+  in front of the player is never flagged.
+
+### Verified
+
+- 422 tests pass, 9 of them new.
+- Loaded on a real Paper 1.21.11 server, 33 checks, and a real client
+  walking, jumping, sprinting and digging is clean.
+
 ## [1.1.9-dev] - 2026-10-01
 
 Criticals and AutoClicker. The critical check only looked at one way of
