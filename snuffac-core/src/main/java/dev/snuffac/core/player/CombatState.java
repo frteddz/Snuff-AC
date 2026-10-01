@@ -45,6 +45,19 @@ public final class CombatState {
 
     private final long[] attackTimestamps = new long[64];
 
+    public long lastDamageMillis() {
+        return lastDamageMillis;
+    }
+
+    public void recordDamage(long millis) {
+        lastDamageMillis = millis;
+        damageEvents++;
+    }
+
+    public long damageEvents() {
+        return damageEvents;
+    }
+
     public long attacks() {
         return attacks;
     }
@@ -87,6 +100,9 @@ public final class CombatState {
     public int lastAttackHand() {
         return lastAttackHand;
     }
+
+    private long lastDamageMillis;
+    private long damageEvents;
 
     public long swings() {
         return swings;

@@ -154,6 +154,16 @@ checks:
       description: Movement path swept against the server block view, rejecting travel through solid
         blocks and single tick jumps too far to be walked.
       evidence: DERIVED
+    noslow:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Vanilla movement slowdown enforced while an item is in use.
+      evidence: DERIVED
     velocity:
       enabled: true
       buffer-threshold: 1.0
@@ -261,6 +271,16 @@ checks:
       alert-threshold: 1.0
       action: ALERT
       description: Attacks landing an identical short time after the crosshair reaches a target.
+      evidence: DERIVED
+    autototem:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Slot changes landing an identical short time after the player takes damage.
       evidence: DERIVED
     rotationsnapback:
       enabled: true

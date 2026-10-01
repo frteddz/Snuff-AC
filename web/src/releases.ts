@@ -1335,4 +1335,28 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.5-dev',
+    tag: 'v1.2.5-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 3,
+    items: [
+      {
+        group: null,
+        title: 'Damage events are now recorded',
+        copy: 'The server received every damage event and threw the useful part away. Nothing kept the time, so no check could ask when a player was last hit, which is the only reference point for an automatic reaction.`CombatState` now records the time of the last damage and a count, filled from the damage listener at monitor priority, after the damage has been decided. Nothing about how damage works changes.',
+      },
+      {
+        group: null,
+        title: 'A new check for automatic totem placement',
+        copy: 'An AutoTotem module moves a totem into the offhand the instant the player is hit. The signature is the same every time: a hotbar slot change a short, nearly identical time after the hit. A new `autototem` check measures the gap between the last damage and each slot change. Between one and 250 milliseconds is a sample, and a run of samples whose spread is under a third of their mean is reported. Both the mean and the spread are in the evidence, so a player who genuinely is fast reads as fast rather than as mechanical, and the slot list is included. A slot change with no recent damage is not a sample at all, and a change five seconds after a hit is not fast enough to be one.',
+      },
+      {
+        group: null,
+        title: 'A new check for the item use slowdown',
+        copy: 'Eating, drinking, drawing a bow, blocking with a shield, sneaking and soul sand all reduce movement speed in vanilla. None of that was enforced, so a client could eat at full walking speed with no consequence. A new `noslow` check measures the player\'s own free walking speed, then, while an item is in use, compares what they are actually doing against one fifth of it, which is the vanilla figure. Using the player\'s own free speed as the reference rather than a fixed number means speed effects, ice and attributes are accounted for without being modelled. Water, gliding, flying, a vehicle, a ladder, riptide, levitation, slow falling and being submerged all exempt the tick, since none of them is a walk. Three quarters of normal speed while eating is still reported.',
+      },
+    ],
+  },
 ]

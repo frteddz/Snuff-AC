@@ -15,6 +15,7 @@ import dev.snuffac.core.check.impl.combat.InvalidAttackStateCheck;
 import dev.snuffac.core.check.impl.combat.KillAuraCheck;
 import dev.snuffac.core.check.impl.combat.ReachCheck;
 import dev.snuffac.core.check.impl.combat.AttackAngleCheck;
+import dev.snuffac.core.check.impl.combat.AutoTotemCheck;
 import dev.snuffac.core.check.impl.movement.AirMovementCheck;
 import dev.snuffac.core.check.impl.movement.FlyCheck;
 import dev.snuffac.core.check.impl.movement.GroundSpoofCheck;
@@ -23,6 +24,7 @@ import dev.snuffac.core.check.impl.movement.ImpossibleMovementCheck;
 import dev.snuffac.core.check.impl.movement.LongJumpCheck;
 import dev.snuffac.core.check.impl.movement.NoFallCheck;
 import dev.snuffac.core.check.impl.movement.JesusCheck;
+import dev.snuffac.core.check.impl.movement.NoSlowCheck;
 import dev.snuffac.core.check.impl.movement.PhaseCheck;
 import dev.snuffac.core.check.impl.movement.SpiderCheck;
 import dev.snuffac.core.check.impl.movement.SpeedCheck;
@@ -119,6 +121,7 @@ public final class SnuffCore {
         registry.register(new LongJumpCheck());
         registry.register(new ImpossibleMovementCheck());
         registry.register(new VelocityCheck());
+        registry.register(new NoSlowCheck());
         registry.register(new GroundFlagCheck());
         registry.register(new PitchLockCheck());
         registry.register(new DriftCheck());
@@ -137,6 +140,7 @@ public final class SnuffCore {
         registry.register(new RotationSnapBackCheck());
         registry.register(new HitboxCheck());
         registry.register(new TriggerBotCheck());
+        registry.register(new AutoTotemCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());

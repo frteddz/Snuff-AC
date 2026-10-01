@@ -7,13 +7,49 @@
 #   ./srv.sh logs [lines]
 set -uo pipefail
 
+HERE=$(cd "$(dirname "$0")" && pwd)
 DIR="${SNUFFAC_TEST_SERVER:-/tmp/opencode/testserver}"
-JAR="$DIR/paper.jar"
 BUILD_VERSION="1.21.11"
 BUILD_NUMBER="132"
-# the v2 papermc api was sunset, so the build is resolved through fill.papermc.io
+# the server jar is kept beside this script rather than in the world writable
+# temp directory, because /tmp has been wiped mid session and took the server
+# with it. the copy in the server directory is a link, not the original.
+CACHE="$HERE/.paper"
+JAR="$CACHE/paper-$BUILD_VERSION-$BUILD_NUMBER.jar"
+LINKED="$DIR/paper.jar"
 FILL_URL="https://fill.papermc.io/v3/projects/paper/versions/$BUILD_VERSION/builds/$BUILD_NUMBER"
 MEM_OPTS="-Xms1G -Xmx1500M -XX:+UseG1GC"
+
+download_paper() {
+  mkdir -p "$CACHE"
+  if [ -f "$JAR" ]; then
+    echo "paper already cached at $JAR"
+    return 0
+  fi
+  local url=""
+  url=$(curl -fsSL --max-time 60 "$FILL_URL" | python3 -c '
+import json, sys
+print(json.load(sys.stdin)["downloads"]["server:default"]["url"])
+' 2>/dev/null) && [ -n "$url" ] || url=""
+  if [ -z "$url" ]; then
+    url="https://api.papermc.io/v2/projects/paper/versions/$BUILD_VERSION/builds/$BUILD_NUMBER/downloads/paper-$BUILD_VERSION-$BUILD_NUMBER.jar"
+  fi
+  echo "downloading $url"
+  local attempt=1
+  while [ "$attempt" -le 5 ]; do
+    if curl -fsSL --max-time 300 "$url" -o "$JAR.part"; then
+      mv "$JAR.part" "$JAR"
+      echo "paper cached"
+      return 0
+    fi
+    rm -f "$JAR.part"
+    echo "download attempt $attempt failed, retrying" >&2
+    attempt=$((attempt + 1))
+    sleep $((attempt * 5))
+  done
+  echo "could not download paper $BUILD_VERSION build $BUILD_NUMBER" >&2
+  return 1
+}
 
 running() {
   [ -f "$DIR/server.pid" ] && kill -0 "$(cat "$DIR/server.pid")" 2>/dev/null
@@ -21,18 +57,8 @@ running() {
 
 setup() {
   mkdir -p "$DIR"
-  if [ ! -f "$JAR" ]; then
-    echo "resolving paper $BUILD_VERSION build $BUILD_NUMBER"
-    URL=$(curl -fsSL "$FILL_URL" | python3 -c '
-import json, sys
-print(json.load(sys.stdin)["downloads"]["server:default"]["url"])
-') || exit 1
-    echo "downloading $URL"
-    curl -fsSL "$URL" -o "$JAR" || {
-      echo "download failed" >&2
-      exit 1
-    }
-  fi
+  download_paper || exit 1
+  [ -f "$LINKED" ] || cp "$JAR" "$LINKED"
   cat > "$DIR/eula.txt" <<EULA
 eula=true
 EULA

@@ -121,6 +121,8 @@ public final class MechanicsListener implements Listener {
         if (data == null) {
             return;
         }
+        data.combat().recordDamage(System.currentTimeMillis());
+
         var type = event.getCause().name();
         if (type.contains("ENTITY_EXPLOSION") || type.contains("LIGHTNING")
                 || type.contains("PISTON") || type.contains("FALL")

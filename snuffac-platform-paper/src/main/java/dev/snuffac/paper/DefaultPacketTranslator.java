@@ -8,10 +8,12 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSoundEffect;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
@@ -20,6 +22,7 @@ import dev.snuffac.core.packet.AttackPacket;
 import dev.snuffac.core.packet.BlockBreakPacket;
 import dev.snuffac.core.packet.BlockPlacePacket;
 import dev.snuffac.core.packet.EntityActionPacket;
+import dev.snuffac.core.packet.HeldItemChangePacket;
 import dev.snuffac.core.packet.KeepAlivePacket;
 import dev.snuffac.core.packet.MovementPacket;
 import dev.snuffac.core.packet.PlayerLoadedPacket;
@@ -27,6 +30,7 @@ import dev.snuffac.core.packet.ServerKeepAlivePacket;
 import dev.snuffac.core.packet.SoundPacket;
 import dev.snuffac.core.packet.ServerTeleportPacket;
 import dev.snuffac.core.packet.ServerVelocityPacket;
+import dev.snuffac.core.packet.WindowClickPacket;
 import dev.snuffac.core.packet.SnuffPacket;
 import dev.snuffac.core.player.MovementState;
 import dev.snuffac.core.util.BlockPos;
@@ -96,6 +100,19 @@ public final class DefaultPacketTranslator implements PacketTranslator {
                     cursor == null ? 0.0f : cursor.getZ(),
                     wrapper.getHand() == null ? 0 : wrapper.getHand().ordinal(),
                     wrapper.getSequence());
+        }
+        if (type == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+            return new HeldItemChangePacket(arrivalNanos,
+                    new WrapperPlayClientHeldItemChange(event).getSlot(), false);
+        }
+        if (type == PacketType.Play.Client.CLICK_WINDOW) {
+            var wrapper = new WrapperPlayClientClickWindow(event);
+            return new WindowClickPacket(
+                    arrivalNanos,
+                    wrapper.getWindowId(),
+                    wrapper.getSlot(),
+                    wrapper.getButton(),
+                    wrapper.getWindowClickType().ordinal());
         }
         if (type == PacketType.Play.Client.KEEP_ALIVE) {
             return new KeepAlivePacket(arrivalNanos, new WrapperPlayClientKeepAlive(event).getId());
