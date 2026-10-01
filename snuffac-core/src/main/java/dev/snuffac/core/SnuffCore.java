@@ -8,7 +8,9 @@ import dev.snuffac.core.check.CheckDispatcher;
 import dev.snuffac.core.check.CheckRegistry;
 import dev.snuffac.core.check.impl.combat.AutoClickerCheck;
 import dev.snuffac.core.check.impl.combat.AimCheck;
+import dev.snuffac.core.check.impl.combat.HitboxCheck;
 import dev.snuffac.core.check.impl.combat.ImpossibleAttackCheck;
+import dev.snuffac.core.check.impl.combat.TriggerBotCheck;
 import dev.snuffac.core.check.impl.combat.InvalidAttackStateCheck;
 import dev.snuffac.core.check.impl.combat.KillAuraCheck;
 import dev.snuffac.core.check.impl.combat.ReachCheck;
@@ -133,6 +135,8 @@ public final class SnuffCore {
         registry.register(new InvalidAttackStateCheck());
         registry.register(new CriticalCheck());
         registry.register(new RotationSnapBackCheck());
+        registry.register(new HitboxCheck());
+        registry.register(new TriggerBotCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());

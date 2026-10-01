@@ -1316,4 +1316,23 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.4-dev',
+    tag: 'v1.2.4-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 2,
+    items: [
+      {
+        group: null,
+        title: 'A new check for client side hitbox expansion',
+        copy: 'A HitBoxes module grows the target box on the client so attacks land when they should miss. The server never sees the bigger box, so the only observable is the attack: it arrives when the real look vector does not touch the real box. A new `hitbox` check builds the vanilla box from the target position, 0.6 wide and 1.8 tall, 1.5 when crouching, and raytraces the attack against it. If the ray misses, the box is grown in 0.05 steps until the ray connects, and the size it had to reach is how far outside the real hitbox the hit landed. Four hits each needing more than 0.15 of expansion, aimed more than.2 degrees off centre, are reported and the attacks blocked. Four in a row is required, and a hit that lands cleanly on the real box clears the run, so ordinary tracking is never affected.',
+      },
+      {
+        group: null,
+        title: 'A new check for automatic triggering',
+        copy: 'A TriggerBot attacks the instant the crosshair reaches a target. The source asks for inhumanly consistent reaction time after the crosshair enters a hitbox, with no pre aim movement. A new `triggerbot` check measures the time from the last rotation packet to the attack. Anything between one and three ticks, with no rotation in between and no change of aim between the two packets, is a sample. A run of consistent samples is reported, and the mean and the jitter of the sample window are both in the evidence, so a genuinely fast player is visible as fast rather than as mechanical.',
+      },
+    ],
+  },
 ]

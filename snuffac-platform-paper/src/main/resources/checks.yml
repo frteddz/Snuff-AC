@@ -242,6 +242,26 @@ checks:
       description: Forced criticals from extra movement packets before an attack, and a critical
         landed while the server knows the player is not falling.
       evidence: DERIVED
+    hitbox:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Attacks raytraced against a vanilla sized hitbox, catching client side expansion.
+      evidence: DERIVED
+    triggerbot:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Attacks landing an identical short time after the crosshair reaches a target.
+      evidence: DERIVED
     rotationsnapback:
       enabled: true
       buffer-threshold: 1.0

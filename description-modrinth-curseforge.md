@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 36 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 38 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.2.3-dev**. Requires **Java 21**.
+Current release: **1.2.4-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,7 +29,7 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 36 checks
+## The 38 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
@@ -53,7 +53,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **PitchLock**: pitch pinned to an exact constant, used by placement and glide modules
 * **Velocity**: response to server-applied knockback, with damped displacement predicted and cobweb, water and ladder causes treated as absorbing it
 
-### Combat (9)
+### Combat (11)
 
 * **Reach**: eye-to-hitbox measurement for attacks and to the nearest block face for interactions, with ping-aware tolerance; out of range attacks and interactions are cancelled
 * **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
@@ -63,6 +63,8 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **ImpossibleAttack** *(structural)*: attack sequences that do not fit observable state
 * **Critical**: forced criticals produced by emitting extra position packets with a lift too small for gravity immediately before an attack, and a critical landed while the server knows the player is not actually falling
 * **RotationSnapBack**: a large aim rotation before an attack followed by a reverse rotation after it, which human input does not produce
+* **Hitbox**: every attack raytraced against a vanilla sized hitbox, reporting a run of hits that only landed because the client used a larger box
+* **TriggerBot**: attacks landing an identical short time after the crosshair reaches a target, with no aim movement in between
 * **InvalidAttackState** *(structural)*: attacks that are invalid for the current player state
 
 ### World (5)
@@ -84,7 +86,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 36 checks can act on the packet **before** the server acts on it.
+23 of the 38 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position
