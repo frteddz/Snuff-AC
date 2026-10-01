@@ -5,6 +5,48 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.2.7-dev] - 2026-10-01
+
+FastUse and InventoryMove. The last two on the list. Both needed a packet the
+server was not translating.
+
+### Added
+
+**Hotbar and inventory packets are now read**
+
+- The engine had packet types for a held item change and an inventory click,
+  but nothing ever produced them, so no check could see them. The translator
+  now builds both from the wire, which is what made the two checks below
+  possible at all.
+
+**A new check for using items too quickly**
+
+- Food and drink take 32 ticks in vanilla. An AutoEat or FastEat module
+  completes them early, which the server can see because it knows when the
+  player started using an item and how long it has been.
+- A new `fastuse` check reports an item use that is restarted between the
+  second tick and the thirty second. Three restarts in a window are reported
+  and the interaction blocked, so the food never completes. A use that is
+  allowed to run its full duration is never touched, since that is the
+  legitimate case.
+
+**A new check for moving with an inventory open**
+
+- A new `inventorymove` check tracks container clicks and, while a container
+  is open, measures horizontal speed. Vanilla does not let a player move at
+  walking speed with a chest open, so eight ticks of it is reported.
+- The player's own inventory does not count. Window zero is the player, and a
+  player walking along while rearranging their hotbar is doing something the
+  game allows, so only real containers count.
+- Standing still with a container open is normal and is never reported.
+
+### Verified
+
+- 481 tests pass, 7 of them new.
+- Not yet run against a real server. Every Paper download endpoint is still
+  returning 503, so this release is verified by test only so far and will be
+  run on a real client before it goes anywhere near a live server.
+
 ## [1.2.6-dev] - 2026-10-01
 
 ElytraFly and Vehicle. Both cheats live in a place the server was not

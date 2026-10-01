@@ -40,6 +40,8 @@ import dev.snuffac.core.check.impl.world.FastBreakCheck;
 import dev.snuffac.core.check.impl.world.FastPlaceCheck;
 import dev.snuffac.core.check.impl.world.NukerCheck;
 import dev.snuffac.core.check.impl.combat.CriticalCheck;
+import dev.snuffac.core.check.impl.combat.FastUseCheck;
+import dev.snuffac.core.check.impl.combat.InventoryMoveCheck;
 import dev.snuffac.core.check.impl.combat.RotationSnapBackCheck;
 import dev.snuffac.core.check.impl.movement.DriftCheck;
 import dev.snuffac.core.check.impl.movement.GroundFlagCheck;
@@ -126,6 +128,7 @@ public final class SnuffCore {
         registry.register(new NoSlowCheck());
         registry.register(new ElytraCheck());
         registry.register(new VehicleCheck());
+        registry.register(new InventoryMoveCheck());
         registry.register(new GroundFlagCheck());
         registry.register(new PitchLockCheck());
         registry.register(new DriftCheck());
@@ -145,6 +148,7 @@ public final class SnuffCore {
         registry.register(new HitboxCheck());
         registry.register(new TriggerBotCheck());
         registry.register(new AutoTotemCheck());
+        registry.register(new FastUseCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());

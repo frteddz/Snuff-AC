@@ -103,6 +103,16 @@ checks:
       action: ALERT
       description: Ground claimed while the server sees no supporting block.
       evidence: DERIVED
+    inventorymove:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Movement at full speed while an inventory is open.
+      evidence: DERIVED
     pitchlock:
       enabled: true
       buffer-threshold: 1.0
@@ -261,6 +271,17 @@ checks:
       action: ALERT
       description: Attack rate beyond the client limit.
       evidence: STRUCTURAL
+    fastuse:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Item use restarted before the vanilla duration, so food, drink or a bow draw
+        completes early.
+      evidence: DERIVED
     critical:
       enabled: true
       buffer-threshold: 1.0
