@@ -1,6 +1,7 @@
 package dev.snuffac.core.check;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.snuffac.api.SnuffPlatform;
@@ -73,12 +74,26 @@ class BlinkAndTimerBalanceTest {
         for (int round = 0; round < 3; round++) {
             long gap = base + round * 2_000_000_000L;
             for (int i = 0; i < 6; i++) {
+                index += 3;
                 send(new Vec3d(0.5 + index * 0.2, 65.0, 0.5), gap + i * 1_000_000L);
-                index++;
             }
         }
         assertTrue(flags("blink") > 0,
-                "a long silence followed by many packets at once is the Blink cheat");
+                "a long silence while running, then many packets at once, is the Blink cheat");
+    }
+
+    @Test
+    @DisplayName("a long silence while standing still is not blink")
+    void standingStillPauseIsClean() {
+        long base = System.nanoTime() + 1_000_000_000L;
+        for (int round = 0; round < 3; round++) {
+            long gap = base + round * 2_000_000_000L;
+            for (int i = 0; i < 8; i++) {
+                send(new Vec3d(0.5, 65.0, 0.5), gap + i * 1_000_000L);
+            }
+        }
+        assertFalse(flags("blink") > 0,
+                "a player standing still and then moving is not holding packets back");
     }
 
     @Test

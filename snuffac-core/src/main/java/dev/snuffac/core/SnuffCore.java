@@ -48,6 +48,8 @@ import dev.snuffac.core.check.impl.combat.RotationSnapBackCheck;
 import dev.snuffac.core.check.impl.movement.DriftCheck;
 import dev.snuffac.core.check.impl.movement.GroundFlagCheck;
 import dev.snuffac.core.check.impl.movement.PitchLockCheck;
+import dev.snuffac.core.check.impl.movement.SafewalkCheck;
+import dev.snuffac.core.check.impl.movement.StrafeCheck;
 import dev.snuffac.core.check.impl.packet.ExtraPacketsCheck;
 import dev.snuffac.core.check.impl.packet.PacketRateCheck;
 import dev.snuffac.core.check.impl.world.MiningBeyondViewCheck;
@@ -134,6 +136,8 @@ public final class SnuffCore {
         registry.register(new GroundFlagCheck());
         registry.register(new PitchLockCheck());
         registry.register(new DriftCheck());
+        registry.register(new StrafeCheck());
+        registry.register(new SafewalkCheck());
         registry.register(new PhaseCheck());
         registry.register(new JesusCheck());
         registry.register(new SpiderCheck());

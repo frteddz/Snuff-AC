@@ -5,6 +5,77 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.2.9-dev] - 2026-10-01
+
+Aimbot acceleration, Strafe and Safewalk. Three hacks this time rather than
+two, so the remaining ones land sooner.
+
+### Added
+
+**Rotation acceleration, which the aim check was not reading**
+
+- The aim check measured whether rotation steps quantised to a constant, which
+  catches an aim assist that snaps. It never looked at how fast the rotation
+  was changing between packets, and that is the other half of the signature.
+- A hand accelerates unevenly. A che interpolating toward a target produces
+  the same difference between consecutive deltas packet after packet.
+  Identical acceleration across four packets, with each step large enough to
+  matter, is reported, and the window of ten recent accelerations is in the
+  evidence.
+
+**A new check for strafe**
+
+- A new `strafe` check measures the angle between consecutive airborne
+  velocities. Six turns averaging more than 12 degrees, all in the air, are
+  reported. Air steering is legitimate and fast, so the rule needs a run
+  rather than a single turn, and water, a ladder, gliding, a vehicle and
+  having just jumped all reset it.
+
+**A new check for safewalk**
+
+- Safewalk stops the player dead at the lip of a block instead of falling. The
+  signature is a player who repeatedly goes still at an edge and never falls,
+  and never crouches, because the module does not need to.
+- A new `safewalk` check counts dead stops of under 0.02 blocks per tick while
+  standing on ground with no floor within 0.7 blocks on one side. Six of them
+  is reported. Sneaking, being airborne, a vehicle, water and a ladder all
+  clear it, because crouching at an edge is exactly what a careful player does.
+
+### Fixed
+
+**The edge test counted open sky as an edge**
+
+- The first version of the safewalk check treated air above the player's head
+  as the edge to stop at, which is air over every flat floor, so the rule
+  described itself as needing a hole that was not there. It now looks for
+  missing floor at foot level on each of the four sides.
+
+### Fixed
+
+**Blink reported a player who simply stood still**
+
+- Found by running a real client against a real server, which is the only way
+  this shows up. The rule treated any silence of a third of a second followed
+  by five quick packets as held back movement, and a player who stops moving
+  for a few seconds and then walks off looks exactly like that. A real client
+  was flagged after four seconds of standing.
+- Blink now requires the player to have actually been running before the
+  silence, and to cover real ground in the release. A cheat does both. A pause
+  does neither.
+
+### Verified
+
+- 497 tests pass, 8 of them new.
+- Loaded on a real Paper 1.21.11 server, 48 checks, anti-xray active, and a
+  real client walking, jumping and sprinting is clean.
+- v1.2.5 through v1.2.8 were also loaded on a real server and driven with real
+  clients, after the server became available again. They load with 40, 42, 44
+  and 46 checks respectively and produce no violations on a legitimate client.
+- One unrelated test, `tempbanExpiresAndStopsCounting`, failed once under load
+  and then passed three times alone and twice in a full run. It compares wall
+  clock times with a 90ms sleep and is worth tightening, but nothing in this
+  release touches punishments.
+
 ## [1.2.8-dev] - 2026-10-01
 
 AutoCrystal and BedAura. Two structure cheats, one signature: the same delay,
@@ -40,9 +111,7 @@ every time.
 ### Verified
 
 - 489 tests pass, 8 of them new.
-- Not yet run against a real server. Every Paper download endpoint is still
-  returning 503, so this release is verified by test only so far and will be
-  run on a real client before it goes anywhere near a live server.
+- Loaded on a real Paper 1.21.11 server with real clients connected, and clean.
 
 ## [1.2.7-dev] - 2026-10-01
 
@@ -82,9 +151,7 @@ server was not translating.
 ### Verified
 
 - 481 tests pass, 7 of them new.
-- Not yet run against a real server. Every Paper download endpoint is still
-  returning 503, so this release is verified by test only so far and will be
-  run on a real client before it goes anywhere near a live server.
+- Loaded on a real Paper 1.21.11 server with real clients connected, and clean.
 
 ## [1.2.6-dev] - 2026-10-01
 
@@ -137,9 +204,7 @@ looking at: what the player is wearing, and what they are riding.
 ### Verified
 
 - 474 tests pass, 7 of them new.
-- Not yet run against a real server. Every Paper download endpoint is still
-  returning 503, so this release is verified by test only so far and will be
-  run on a real client before it goes anywhere near a live server.
+- Loaded on a real Paper 1.21.11 server with real clients connected, and clean.
 
 ## [1.2.5-dev] - 2026-10-01
 

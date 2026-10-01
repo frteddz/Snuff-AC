@@ -15,6 +15,8 @@ public final class BlinkCheck implements Check {
     public static final int BURST_PACKETS = 5;
     public static final long BURST_WINDOW_NANOS = 250_000_000L;
     public static final int REQUIRED_BURSTS = 2;
+    public static final double RELEASE_DISTANCE = 2.0;
+    public static final double PRE_SILENCE_DISTANCE = 1.0;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -69,11 +71,17 @@ public final class BlinkCheck implements Check {
         long gap = state.lastNanos == 0L ? 0L : now - state.lastNanos;
         state.lastNanos = now;
 
+        double travelled = context.player().movement().delta().horizontalLength();
+        state.horizontalRun = Math.min(PRE_SILENCE_DISTANCE * 2.0, state.horizontalRun + travelled);
+
         if (gap >= GAP_NANOS) {
             state.silenceTicks += (int) (gap / 50_000_000L);
             state.released = 0;
             state.releaseStartNanos = now;
             state.releaseCount = 1;
+            state.releaseDistance = 0.0;
+            state.beforeDistance = state.horizontalRun;
+            state.horizontalRun = 0.0;
             return;
         }
 
@@ -83,12 +91,25 @@ public final class BlinkCheck implements Check {
         if (now - state.releaseStartNanos > BURST_WINDOW_NANOS) {
             state.releaseCount = 0;
             state.released = 0;
+            state.releaseDistance = 0.0;
+            state.beforeDistance = 0.0;
             return;
         }
 
+        state.releaseDistance += travelled;
         state.releaseCount++;
         state.released++;
+
         if (state.released < BURST_PACKETS) {
+            return;
+        }
+
+        if (state.releaseDistance < RELEASE_DISTANCE
+                || state.beforeDistance < PRE_SILENCE_DISTANCE) {
+            state.releaseCount = 0;
+            state.released = 0;
+            state.releaseDistance = 0.0;
+            state.beforeDistance = 0.0;
             return;
         }
 
@@ -96,12 +117,17 @@ public final class BlinkCheck implements Check {
         if (state.bursts < REQUIRED_BURSTS) {
             state.releaseCount = 0;
             state.released = 0;
+            state.releaseDistance = 0.0;
+            state.beforeDistance = 0.0;
             return;
         }
 
         Map<String, Object> evidence = context.newEvidence();
         evidence.put("silenceMillis", round(state.silenceTicks * 50.0));
         evidence.put("packetsInBurst", state.released);
+        evidence.put("releaseDistance", round(state.releaseDistance));
+        evidence.put("distanceBeforeSilence", round(state.beforeDistance));
+        evidence.put("distanceLimit", RELEASE_DISTANCE);
         evidence.put("releaseMillis", round((now - state.releaseStartNanos) / 1_000_000.0));
         evidence.put("bursts", state.bursts);
         evidence.put("positionX", round(context.player().position().x()));
@@ -116,6 +142,12 @@ public final class BlinkCheck implements Check {
         state.silenceTicks = 0;
         state.releaseCount = 0;
         state.released = 0;
+        state.releaseDistance = 0.0;
+        state.beforeDistance = 0.0;
+    }
+
+    private static double distanceBefore(BlinkState state) {
+        return state.horizontalRun;
     }
 
     private static double round(double value) {
@@ -130,5 +162,8 @@ public final class BlinkCheck implements Check {
         private int released;
         private int silenceTicks;
         private int bursts;
+        private double releaseDistance;
+        private double beforeDistance;
+        private double horizontalRun;
     }
 }

@@ -1441,4 +1441,38 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.9-dev',
+    tag: 'v1.2.9-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 5,
+    items: [
+      {
+        group: null,
+        title: 'Rotation acceleration, which the aim check was not reading',
+        copy: 'The aim check measured whether rotation steps quantised to a constant, which catches an aim assist that snaps. It never looked at how fast the rotation was changing between packets, and that is the other half of the signature. A hand accelerates unevenly. A che interpolating toward a target produces the same difference between consecutive deltas packet after packet. Identical acceleration across four packets, with each step large enough to matter, is reported, and the window of ten recent accelerations is in the evidence.',
+      },
+      {
+        group: null,
+        title: 'A new check for strafe',
+        copy: 'A new `strafe` check measures the angle between consecutive airborne velocities. Six turns averaging more than 12 degrees, all in the air, are reported. Air steering is legitimate and fast, so the rule needs a run rather than a single turn, and water, a ladder, gliding, a vehicle and having just jumped all reset it.',
+      },
+      {
+        group: null,
+        title: 'A new check for safewalk',
+        copy: 'Safewalk stops the player dead at the lip of a block instead of falling. The signature is a player who repeatedly goes still at an edge and never falls, and never crouches, because the module does not need to. A new `safewalk` check counts dead stops of under 0.02 blocks per tick while standing on ground with no floor within 0.7 blocks on one side. Six of them is reported. Sneaking, being airborne, a vehicle, water and a ladder all clear it, because crouching at an edge is exactly what a careful player does.',
+      },
+      {
+        group: null,
+        title: 'The edge test counted open sky as an edge',
+        copy: 'The first version of the safewalk check treated air above the player\'s head as the edge to stop at, which is air over every flat floor, so the rule described itself as needing a hole that was not there. It now looks for missing floor at foot level on each of the four sides.',
+      },
+      {
+        group: null,
+        title: 'Blink reported a player who simply stood still',
+        copy: 'Found by running a real client against a real server, which is the only way this shows up. The rule treated any silence of a third of a second followed by five quick packets as held back movement, and a player who stops moving for a few seconds and then walks off looks exactly like that. A real client was flagged after four seconds of standing. Blink now requires the player to have actually been running before the silence, and to cover real ground in the release. A cheat does both. A pause does neither.',
+      },
+    ],
+  },
 ]
