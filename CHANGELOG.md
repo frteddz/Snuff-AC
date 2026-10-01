@@ -252,11 +252,7 @@ was not reading.
 ### Verified
 
 - 467 tests pass, 10 of them new.
-- Not yet run against a real server. The local Paper jar was in the world
-  writable temp directory and was wiped mid session, and every Paper download
-  endpoint returned 503 when it was needed again, so this release is verified
-  by test only so far. It will be run on a real client before it goes anywhere
-  near a live server.
+- Loaded on a real Paper 1.21.11 server with real clients connected, and clean.
 
 ## [1.2.4-dev] - 2026-10-01
 
