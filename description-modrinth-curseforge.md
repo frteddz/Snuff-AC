@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 44 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 46 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.2.7-dev**. Requires **Java 21**.
+Current release: **1.2.8-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,7 +29,7 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 44 checks
+## The 46 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
@@ -57,12 +57,14 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **Vehicle**: boat, minecart and horse movement limited to the vanilla figures, which is the BoatFly hack
 * **Velocity**: response to server-applied knockback, with damped displacement predicted and cobweb, water and ladder causes treated as absorbing it
 
-### Combat (13)
+### Combat (15)
 
 * **Reach**: eye-to-hitbox measurement for attacks and to the nearest block face for interactions, with ping-aware tolerance; out of range attacks and interactions are cancelled
 * **AttackAngle**: the real look vector cast against the true vanilla hitbox, rejecting hits that only landed on an expanded box
 * **AutoClicker**: attack timing patterns, frequency analysis, a perfectly even interval spread, and the same delay repeated down the sample
 * **Aim**: rotation behaviour around attacks
+* **AutoCrystal**: end crystals attacked on a fixed reaction time
+* **BedAura**: beds and respawn anchors attacked on a fixed reaction time
 * **KillAura**: target sequencing, rapid multi-target switching, attacks on targets outside the field of view or behind the player, and rotation with no mouse jitter
 * **ImpossibleAttack** *(structural)*: attack sequences that do not fit observable state
 * **FastUse**: item use restarted before the vanilla 32 tick duration, so food, drink or a bow draw completes early
@@ -92,7 +94,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 44 checks can act on the packet **before** the server acts on it.
+23 of the 46 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

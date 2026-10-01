@@ -271,6 +271,26 @@ checks:
       action: ALERT
       description: Attack rate beyond the client limit.
       evidence: STRUCTURAL
+    autocrystal:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: End crystals attacked on a fixed reaction time.
+      evidence: DERIVED
+    bedaura:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Beds and respawn anchors attacked on a fixed reaction time.
+      evidence: DERIVED
     fastuse:
       enabled: true
       buffer-threshold: 1.0

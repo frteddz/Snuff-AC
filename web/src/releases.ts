@@ -1417,4 +1417,28 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.8-dev',
+    tag: 'v1.2.8-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 3,
+    items: [
+      {
+        group: null,
+        title: 'A new check for crystal aura',
+        copy: 'An AutoCrystal module attacks every end crystal it places at a fixed delay after the placement. A person watching for a crystal to finish has to see it, aim, and click, and that never happens on the same delay twice. A new `autocrystal` check reads attacks where the target is an end crystal, times the gap between consecutive swings, and keeps a window of twelve. Five or more gaps inside a quarter of a second whose spread is under a quarter of their mean is reported, with the mean and the spread both in the evidence so a genuinely fast crystal player reads as fast rather than as mechanical.',
+      },
+      {
+        group: null,
+        title: 'A new check for bed aura',
+        copy: 'A BedAura module does the same thing to beds and respawn anchors. A new.`bedaura` check applies the same measurement to those targets only. The two checks are separate rather than one check with a type list, because a server that punishes crystals is often happy with beds and the other way round, and each can be tuned on its own.',
+      },
+      {
+        group: null,
+        title: 'The reaction measurement is shared and tested on its own',
+        copy: 'The timing window, the spread limit and the mean and spread arithmetic live in one small piece of code with its own tests, so the two checks cannot disagree about what "too consistent" means.',
+      },
+    ],
+  },
 ]

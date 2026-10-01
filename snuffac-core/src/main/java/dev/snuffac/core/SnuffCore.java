@@ -15,6 +15,8 @@ import dev.snuffac.core.check.impl.combat.InvalidAttackStateCheck;
 import dev.snuffac.core.check.impl.combat.KillAuraCheck;
 import dev.snuffac.core.check.impl.combat.ReachCheck;
 import dev.snuffac.core.check.impl.combat.AttackAngleCheck;
+import dev.snuffac.core.check.impl.combat.AutoCrystalCheck;
+import dev.snuffac.core.check.impl.combat.BedAuraCheck;
 import dev.snuffac.core.check.impl.combat.AutoTotemCheck;
 import dev.snuffac.core.check.impl.movement.AirMovementCheck;
 import dev.snuffac.core.check.impl.movement.ElytraCheck;
@@ -149,6 +151,8 @@ public final class SnuffCore {
         registry.register(new TriggerBotCheck());
         registry.register(new AutoTotemCheck());
         registry.register(new FastUseCheck());
+        registry.register(new AutoCrystalCheck());
+        registry.register(new BedAuraCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());
