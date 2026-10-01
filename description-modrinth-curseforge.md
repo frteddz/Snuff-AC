@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 40 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 42 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.2.5-dev**. Requires **Java 21**.
+Current release: **1.2.6-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,12 +29,12 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 40 checks
+## The 42 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
 
-### Movement (17)
+### Movement (19)
 
 * **Fly**: unsupported flight from the server's own block view, plus an air time budget that only legitimate support refills
 * **Speed**: prediction based, with 36 discretised input candidates and the best fit kept, plus an accumulator for a client that is only slightly fast for a long time
@@ -52,6 +52,8 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **Spider**: sustained upward movement against a wall with no climbable block beside it
 * **PitchLock**: pitch pinned to an exact constant, used by placement and glide modules
 * **NoSlow**: the vanilla movement slowdown enforced while eating, drinking, drawing a bow, blocking with a shield, sneaking or on soul sand
+* **ElytraFly**: gliding with no elytra equipped, or gliding faster than a rocket allows
+* **Vehicle**: boat, minecart and horse movement limited to the vanilla figures, which is the BoatFly hack
 * **Velocity**: response to server-applied knockback, with damped displacement predicted and cobweb, water and ladder causes treated as absorbing it
 
 ### Combat (12)
@@ -88,7 +90,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 40 checks can act on the packet **before** the server acts on it.
+23 of the 42 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

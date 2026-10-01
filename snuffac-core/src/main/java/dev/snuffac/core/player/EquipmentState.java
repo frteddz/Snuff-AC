@@ -7,6 +7,7 @@ public final class EquipmentState {
     private boolean validTool;
     private int heldItemSlot = -1;
     private boolean holdingPlaceable;
+    private boolean wearingElytra;
     private String weaponType = "AIR";
     private boolean weaponAttributeActive;
     private double attackReach = 3.0;
@@ -47,6 +48,21 @@ public final class EquipmentState {
         this.validTool = validTool;
         this.heldItemSlot = heldItemSlot;
         this.holdingPlaceable = holdingPlaceable;
+    }
+
+    public void update(
+            double miningSpeed,
+            double blockBreakSpeed,
+            boolean validTool,
+            int heldItemSlot,
+            boolean holdingPlaceable,
+            boolean wearingElytra) {
+        update(miningSpeed, blockBreakSpeed, validTool, heldItemSlot, holdingPlaceable);
+        this.wearingElytra = wearingElytra;
+    }
+
+    public boolean wearingElytra() {
+        return wearingElytra;
     }
 
     public String weaponType() {
@@ -116,6 +132,7 @@ public final class EquipmentState {
         this.validTool = false;
         this.heldItemSlot = -1;
         this.holdingPlaceable = false;
+        this.wearingElytra = false;
         this.weaponType = "AIR";
         this.weaponAttributeActive = false;
         this.attackReach = 3.0;

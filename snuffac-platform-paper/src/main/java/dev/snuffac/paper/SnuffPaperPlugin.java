@@ -1265,8 +1265,11 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         var equipment = data.equipment();
         double speed = MiningSpeedResolver.speedFor(type);
         double blockSpeed = 1.0;
+        ItemStack chest = inventory.getChestplate();
+        Material chestType = chest == null ? Material.AIR : chest.getType();
+        boolean elytra = chestType == Material.ELYTRA;
         equipment.update(speed, blockSpeed, MiningSpeedResolver.isTool(type), inventory.getHeldItemSlot(),
-                MiningSpeedResolver.isPlaceable(type));
+                MiningSpeedResolver.isPlaceable(type), elytra);
     }
 
     private static AttributeInstance attribute(Player player, Attribute attribute) {

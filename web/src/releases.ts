@@ -1359,4 +1359,38 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.2.6-dev',
+    tag: 'v1.2.6-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 5,
+    items: [
+      {
+        group: null,
+        title: 'The server now knows what the player is wearing',
+        copy: 'Equipment tracked the held item only. The chestplate was never read, so no check could tell whether a gliding player actually had an elytra on.`EquipmentState` carries it now, filled from the chestplate each refresh.',
+      },
+      {
+        group: null,
+        title: 'Rocket boosts are observed',
+        copy: 'Whether an elytra glide is fast enough to be suspicious depends entirely on whether the player has just used a rocket, and the server was not tracking that. A firework damage event now marks the player as boosted, and the mark fades after two seconds, so a glide that was fast because of a rocket is not reported and one that is still fast a minute later is.',
+      },
+      {
+        group: null,
+        title: 'A new check for gliding',
+        copy: 'A new `elytrafly` check reports gliding with no elytra equipped. The server sees the client claim a glide and sees nothing on the chest, which cannot happen in vanilla. Glide speed is averaged over twenty ticks and compared against the vanilla figure: a little over 3.25 blocks per tick without a rocket, and up to 8 with one. Exceeding the unboosted limit without a boost is reported, and so is exceeding the boosted limit at all.',
+      },
+      {
+        group: null,
+        title: 'A new check for vehicles',
+        copy: 'A new `vehicle` check limits boat, minecart and horse movement to vanilla figures: 1.6 blocks per tick on average, 2.4 at peak, and no more than 1.5 of rise in a single tick. Those are the BoatFly and vehicle hack, which is simply a vehicle used to fly.',
+      },
+      {
+        group: null,
+        title: 'The glide speed window could never fill',
+        copy: 'The new elytra check reset its own accumulator whenever the average was under the limit, and the average starts at zero, so the window was cleared on the first tick and could never reach the twenty ticks it needed. Every speed comparison in that check was against zero. Caught by the test for gliding faster than the unboosted limit, which did not flag.',
+      },
+    ],
+  },
 ]

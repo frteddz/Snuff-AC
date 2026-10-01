@@ -81,6 +81,8 @@ public final class MovementState {
     private boolean onIce;
     private boolean onSoulSand;
     private boolean gliding;
+    private boolean boosted;
+    private int ticksSinceBoost = 9999;
     private boolean flying;
     private boolean riding;
     private boolean sprinting;
@@ -456,6 +458,12 @@ public final class MovementState {
         ticksSprinting = sprinting ? ticksSprinting + 1 : 0;
         ticksSneaking = sneaking ? ticksSneaking + 1 : 0;
         ticksOnFire = ticksOnFire > 0 ? ticksOnFire - 1 : 0;
+        if (boosted) {
+            ticksSinceBoost++;
+            if (ticksSinceBoost > 40) {
+                boosted = false;
+            }
+        }
         ticksInLiquid = inWaterOrLava() ? ticksInLiquid + 1 : 0;
     }
 
@@ -588,6 +596,19 @@ public final class MovementState {
 
     public boolean gliding() {
         return gliding;
+    }
+
+    public boolean boosted() {
+        return boosted;
+    }
+
+    public void markBoost() {
+        boosted = true;
+        ticksSinceBoost = 0;
+    }
+
+    public int ticksSinceBoost() {
+        return ticksSinceBoost;
     }
 
     public void gliding(boolean value) {
