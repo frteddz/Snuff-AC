@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 57 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 59 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.3.2-dev**. Requires **Java 21**.
+Current release: **1.3.3-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,7 +29,7 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 57 checks
+## The 59 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
@@ -86,12 +86,14 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **AutoTotem**: slot changes landing an identical short time after the player takes damage
 * **InvalidAttackState** *(structural)*: attacks that are invalid for the current player state
 
-### World (5)
+### World (7)
 
 * **FastBreak**: break timing against material and tool context
 * **FastPlace**: placement and interaction rate
-* **Scaffold**: tower scaffolding while airborne, placements the player is not facing, and placements with nothing in hand to place
+* **Scaffold**: tower scaffolding while airborne, placements the player is not facing, placements with nothing in hand to place, and the metronome spacing of an automated printer
 * **Nuker**: distinct blocks started per burst and per second, so retrying one block is never counted as several, plus dig targets the server block view says are out of sight
+* **OreRatio**: valuable ore share of the recent mining path compared against ordinary stone
+* **LiquidInteract**: block use through liquids or from outside the angle the player is looking from
 * **MiningBeyondView**: targeting valuable ores in a region the server never sent, which is knowledge the client could not legitimately have
 
 ### Packet (6)
@@ -105,7 +107,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 57 checks can act on the packet **before** the server acts on it.
+23 of the 59 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

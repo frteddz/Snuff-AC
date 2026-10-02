@@ -1567,4 +1567,28 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.3.3-dev',
+    tag: 'v1.3.3-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 3,
+    items: [
+      {
+        group: null,
+        title: 'A new check for the shape of a mining path',
+        copy: 'The suite could tell a player who targeted an ore they had never been sent, but not a player who tunneled for a while and happened to keep hitting ore. An xray client\'s mining path is mostly valuable ore, and that ratio is the statistic the source document names. A new `oreratio` check keeps a window of the last 40 blocks mined and reports three running windows where a quarter or more of them were valuable ore. Three ordinary windows clear it, so a lucky vein does not accumulate.',
+      },
+      {
+        group: null,
+        title: 'A new check for liquid and corner interaction',
+        copy: 'A new `liquidinteract` check measures the angle between where the player is looking and the face of the block being used, samples the path from the eye to that face for liquid, and caps the distance. Three consecutive uses past the angle, the liquid test or the reach limit are reported and blocked. A block straight ahead at eye level is the case the game produces, and the tests assert it stays clean.',
+      },
+      {
+        group: null,
+        title: 'Printer spacing, added to the scaffold check',
+        copy: 'The source asks for placement to be validated like fast placing, and for the player to be facing the face. Facing was already covered. Spacing was not: a printer places a block every so often while rising, and a person does not. Four placements, each exactly one block higher than the last, spaced between.0.9 and 3 seconds apart, are reported. Any other spacing resets it.',
+      },
+    ],
+  },
 ]

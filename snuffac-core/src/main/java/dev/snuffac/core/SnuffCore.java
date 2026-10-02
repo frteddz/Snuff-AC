@@ -62,6 +62,8 @@ import dev.snuffac.core.check.impl.movement.StrafeCheck;
 import dev.snuffac.core.check.impl.packet.ExtraPacketsCheck;
 import dev.snuffac.core.check.impl.packet.PacketRateCheck;
 import dev.snuffac.core.check.impl.world.MiningBeyondViewCheck;
+import dev.snuffac.core.check.impl.world.LiquidInteractCheck;
+import dev.snuffac.core.check.impl.world.OreRatioCheck;
 import dev.snuffac.core.check.impl.world.ScaffoldCheck;
 import dev.snuffac.core.combat.CombatEnvironment;
 import dev.snuffac.core.config.ConfigSource;
@@ -181,6 +183,8 @@ public final class SnuffCore {
         registry.register(new ScaffoldCheck());
         registry.register(new NukerCheck());
         registry.register(new MiningBeyondViewCheck());
+        registry.register(new OreRatioCheck());
+        registry.register(new LiquidInteractCheck());
 
         registry.register(new BadPacketsCheck());
         registry.register(new PacketSpamCheck());

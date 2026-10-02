@@ -17,6 +17,9 @@ public final class ScaffoldCheck implements Check {
     private static final double ABOVE_EYES = -1.0;
     public static final double FACING_LIMIT = 62.0;
     private static final int FACING_LIMIT_RUN = 3;
+    public static final int PRINTER_RUN = 4;
+    public static final double PRINTER_INTERVAL = 0.9;
+    public static final double PRINTER_MAX_INTERVAL = 3.0;
 
     @Override
     public Set<PacketType> packetInterests() {
@@ -41,8 +44,8 @@ public final class ScaffoldCheck implements Check {
     @Override
     public String description() {
         return "Detects the tower scaffold pattern of repeatedly placing blocks under the player "
-                + "while airborne, placements the player is not facing, and placements with nothing "
-                + "in hand to place.";
+                + "while airborne, placements the player is not facing, placements with nothing "
+                + "in hand to place, and the metronome spacing of an automated printer.";
     }
 
     @Override
@@ -96,6 +99,10 @@ public final class ScaffoldCheck implements Check {
             return;
         }
 
+        if (accountPrinter(context, state, position)) {
+            return;
+        }
+
         double facing = facingAngle(context, position, place.faceId());
         if (facing > FACING_LIMIT) {
             state.blindPlacements++;
@@ -120,6 +127,46 @@ public final class ScaffoldCheck implements Check {
         evidence.put("onGround", false);
         context.flag("scaffold tower of " + state.consecutive + " blocks while airborne", evidence, 5.0);
         state.consecutive = 0;
+    }
+
+    private boolean accountPrinter(CheckContext context, ScaffoldState state, BlockPos position) {
+        long now = System.currentTimeMillis();
+        if (state.lastPlaceMillis == 0L) {
+            state.lastPlaceMillis = now;
+            state.lastPlaceY = position.y();
+            return false;
+        }
+        long interval = now - state.lastPlaceMillis;
+        int height = position.y() - state.lastPlaceY;
+        state.lastPlaceMillis = now;
+        state.lastPlaceY = position.y();
+
+        if (height != 1 || interval < PRINTER_INTERVAL * 1000L
+                || interval > PRINTER_MAX_INTERVAL * 1000L) {
+            state.printerRun = 0;
+            return false;
+        }
+
+        state.printerRun++;
+        if (state.printerRun < PRINTER_RUN) {
+            return false;
+        }
+
+        Map<String, Object> evidence = context.newEvidence();
+        evidence.put("mode", "printer");
+        evidence.put("consecutive", state.printerRun);
+        evidence.put("intervalMillis", interval);
+        evidence.put("intervalFloorMillis", (long) (PRINTER_INTERVAL * 1000.0));
+        evidence.put("block", position.toString());
+        evidence.put("heightGain", height);
+        evidence.put("sprinting", context.player().movement().sprinting());
+        evidence.put("heldItemSlot", context.player().equipment().heldItemSlot());
+
+        context.preventPlacement("placement spacing is mechanical");
+        context.flag("placed a block every " + interval + "ms while rising, which is a printer",
+                evidence, 6.0);
+        state.printerRun = 0;
+        return true;
     }
 
     public static double facingAngle(CheckContext context, BlockPos position, int faceId) {
@@ -198,5 +245,8 @@ public final class ScaffoldCheck implements Check {
         private int consecutive;
         private int blindPlacements;
         private int placesWithoutItem;
+        private int printerRun;
+        private long lastPlaceMillis;
+        private int lastPlaceY;
     }
 }
