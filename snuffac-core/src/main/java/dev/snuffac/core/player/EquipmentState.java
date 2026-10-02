@@ -82,7 +82,8 @@ public final class EquipmentState {
         OTHER,
         FOOD,
         POTION,
-        BLOCK
+        BLOCK,
+        BOW
     }
 
     public boolean wearingElytra() {

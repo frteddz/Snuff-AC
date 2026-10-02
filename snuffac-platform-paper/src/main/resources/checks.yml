@@ -291,6 +291,36 @@ checks:
       action: ALERT
       description: Attack rate beyond the client limit.
       evidence: STRUCTURAL
+    fastbow:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Bow released before the vanilla draw time.
+      evidence: DERIVED
+    bowaimbot:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Bow aim correction repeated at a fixed size with no spread.
+      evidence: DERIVED
+    cheststealer:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Containers emptied on a fixed click interval, or clicked outside the visible range.
+      evidence: DERIVED
     autoarmor:
       enabled: true
       buffer-threshold: 1.0

@@ -17,6 +17,9 @@ import dev.snuffac.core.check.impl.combat.ReachCheck;
 import dev.snuffac.core.check.impl.combat.AttackAngleCheck;
 import dev.snuffac.core.check.impl.combat.AutoArmorCheck;
 import dev.snuffac.core.check.impl.combat.AutoCrystalCheck;
+import dev.snuffac.core.check.impl.combat.BowAimbotCheck;
+import dev.snuffac.core.check.impl.combat.ChestStealerCheck;
+import dev.snuffac.core.check.impl.combat.FastBowCheck;
 import dev.snuffac.core.check.impl.combat.AutoPotCheck;
 import dev.snuffac.core.check.impl.combat.AutoSoupCheck;
 import dev.snuffac.core.check.impl.combat.BedAuraCheck;
@@ -163,6 +166,9 @@ public final class SnuffCore {
         registry.register(new AutoArmorCheck());
         registry.register(new AutoPotCheck());
         registry.register(new AutoSoupCheck());
+        registry.register(new FastBowCheck());
+        registry.register(new BowAimbotCheck());
+        registry.register(new ChestStealerCheck());
 
         registry.register(new FastBreakCheck());
         registry.register(new FastPlaceCheck());

@@ -1504,4 +1504,33 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.3.1-dev',
+    tag: 'v1.3.1-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 4,
+    items: [
+      {
+        group: null,
+        title: 'Bows are classified separately',
+        copy: 'The held item classification had no answer for a bow, so nothing could tell a bow shot from a sword swing. Bows now have their own kind, and the two bow checks below ignore everything else in hand.',
+      },
+      {
+        group: null,
+        title: 'A new check for fast bow',
+        copy: 'A bow takes 200 milliseconds to draw, and an arrow released early has no charge behind it. A new `fastbow` check times the gap between starting a draw and releasing it. Three releases under the vanilla draw time are reported, with the shortest one in the evidence. Waiting the full time resets the count, which is what a careful archer does every shot.',
+      },
+      {
+        group: null,
+        title: 'A new check for bow aim assist',
+        copy: 'A BowAimbot module corrects the aim by the same amount before every shot, because it is correcting toward a target it has already solved. A new.`bowaimbot` check measures the yaw correction between the last aim and the shot, and four corrections over 8 degrees whose spread is under a degree are reported. A human correction varies by tens of degrees shot to shot.',
+      },
+      {
+        group: null,
+        title: 'A new check for chest stealer and auto drop',
+        copy: 'A ChestStealer module empties a container on a fixed click interval. A new.`cheststealer` check times the gaps between clicks in a container and reports eight in a row with a tight spread. Picking items up one at a time is much slower and much more varied than that. The same check covers the other half of the source\'s advice, which is clicking outside the visible slot range. A chest window has 54 slots and no more, so a click outside that is not something a player looking at the screen produces. Eight of them is reported. Clicks in the player\'s own inventory are ignored entirely. Window zero is the player, and sorting your hotbar quickly is something the game allows.',
+      },
+    ],
+  },
 ]

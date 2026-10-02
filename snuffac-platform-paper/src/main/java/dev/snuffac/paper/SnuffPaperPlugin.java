@@ -1273,6 +1273,9 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
     }
 
     private static dev.snuffac.core.player.EquipmentState.HeldKind heldKind(Material type) {
+        if (type == Material.BOW) {
+            return dev.snuffac.core.player.EquipmentState.HeldKind.BOW;
+        }
         if (type == Material.POTION || type == Material.SPLASH_POTION) {
             return dev.snuffac.core.player.EquipmentState.HeldKind.POTION;
         }
