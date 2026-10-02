@@ -1269,7 +1269,26 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         Material chestType = chest == null ? Material.AIR : chest.getType();
         boolean elytra = chestType == Material.ELYTRA;
         equipment.update(speed, blockSpeed, MiningSpeedResolver.isTool(type), inventory.getHeldItemSlot(),
-                MiningSpeedResolver.isPlaceable(type), elytra);
+                MiningSpeedResolver.isPlaceable(type), elytra, heldKind(type));
+    }
+
+    private static dev.snuffac.core.player.EquipmentState.HeldKind heldKind(Material type) {
+        if (type == Material.POTION || type == Material.SPLASH_POTION) {
+            return dev.snuffac.core.player.EquipmentState.HeldKind.POTION;
+        }
+        if (type == Material.MUSHROOM_STEW || type == Material.RABBIT_STEW
+                || type == Material.BEETROOT_SOUP || type == Material.SUSPICIOUS_STEW) {
+            return dev.snuffac.core.player.EquipmentState.HeldKind.FOOD;
+        }
+        String name = type.name();
+        if (name.endsWith("_SOUP") || name.equals("COOKIE") || name.equals("GOLDEN_CARROT")
+                || name.endsWith("_POTATO")) {
+            return dev.snuffac.core.player.EquipmentState.HeldKind.FOOD;
+        }
+        if (name.charAt(0) == 'A' || type.isBlock()) {
+            return dev.snuffac.core.player.EquipmentState.HeldKind.BLOCK;
+        }
+        return dev.snuffac.core.player.EquipmentState.HeldKind.OTHER;
     }
 
     private static AttributeInstance attribute(Player player, Attribute attribute) {

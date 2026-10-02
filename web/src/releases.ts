@@ -1475,4 +1475,33 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.3.0-dev',
+    tag: 'v1.3.0-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 4,
+    items: [
+      {
+        group: null,
+        title: 'The held item is now classified, not just named',
+        copy: 'Equipment recorded the held slot and whether it was placeable. Nothing recorded what kind of thing it was, so no check could tell a potion throw from a sword swing. The held item is now classified as food, potion, block or other, read from the chestplate refresh that already runs each tick.',
+      },
+      {
+        group: null,
+        title: 'A new check for auto armour',
+        copy: 'An AutoArmor module swaps a piece of armour on a fixed short delay after every hit. A new `autoarmor` check reads inventory clicks landing in the four armour slots and measures the gap since the last damage. Four of them inside 200 milliseconds with a spread under a third of their mean is reported, with the per hit delays in the evidence. Only the armour row counts. A click in the hotbar is a player rearranging their own inventory, which is something the game allows.',
+      },
+      {
+        group: null,
+        title: 'A new check for auto pot',
+        copy: 'A new `autopot` check watches arm animations while a potion is held and measures the interval between throws. Four throws inside a quarter of a second with a spread under a fifth of their mean is reported. A swing with anything else in hand is not a throw, so ordinary pvp is untouched.',
+      },
+      {
+        group: null,
+        title: 'A new check for auto soup',
+        copy: 'The same measurement applied to food and soup, on the packet that starts an item use. Soup takes a second and a half to eat, so eight throws of it a second is not a player. The ceiling is wider than for potions because finishing soup and starting the next one legitimately takes longer.',
+      },
+    ],
+  },
 ]

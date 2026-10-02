@@ -8,7 +8,7 @@
 set -uo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-DIR="${SNUFFAC_TEST_SERVER:-/tmp/opencode/testserver}"
+DIR="${SNUFFAC_TEST_SERVER:-$HERE/.server}"
 BUILD_VERSION="1.21.11"
 BUILD_NUMBER="132"
 # the server jar is kept beside this script rather than in the world writable
@@ -18,7 +18,7 @@ CACHE="$HERE/.paper"
 JAR="$CACHE/paper-$BUILD_VERSION-$BUILD_NUMBER.jar"
 LINKED="$DIR/paper.jar"
 FILL_URL="https://fill.papermc.io/v3/projects/paper/versions/$BUILD_VERSION/builds/$BUILD_NUMBER"
-MEM_OPTS="-Xms1G -Xmx1500M -XX:+UseG1GC"
+MEM_OPTS="-Xms512M -Xmx1200M -XX:+UseG1GC"
 
 download_paper() {
   mkdir -p "$CACHE"

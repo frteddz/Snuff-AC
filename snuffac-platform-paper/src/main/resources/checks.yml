@@ -291,6 +291,36 @@ checks:
       action: ALERT
       description: Attack rate beyond the client limit.
       evidence: STRUCTURAL
+    autoarmor:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Armour equipped a fixed short time after the player takes damage.
+      evidence: DERIVED
+    autopot:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Splash potions thrown at a fixed interval.
+      evidence: DERIVED
+    autosoup:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Food and soup eaten at a fixed interval.
+      evidence: DERIVED
     autocrystal:
       enabled: true
       buffer-threshold: 1.0

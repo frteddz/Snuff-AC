@@ -5,6 +5,50 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.3.0-dev] - 2026-10-01
+
+AutoArmor, AutoPot and AutoSoup. The first release of the 1.3 line, and the
+first three consumable and equipment cheats in the list.
+
+### Added
+
+**The held item is now classified, not just named**
+
+- Equipment recorded the held slot and whether it was placeable. Nothing
+  recorded what kind of thing it was, so no check could tell a potion throw
+  from a sword swing. The held item is now classified as food, potion, block
+  or other, read from the chestplate refresh that already runs each tick.
+
+**A new check for auto armour**
+
+- An AutoArmor module swaps a piece of armour on a fixed short delay after
+  every hit. A new `autoarmor` check reads inventory clicks landing in the
+  four armour slots and measures the gap since the last damage. Four of them
+  inside 200 milliseconds with a spread under a third of their mean is
+  reported, with the per hit delays in the evidence.
+- Only the armour row counts. A click in the hotbar is a player rearranging
+  their own inventory, which is something the game allows.
+
+**A new check for auto pot**
+
+- A new `autopot` check watches arm animations while a potion is held and
+  measures the interval between throws. Four throws inside a quarter of a
+  second with a spread under a fifth of their mean is reported. A swing with
+  anything else in hand is not a throw, so ordinary pvp is untouched.
+
+**A new check for auto soup**
+
+- The same measurement applied to food and soup, on the packet that starts an
+  item use. Soup takes a second and a half to eat, so eight throws of it a
+  second is not a player. The ceiling is wider than for potions because
+  finishing soup and starting the next one legitimately takes longer.
+
+### Verified
+
+- 507 tests pass, 10 of them new.
+- Loaded on a real Paper 1.21.11 server, 51 checks, anti-xray active, and a
+  real client walking, jumping, sprinting and digging is clean.
+
 ## [1.2.9-dev] - 2026-10-01
 
 Aimbot acceleration, Strafe and Safewalk. Three hacks this time rather than

@@ -8,6 +8,7 @@ public final class EquipmentState {
     private int heldItemSlot = -1;
     private boolean holdingPlaceable;
     private boolean wearingElytra;
+    private HeldKind held = HeldKind.OTHER;
     private String weaponType = "AIR";
     private boolean weaponAttributeActive;
     private double attackReach = 3.0;
@@ -59,6 +60,29 @@ public final class EquipmentState {
             boolean wearingElytra) {
         update(miningSpeed, blockBreakSpeed, validTool, heldItemSlot, holdingPlaceable);
         this.wearingElytra = wearingElytra;
+    }
+
+    public void update(
+            double miningSpeed,
+            double blockBreakSpeed,
+            boolean validTool,
+            int heldItemSlot,
+            boolean holdingPlaceable,
+            boolean wearingElytra,
+            HeldKind held) {
+        update(miningSpeed, blockBreakSpeed, validTool, heldItemSlot, holdingPlaceable, wearingElytra);
+        this.held = held == null ? HeldKind.OTHER : held;
+    }
+
+    public HeldKind held() {
+        return held;
+    }
+
+    public enum HeldKind {
+        OTHER,
+        FOOD,
+        POTION,
+        BLOCK
     }
 
     public boolean wearingElytra() {
@@ -133,6 +157,7 @@ public final class EquipmentState {
         this.heldItemSlot = -1;
         this.holdingPlaceable = false;
         this.wearingElytra = false;
+        this.held = HeldKind.OTHER;
         this.weaponType = "AIR";
         this.weaponAttributeActive = false;
         this.attackReach = 3.0;
