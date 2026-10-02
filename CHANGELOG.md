@@ -5,6 +5,38 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.3.4-dev] - 2026-10-01
+
+AutoFarm, which also covers AutoMine and AutoFish. The last of the cheat
+families in the source document.
+
+### Added
+
+**A new check for automation that repeats itself**
+
+- The source asks for repetitive patterns with no variance in timing or
+  movement to be detected, and it names AutoFarm, AutoMine and AutoFish as the
+  three things that look like that. They are the same cheat with different
+  targets, so one check covers all three rather than three that cannot be tuned
+  apart.
+- A new `autofarm` check measures two things together. The path the player has
+  taken over the last 48 position updates, and the gap between consecutive
+  block actions. An average distance from the centre of that path under 1.6
+  blocks means the player has not gone anywhere, and a spread of intervals
+  under a quarter of their mean means the timing is mechanical.
+- Twenty four actions are needed before it judges anything, and two rigid
+  windows are needed before it reports, so a single repetitive patch of work is
+  never enough on its own.
+- The report carries the event count, the path spread, the mean interval, the
+  interval spread and how many distinct blocks were involved, so a verdict can
+  be read rather than taken on trust.
+
+### Verified
+
+- 538 tests pass, 6 of them new.
+- Loaded on a real Paper 1.21.11 server, 60 checks, anti-xray active, and a
+  real client walking, jumping, sprinting and digging is clean.
+
 ## [1.3.3-dev] - 2026-10-01
 
 OreRatio, LiquidInteract and a printer pattern for Scaffold. The three places
