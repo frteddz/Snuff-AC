@@ -5,6 +5,48 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.3.5-dev] - 2026-10-01
+
+FastPlace cooldown and InstaMine. The last two on the plan.
+
+### Added
+
+**The placement cooldown is now enforced**
+
+- FastPlace counted placements per second against a cap, which catches a
+  flood but not a client that places at thirty a second, comfortably under the
+  cap and comfortably faster than the game allows.
+- A new rule times the gap between consecutive placements. Four of them inside
+  the vanilla four tick cooldown are reported and the placement blocked, with
+  the recent gaps in the evidence.
+
+**A new check for insta mining**
+
+- FastBreak validates one block at a time against its own hardness. The other
+  half of the source's advice is the rate across several blocks, which was not
+  measured anywhere.
+- A new `instamine` check collects blocks finished within six hundred
+  milliseconds and reports three or more distinct hard ones, averaging under 25
+  milliseconds each. The same block counted once is a client retrying, and
+  blocks with almost no hardness are excluded, so breaking grass quickly is
+  never reported.
+
+### Fixed
+
+**Two checks read the wall clock instead of packet arrival**
+
+- The cooldown and insta mining rules both compared times taken from the system
+  clock, which is the wrong clock. Packet arrival times are captured at the
+  network edge in nanoseconds and are what the rest of the timing rules use.
+  Using the wall clock also made both rules impossible to test, since a test
+  cannot control what the system clock says. Both now use arrival times.
+
+### Verified
+
+- 545 tests pass, 7 of them new.
+- Loaded on a real Paper 1.21.11 server, 61 checks, anti-xray active, and a
+  real client walking, jumping, sprinting and digging is clean.
+
 ## [1.3.4-dev] - 2026-10-01
 
 AutoFarm, which also covers AutoMine and AutoFish. The last of the cheat

@@ -506,6 +506,16 @@ checks:
       description: Air scaffold tower placement pattern, placements the player is not facing,
         and placements with nothing in hand.
       evidence: DERIVED
+    instamine:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Several distinct hard blocks finished inside the same instant window.
+      evidence: DERIVED
     autofarm:
       enabled: true
       buffer-threshold: 1.0

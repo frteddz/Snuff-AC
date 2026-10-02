@@ -63,6 +63,7 @@ import dev.snuffac.core.check.impl.packet.ExtraPacketsCheck;
 import dev.snuffac.core.check.impl.packet.PacketRateCheck;
 import dev.snuffac.core.check.impl.world.MiningBeyondViewCheck;
 import dev.snuffac.core.check.impl.world.AutoFarmCheck;
+import dev.snuffac.core.check.impl.world.InstaMineCheck;
 import dev.snuffac.core.check.impl.world.LiquidInteractCheck;
 import dev.snuffac.core.check.impl.world.OreRatioCheck;
 import dev.snuffac.core.check.impl.world.ScaffoldCheck;
@@ -183,6 +184,7 @@ public final class SnuffCore {
         registry.register(new FastPlaceCheck());
         registry.register(new ScaffoldCheck());
         registry.register(new NukerCheck());
+        registry.register(new InstaMineCheck());
         registry.register(new MiningBeyondViewCheck());
         registry.register(new OreRatioCheck());
         registry.register(new LiquidInteractCheck());
