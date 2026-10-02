@@ -6,11 +6,11 @@
 [![Releases](https://img.shields.io/badge/GitHub-Releases-orange?style=for-the-badge&logo=github&logoColor=white)](https://github.com/frteddz/Snuff-AC/releases)
 [![Website](https://img.shields.io/badge/Website-snuff.ac-ff5e5b?style=for-the-badge&logo=googlechrome&logoColor=white)](https://frteddz.github.io/Snuff-AC/)
 
-Free, open-source anticheat for Minecraft Java Edition servers. 54 checks across
+Free, open-source anticheat for Minecraft Java Edition servers. 57 checks across
 movement, combat, world interaction and packet behaviour, on Paper and Purpur,
 licensed GPL-3.0 with no premium tier.
 
-Current release: **1.3.1-dev**. Requires **Java 21**.
+Current release: **1.3.2-dev**. Requires **Java 21**.
 
 > Every release on this page is a pre-release. Nothing here is recommended for a
 > production public server yet, and the full release history is on
@@ -29,12 +29,12 @@ Packet handling is asynchronous. A dedicated thread drains the queue and runs
 detection, the main thread only refreshes immutable world data and applies
 setbacks, so the tick cost is a cache read rather than a physics simulation.
 
-## The 54 checks
+## The 57 checks
 
 All 32 are enabled by default. Five are **structural** (a packet that should be
 impossible) and 27 are **derived** (evidence accumulated from observation).
 
-### Movement (22)
+### Movement (25)
 
 * **Fly**: unsupported flight from the server's own block view, plus an air time budget that only legitimate support refills
 * **Speed**: prediction based, with 36 discretised input candidates and the best fit kept, plus an accumulator for a client that is only slightly fast for a long time
@@ -46,6 +46,9 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 * **HighJump**: launch velocity beyond what the jump strength attribute permits, and vertical gain past the step height in one tick
 * **LongJump**: horizontal distance inconsistent with current momentum
 * **ImpossibleMovement** *(structural)*: sequences the predictor cannot reconcile
+* **AntiHunger**: exhaustion earned from sprinting and jumping compared against the hunger the server observed
+* **AirJump**: rising while airborne with no block underneath to jump from
+* **SprintSneak**: sprint state validated against movement direction and speed
 * **Strafe**: airborne direction changes compared against the vanilla input model
 * **Safewalk**: repeated dead stops at a block edge without sneaking
 * **Drift**: sustained per-tick offset between prediction and reported position
@@ -102,7 +105,7 @@ impossible) and 27 are **derived** (evidence accumulated from observation).
 
 ## Prevention, not just reporting
 
-23 of the 54 checks can act on the packet **before** the server acts on it.
+23 of the 57 checks can act on the packet **before** the server acts on it.
 Detection that only tells you afterwards is a report.
 
 * Setback to the last accepted position

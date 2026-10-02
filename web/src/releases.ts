@@ -1533,4 +1533,38 @@ export const releases: Release[] = [
       },
     ],
   },
+  {
+    version: '1.3.2-dev',
+    tag: 'v1.3.2-dev',
+    stamp: '2026-10-01',
+    pre: true,
+    count: 5,
+    items: [
+      {
+        group: null,
+        title: 'The server now reads the player\'s hunger',
+        copy: 'The food level was never read, so nothing could compare what a player should be losing against what they actually lost. It is read during the same refresh that already reads equipment.',
+      },
+      {
+        group: null,
+        title: 'A new check for anti hunger',
+        copy: 'Sprinting costs exhaustion per block travelled, and hunger drops every four points of exhaustion. An AntiHunger module keeps the exhaustion and the hunger never moves. A new `antihunger` check accumulates the exhaustion the movement should have earned and compares it against the hunger the server watched drop. Losing under 35 percent of what the movement cost is reported, with both figures in the evidence. The model uses the documented figures, so a player on ice, in water or on a ladder is not measured against sprinting rates that do not apply to them.',
+      },
+      {
+        group: null,
+        title: 'A new check for air jump',
+        copy: 'An AirJump module jumps with nothing underneath to jump from. A new.`airjump` check requires a solid block within three blocks under the feet before a sustained rise counts as a jump, and three rising ticks without one are reported and set back.',
+      },
+      {
+        group: null,
+        title: 'A new check for omnidirectional sprint',
+        copy: 'The source asks for the sprint state to be validated against the movement direction. A new `sprintsneak` check measures the offset between where the player is looking and where they are travelling, and reports sprinting backwards or strafing at full speed, which the vanilla client cannot do because sprinting only applies forwards.',
+      },
+      {
+        group: null,
+        title: 'The exhaustion total was an integer',
+        copy: 'The hunger accumulator was declared as a whole number, so adding 0.028 exhaustion per sprint tick truncated to zero every tick and the check could never see anything. Caught by the test for sprinting without losing any hunger, which did not flag.',
+      },
+    ],
+  },
 ]

@@ -67,6 +67,7 @@ public final class MovementState {
     private double speedMultiplier = 1.0;
     private double slownessMultiplier = 1.0;
     private int jumpBoostLevel;
+    private int foodLevel = -1;
     private int speedLevel;
     private int slownessLevel;
     private boolean hasSlowFalling;
@@ -481,6 +482,14 @@ public final class MovementState {
 
     public void slownessMultiplier(double value) {
         this.slownessMultiplier = value;
+    }
+
+    public int foodLevel() {
+        return foodLevel;
+    }
+
+    public void foodLevel(int value) {
+        this.foodLevel = value;
     }
 
     public int jumpBoostLevel() {

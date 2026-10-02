@@ -1262,6 +1262,7 @@ public final class SnuffPaperPlugin extends JavaPlugin implements SnuffLogger {
         PlayerInventory inventory = player.getInventory();
         ItemStack held = inventory.getItemInMainHand();
         Material type = held == null ? Material.AIR : held.getType();
+        data.movement().foodLevel(player.getFoodLevel());
         var equipment = data.equipment();
         double speed = MiningSpeedResolver.speedFor(type);
         double blockSpeed = 1.0;

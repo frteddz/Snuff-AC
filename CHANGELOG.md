@@ -5,6 +5,60 @@ All notable changes to Snuff AC are documented here.
 The format is based on Keep a Changelog, and this project adheres to Semantic
 Versioning.
 
+## [1.3.2-dev] - 2026-10-01
+
+AntiHunger, AirJump and SprintSneak. Three cheats that all depend on the
+server trusting a claim the client makes about itself.
+
+### Added
+
+**The server now reads the player's hunger**
+
+- The food level was never read, so nothing could compare what a player should
+  be losing against what they actually lost. It is read during the same
+  refresh that already reads equipment.
+
+**A new check for anti hunger**
+
+- Sprinting costs exhaustion per block travelled, and hunger drops every four
+  points of exhaustion. An AntiHunger module keeps the exhaustion and the
+  hunger never moves. A new `antihunger` check accumulates the exhaustion the
+  movement should have earned and compares it against the hunger the server
+  watched drop. Losing under 35 percent of what the movement cost is reported,
+  with both figures in the evidence.
+- The model uses the documented figures, so a player on ice, in water or on a
+  ladder is not measured against sprinting rates that do not apply to them.
+
+**A new check for air jump**
+
+- An AirJump module jumps with nothing underneath to jump from. A new
+  `airjump` check requires a solid block within three blocks under the feet
+  before a sustained rise counts as a jump, and three rising ticks without one
+  are reported and set back.
+
+**A new check for omnidirectional sprint**
+
+- The source asks for the sprint state to be validated against the movement
+  direction. A new `sprintsneak` check measures the offset between where the
+  player is looking and where they are travelling, and reports sprinting
+  backwards or strafing at full speed, which the vanilla client cannot do
+  because sprinting only applies forwards.
+
+### Fixed
+
+**The exhaustion total was an integer**
+
+- The hunger accumulator was declared as a whole number, so adding 0.028
+  exhaustion per sprint tick truncated to zero every tick and the check could
+  never see anything. Caught by the test for sprinting without losing any
+  hunger, which did not flag.
+
+### Verified
+
+- 524 tests pass, 8 of them new.
+- Loaded on a real Paper 1.21.11 server, 57 checks, anti-xray active, and a
+  real client walking, jumping and sprinting is clean.
+
 ## [1.3.1-dev] - 2026-10-01
 
 FastBow, BowAimbot and ChestStealer. Three more client side cheats, all of

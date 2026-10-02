@@ -153,6 +153,36 @@ checks:
       action: ALERT
       description: Sustained upward movement against a wall with no climbable block beside it.
       evidence: DERIVED
+    antihunger:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Exhaustion earned from sprinting and jumping compared against observed hunger.
+      evidence: DERIVED
+    airjump:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 1.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Rising while airborne with no block underneath to jump from.
+      evidence: DERIVED
+    sprintsneak:
+      enabled: true
+      buffer-threshold: 1.0
+      buffer-decay: 0.1
+      violation-increment: 1.0
+      setback-threshold: 0.0
+      alert-threshold: 1.0
+      action: ALERT
+      description: Sprint state validated against movement direction and speed.
+      evidence: DERIVED
     strafe:
       enabled: true
       buffer-threshold: 1.0

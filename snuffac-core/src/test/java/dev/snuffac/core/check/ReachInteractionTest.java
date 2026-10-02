@@ -83,6 +83,14 @@ class ReachInteractionTest {
         }
     }
 
+    private void isolate(String key) {
+        for (var check : core.registry().all()) {
+            if (!check.key().equals(key)) {
+                core.registry().config(check).enabled(false);
+            }
+        }
+    }
+
     private boolean flagged(String key) {
         return player.history().stream().anyMatch(record -> key.equals(record.checkKey()));
     }
@@ -217,6 +225,7 @@ class ReachInteractionTest {
     @Test
     @DisplayName("the air budget report names its mode and counts the unsupported ticks")
     void budgetEvidenceNamesTheMode() {
+        isolate("fly");
         double y = 65.0;
         for (int tick = 0; tick < 320; tick++) {
             y += 0.42;

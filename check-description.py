@@ -22,7 +22,7 @@ KOFI = "majdsafi"
 # words in the description that are bolded for emphasis rather than naming a check
 NOT_CHECKS = {"structural", "derived", "strict", "before", "after"}
 
-CHECK_COUNT = 54
+CHECK_COUNT = 57
 
 
 def main():
