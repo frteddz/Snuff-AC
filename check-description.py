@@ -16,6 +16,8 @@ CHECKS = ROOT / "snuffac-platform-paper" / "src/main/resources/checks.yml"
 PLUGIN = ROOT / "snuffac-platform-paper" / "src/main/resources/plugin.yml"
 COMMAND = ROOT / "snuffac-platform-paper/src/main/java/dev/snuffac/paper/SnuffCommand.java"
 PROPERTIES = ROOT / "gradle.properties"
+SITE_INDEX = ROOT / "web/index.html"
+SITE_APP = ROOT / "web/src/main.tsx"
 
 KOFI = "majdsafi"
 
@@ -47,6 +49,21 @@ def main():
     for name in re.findall(r"/snuff ([a-z]+)", doc):
         if name not in commands:
             problems.append(f"description names a command that does not exist: /snuff {name}")
+
+    index_html = SITE_INDEX.read_text(encoding="utf-8")
+    app = SITE_APP.read_text(encoding="utf-8")
+    for stale in re.findall(r"\b(\d+)\s+(?:focused\s+)?checks\b", index_html):
+        if stale != str(len(checks)):
+            problems.append(
+                f"site meta description says {stale} checks, checks.yml has {len(checks)}")
+    for stale in re.findall(r"<b>(\d+) focused checks</b>", app):
+        if stale != str(len(checks)):
+            problems.append(
+                f"site architecture panel says {stale} checks, checks.yml has {len(checks)}")
+    listed = len(re.findall(r"name: '[A-Za-z]+'", app))
+    if listed != len(checks):
+        problems.append(
+            f"site lists {listed} checks, checks.yml has {len(checks)}")
 
     nodes = set(re.findall(r"^  (snuff\S*):", PLUGIN.read_text(encoding="utf-8"), re.M))
     for node in re.findall(r"`(snuff[ac0-9.]+[a-z0-9.*]*)`", doc):
