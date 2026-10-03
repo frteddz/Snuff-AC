@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Snuff AC releases</title>
+  <subtitle>Release history of Snuff AC, an open source Minecraft anticheat.</subtitle>
+  <link href="https://frteddz.github.io/Snuff-AC/feed.xml" rel="self"/>
+  <link href="https://frteddz.github.io/Snuff-AC/changelog.html"/>
+  <id>https://frteddz.github.io/Snuff-AC/feed.xml</id>
+  <updated>2026-10-03T00:00:00Z</updated>
+  <entry>
+    <title>Snuff AC 1.0.0-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.0-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.0-dev</id>
+    <updated>2026-09-29T00:00:00Z</updated>
+    <summary type="text">Release 1.0.0-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.1-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.1-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.1-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.1-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.2-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.2-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.2-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.2-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.3-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.3-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.3-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.3-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.4-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.4-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.4-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.4-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.5-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.5-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.5-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.5-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.6-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.6-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.6-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.6-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.7-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.7-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.7-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.7-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.8-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.8-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.8-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.8-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.0.9-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.9-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.0.9-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.0.9-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.0-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.0-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.0-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.0-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.1-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.1-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.1-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.1-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.2-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.2-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.2-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.2-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.3-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.3-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.3-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.3-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.4-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.4-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.4-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.4-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.5-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.5-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.5-dev</id>
+    <updated>2026-09-30T00:00:00Z</updated>
+    <summary type="text">Release 1.1.5-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.6-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.6-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.6-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.1.6-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.7-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.7-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.7-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.1.7-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.8-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.8-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.8-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.1.8-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.1.9-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.9-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.1.9-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.1.9-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.0-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.0-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.0-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.0-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.1-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.1-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.1-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.1-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.2-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.2-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.2-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.2-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.3-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.3-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.3-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.3-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.4-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.4-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.4-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.4-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.5-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.5-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.5-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.5-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.6-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.6-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.6-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.6-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.7-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.7-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.7-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.7-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.8-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.8-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.8-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.8-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.2.9-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.9-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.2.9-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.2.9-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.0-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.0-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.0-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.0-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.1-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.1-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.1-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.1-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.2-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.2-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.2-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.2-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.3-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.3-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.3-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.3-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.4-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.4-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.4-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.4-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+  <entry>
+    <title>Snuff AC 1.3.5-dev</title>
+    <link href="https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.5-dev"/>
+    <id>https://frteddz.github.io/Snuff-AC/changelog.html#v1.3.5-dev</id>
+    <updated>2026-10-01T00:00:00Z</updated>
+    <summary type="text">Release 1.3.5-dev of Snuff AC, an open source Minecraft anticheat.</summary>
+  </entry>
+</feed>
